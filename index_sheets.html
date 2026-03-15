@@ -11,7 +11,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
-const { useState, useEffect, useCallback } = React;
 
 function CodeGate({ onUnlock }) {
   const [step, setStep] = React.useState(1);
@@ -164,7 +163,6 @@ function CodeGate({ onUnlock }) {
   );
 }
 
-const { useState, useEffect, useCallback } = React;
 function CodeGate({ onUnlock }) {
   const [code, setCode] = React.useState("");
   const [err, setErr] = React.useState("");
@@ -344,6 +342,7 @@ const C = {
   muted: "#9B6A8A",
   dimmed: "#5A3850"
 };
+const { useState, useEffect, useCallback } = React;
 function NumerologyApp() {
   const [form, setForm] = useState({ day: "", month: "", yearBE: "" });
   const [result, setResult] = useState(null);
