@@ -20,7 +20,7 @@ function CodeGate({ onUnlock }) {
   const [custName, setCustName]   = React.useState("");
   const [custPhone, setCustPhone] = React.useState("");
   const [custLine, setCustLine]   = React.useState("");
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSCu9dI51c2tPb6WA2dMqg8zlabE4T5InKul73PpJMlz5r6Bqe8G7Gs4Qm7UONNPTxcA/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec";
   const S = {
     pg:{minHeight:"100vh",background:"radial-gradient(ellipse at 30% 0%,#2A1025,#140810 55%,#1A0818)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Prompt',sans-serif"},
     bx:{width:"100%",maxWidth:400},
@@ -231,7 +231,6 @@ const _MEANINGS_LEGACY = {
 };
 function getMeaning(a, b) {
   return MEANINGS[`${a}-${b}`] || MEANINGS[`${b}-${a}`] || _MEANINGS_LEGACY[`${a}-${b}`] || _MEANINGS_LEGACY[`${b}-${a}`] || `(ยังไม่มีข้อมูล ${a}-${b})`;
-}
 }
 const C = {
   phlox: "#6B2D5E",
