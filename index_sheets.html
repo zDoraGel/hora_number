@@ -176,7 +176,7 @@ let MEANINGS = {};
 (async function loadMeanings() {
   // ดึง meanings จาก Apps Script เดิม (SCRIPT_URL เดียวกับที่ใช้ verify_code)
   try {
-    const url = localStorage.getItem('gs_script_url') || '';
+    const url = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
     if (!url) return; // ไม่มี URL ใช้ข้อมูล offline
     const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'get_meanings' }) });
     const data = await res.json();

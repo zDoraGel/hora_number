@@ -503,7 +503,7 @@ function calcZodiac() {
 let MEANINGS = {};
 (async function loadMeanings() {
   try {
-    const url = localStorage.getItem('gs_script_url') || '';
+    const url = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
     if (!url) return;
     const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'get_meanings' }) });
     const data = await res.json();
@@ -520,7 +520,7 @@ function getMeaning(a, b) {
 // ===== LOG TRAFFIC =====
 (function logTraffic() {
   try {
-    const url = localStorage.getItem('gs_script_url') || '';
+    const url = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
     if (!url) return;
     fetch(url, { method: 'POST', body: JSON.stringify({ action: 'log_traffic', page: 'free', action: 'visit', detail: document.referrer || 'direct' }) });
   } catch(e) {}

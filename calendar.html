@@ -354,6 +354,13 @@ function jump(){cM=parseInt(document.getElementById('selM').value);cY=parseInt(d
 })();
 
 render();
+
+// Log traffic
+(function(){
+  try {
+    fetch('https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec', { method: 'POST', body: JSON.stringify({ action: 'log_traffic', page: 'calendar', detail: document.referrer || 'direct' }) });
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
