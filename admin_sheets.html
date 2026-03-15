@@ -578,16 +578,14 @@ async function loadMeanings() {
               <td style="text-align:center;font-weight:700;color:var(--r)">${r.from_num||'-'}</td>
               <td style="text-align:center;font-weight:700;color:var(--al)">${r.to_num||'-'}</td>
               <td style="color:var(--c);font-size:12px;max-width:380px;line-height:1.6;cursor:pointer"
-                onclick="editMeaning('${r.pair_key}','${(r.meaning_th||'').replace(/'/g,"\'").replace(/
-/g,' ')}')"
+                onclick="editMeaning('${r.pair_key}','${(r.meaning_th||'').replace(/'/g,"\'").replace(/\n/g,' ')}')"
                 title="คลิกเพื่อแก้ไข">
                 ${(r.meaning_th||'-').substring(0,100)}${(r.meaning_th||'').length>100?'...':''}
               </td>
               <td style="color:var(--m);font-size:11px">${r.meaning_note||'-'}</td>
               <td style="color:var(--dim);font-size:10px">${fmtShort(r.updated_at)}</td>
               <td><button class="btn btn-g" style="font-size:11px;padding:4px 8px"
-                onclick="editMeaning('${r.pair_key}','${(r.meaning_th||'').replace(/'/g,"\'").replace(/
-/g,' ')}','${(r.meaning_note||'').replace(/'/g,"\'")}')">✏️</button></td>
+                onclick="editMeaning('${r.pair_key}','${(r.meaning_th||'').replace(/'/g,"\'").replace(/\n/g,' ')}','${(r.meaning_note||'').replace(/'/g,"\'")}')">✏️</button></td>
             </tr>`).join('')}
           </tbody>
         </table>
