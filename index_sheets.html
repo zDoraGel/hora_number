@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>จักรวาลแห่งตัวเลข</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0">
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="calendar.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback } = React;
+
+
+function CodeGate({ onUnlock }) {
+  const [code, setCode] = React.useState('');
+  const [err, setErr]   = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const SCRIPT_URL = localStorage.getItem('gs_script_url') || '';
+
+  async function verify() {
+    const input = code.trim().toUpperCase();
+    if (!input) return;
+    if (!SCRIPT_URL) { setErr('ยังไม่ได้ตั้งค่า Script URL — กรุณาติดต่ออาจารย์ค่ะ'); return; }
+    setLoading(true); setErr('');
+    try {
+      const res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'verify_code', code: input }) });
+      const data = await res.json();
+      if (data.ok) { onUnlock(); }
+      else { setErr(data.msg || 'โค้ดไม่ถูกต้อง'); }
+    } catch(e) { setErr('เชื่อมต่อล้มเหลว กรุณาลองใหม่ค่ะ'); }
+    setLoading(false);
+  }
+
+
+function NumerologyApp(){
+  const [form,setForm]   = useState({day:'',month:'',yearBE:''});
+  const [result,setResult]= useState(null);
+  const [tab,setTab]     = useState('yearly');
+  const [orbs,setOrbs]   = useState([]);
+  const [sparkles,setSparkles]=useState([]);
+
+  useEffect(()=>{
+    setOrbs(Array.from({length:5},(_,i)=>({
+      id:i,
+      x:Math.random()*100, y:Math.random()*100,
+      w:Math.random()*400+200,
+      d:Math.random()*20+15,
+      dl:Math.random()*10,
+    })));
+    setSparkles(Array.from({length:50},(_,i)=>({
+      id:i, x:Math.random()*100, y:Math.random()*100,
+      s:Math.random()*2+.5, d:Math.random()*7+4, dl:Math.random()*10,
+    })));
+  },[]);
+
+  const calculate = useCallback(()=>{
+    const day=parseInt(form.day), month=parseInt(form.month), yearBE=parseInt(form.yearBE);
+    if(!day||!month||!yearBE) return;
+
+    const calEntry = lookupCalendar(day, month, yearBE);
+    const zodiacNum = getZodiac(yearBE);
+    const age       = calcAge(day, month, yearBE);
+    const ageFirst  = parseInt(String(age)[0]);
+    const ageLast   = parseInt(String(age).slice(-1));
+    const ageSum    = digitSum(age);
+
+    let dowReal, isWaning;
+    if(calEntry){ dowReal=calEntry.dow; isWaning=calEntry.isWaning; }
+    else {
+      const ce=new Date(yearBE-543,month-1,day);
+      dowReal=ce.getDay()===0?7:ce.getDay();
+      const ld=Math.abs(Math.floor(((ce-new Date(2000,0,6))/86400000)%29.53));
+      isWaning=ld>=15;
+    }
+
+    const ageDigits=String(age).split('').map(Number).reduce((a,b)=>a+b,0);
+    const total=dowReal+month+zodiacNum+ageDigits;
+    const code=reduceMax7(total);
+
+    const table1=buildTable1(dowReal);
+    const row4_1=table1[0].map((_,i)=>digitSum(table1[0][i]+table1[1][i]+table1[2][i]));
+
+    const d7=reduceMax7(dowReal),m7=reduceMax7(month),y7=reduceMax7(zodiacNum);
+    const table2=buildTable2(d7,m7,y7);
+    const devaHoriz=table2[3][(age-1)%7];
+    const table3=buildTable3(code,ageFirst,ageLast);
+
+    const monthly=Array.from({length:12},(_,i)=>{
+      const m=i+1;
+      const ci=isWaning?(6-((m-1)%7)):((m-1)%7);
+      const safe=((ci%7)+7)%7;
+      const mCode=table3[0][safe];
+      return { month:m, cmd1:[mCode,table3[0][0]], cmd2:[mCode,table3[0][6]], cmd3:[mCode,ageSum] };
+    });
+
+    setResult({
+      input:{day,month,yearBE,dowReal,zodiacNum,isWaning,age,ageFirst,ageLast,ageSum},
+      calFound:!!calEntry, code,
+      table1, row4_1, table2, table3,
+      agePos12:getAgeRow12(age),
+      t1head:row4_1[0], t1tail:row4_1[6],
+      t2head:table2[0][0], t2tail:table2[0][6],
+      devaHoriz, d7,m7,y7, monthly,
+    });
+    setTab('yearly');
+  },[form]);
+
+  const css=`
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:${C.deepest};}
+    @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-20px) scale(1.05);}66%{transform:translate(-20px,25px) scale(.97);}}
+    @keyframes sparkle{0%,100%{opacity:.05;transform:scale(.8);}50%{opacity:.9;transform:scale(1.4);}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes floatIcon{0%,100%{transform:translateY(0px);}50%{transform:translateY(-10px);}}
+    @keyframes pulseBorder{0%,100%{box-shadow:0 0 0 0 ${C.phlox}40,0 0 20px ${C.phlox}30;}50%{box-shadow:0 0 0 4px ${C.phlox}20,0 0 40px ${C.phlox}50;}}
+    @keyframes gradShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    .fade-in{animation:fadeUp .5s ease forwards;}
+    .card{
+      background:linear-gradient(135deg,rgba(107,45,94,.12) 0%,rgba(74,31,65,.08) 100%);
+      border:1px solid ${C.phlox}40;
+      border-radius:20px;
+      backdrop-filter:blur(16px);
+    }
+    .card-inner{
+      background:rgba(107,45,94,.06);
+      border:1px solid ${C.phlox}25;
+      border-radius:14px;
+    }
+    input,select{
+      background:rgba(107,45,94,.18);
+      border:1px solid ${C.phlox}50;
+      border-radius:10px;
+      color:${C.cream};
+      font-family:'Sarabun',sans-serif;
+      font-size:15px;
+      padding:12px 15px;
+      width:100%;
+      outline:none;
+      transition:all .25s;
+    }
+    input:focus,select:focus{
+      border-color:${C.accent};
+      box-shadow:0 0 0 3px ${C.phlox}25,0 0 20px ${C.phlox}30;
+    }
+    input::placeholder{color:${C.dimmed};}
+    select option{background:#3D1A35;color:${C.cream};}
+    .btn-calc{
+      background:linear-gradient(135deg,${C.phlox} 0%,${C.phloxLt} 50%,${C.accent} 100%);
+      background-size:200% 200%;
+      animation:gradShift 5s ease infinite;
+      color:#fff;
+      font-family:'Sarabun',sans-serif;
+      font-weight:700;
+      font-size:16px;
+      letter-spacing:.8px;
+      border:none;
+      cursor:pointer;
+      border-radius:12px;
+      width:100%;
+      padding:14px;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .btn-calc:hover{transform:translateY(-2px);box-shadow:0 10px 35px ${C.phlox}60;}
+    .btn-back{
+      background:rgba(107,45,94,.25);
+      border:1px solid ${C.phlox}50;
+      color:${C.rose};
+      font-family:'Sarabun',sans-serif;
+      font-size:13px;
+      cursor:pointer;
+      border-radius:8px;
+      padding:7px 15px;
+      transition:all .25s;
+    }
+    .btn-back:hover{background:rgba(107,45,94,.45);}
+    .tab{
+      background:transparent;
+      border:1px solid ${C.phlox}35;
+      color:${C.muted};
+      font-family:'Sarabun',sans-serif;
+      font-size:13px;
+      cursor:pointer;
+      border-radius:8px;
+      padding:8px 15px;
+      white-space:nowrap;
+      transition:all .25s;
+    }
+    .tab.on{
+      background:${C.phlox}30;
+      border-color:${C.phloxLt};
+      color:${C.rose};
+    }
+    .tab:hover:not(.on){border-color:${C.phlox}60;color:${C.accentLt};}
+    .mcard{
+      background:linear-gradient(135deg,${C.phlox}0A 0%,${C.phloxDk}15 100%);
+      border-left:3px solid ${C.phloxLt};
+      border-radius:0 12px 12px 0;
+      padding:14px 16px;
+      margin:8px 0;
+    }
+    .tcell{
+      display:flex;align-items:center;justify-content:center;
+      width:40px;height:40px;
+      border:1px solid ${C.phlox}25;
+      font-size:13px;border-radius:8px;
+      color:${C.rose}AA;
+      font-family:'Cormorant Garamond',serif;
+    }
+    .tcell.hi{
+      background:${C.phlox}30;
+      border-color:${C.phloxLt};
+      color:${C.rose};
+      font-weight:700;font-size:15px;
+    }
+    .pair-tag{
+      display:inline-flex;align-items:center;
+      background:${C.phlox}20;
+      border:1px solid ${C.phlox}50;
+      border-radius:20px;
+      padding:2px 10px;
+      font-size:12px;
+      color:${C.accentLt};
+      font-family:'Cormorant Garamond',serif;
+      letter-spacing:.5px;
+    }
+    .num-chip{
+      background:${C.phlox}20;
+      border:1px solid ${C.phlox}40;
+      border-radius:8px;
+      padding:5px 10px;
+      font-weight:700;
+      color:${C.rose};
+      font-size:16px;
+      text-align:center;
+    }
+    .section-hd{
+      color:${C.accentLt};font-weight:600;font-size:13px;
+      padding:8px 0 6px;
+      border-bottom:1px solid ${C.phlox}25;
+      margin-bottom:8px;
+      font-family:'Sarabun',sans-serif;
+    }
+    .divider{
+      border:none;
+      border-top:1px solid ${C.phlox}20;
+      margin:16px 0;
+    }
+    .month-hd{
+      color:${C.accentLt};font-weight:700;font-size:15px;
+      border-bottom:1px solid ${C.phlox}25;
+      padding-bottom:8px;margin-bottom:10px;
+    }
+    .badge-code{
+      width:56px;height:56px;border-radius:50%;
+      border:2px solid ${C.phloxLt};
+      display:flex;align-items:center;justify-content:center;
+      font-size:26px;font-weight:700;
+      color:${C.rose};
+      font-family:'Cormorant Garamond',serif;
+      animation:pulseBorder 3s ease-in-out infinite;
+    }
+  `;
+
+  const tx = { color:C.cream };
+  const txMuted = { color:C.muted, fontSize:13 };
+  const txAccent = { color:C.rose, fontWeight:600 };
+
+  return (
+    <div style={{minHeight:'100vh',
+      background:`radial-gradient(ellipse at 30% 0%,${C.dark} 0%,${C.deepest} 45%,${C.darker} 100%)`,
+      fontFamily:"'Sarabun',sans-serif", color:C.cream,
+      position:'relative', overflow:'hidden'}}>
+      <style>{css}</style>
+
+      {/* Orbs */}
+      {orbs.map(o=>(
+        <div key={o.id} style={{
+          position:'fixed', left:`${o.x}%`, top:`${o.y}%`,
+          width:o.w, height:o.w, borderRadius:'50%',
+          background:`radial-gradient(ellipse,${C.phlox}18 0%,transparent 70%)`,
+          transform:'translate(-50%,-50%)',
+          animation:`orbFloat ${o.d}s ${o.dl}s ease-in-out infinite`,
+          pointerEvents:'none', zIndex:0,
+        }}/>
+      ))}
+
+      {/* Sparkles */}
+      {sparkles.map(s=>(
+        <div key={s.id} style={{
+          position:'fixed', left:`${s.x}%`, top:`${s.y}%`,
+          width:s.s, height:s.s, borderRadius:'50%',
+          background:C.rose, opacity:.4,
+          animation:`sparkle ${s.d}s ${s.dl}s infinite`,
+          pointerEvents:'none', zIndex:0,
+        }}/>
+      ))}
+
+      <div style={{maxWidth:760,margin:'0 auto',padding:'20px 16px',position:'relative',zIndex:1}}>
+
+        {/* HEADER */}
+        <div style={{textAlign:'center',padding:'32px 0 24px'}} className="fade-in">
+          <div style={{fontSize:52,animation:'floatIcon 4s ease-in-out infinite',display:'block',marginBottom:12}}>
+            🔮
+          </div>
+          <h1 style={{
+            fontFamily:"'Cormorant Garamond',serif",
+            fontSize:30, fontWeight:600, fontStyle:'italic',
+            background:`linear-gradient(135deg,${C.rose} 0%,${C.accentLt} 40%,${C.cream} 70%,${C.rose} 100%)`,
+            WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+            letterSpacing:3, lineHeight:1.3, marginBottom:8,
+          }}>จักรวาลแห่งตัวเลข</h1>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
+            <div style={{height:1,width:40,background:`linear-gradient(to right,transparent,${C.phloxLt})`}}/>
+            <p style={{...txMuted,letterSpacing:2,fontSize:12}}>ดูดวงชะตา · ปฏิทิน ๑๐๐ ปี</p>
+            <div style={{height:1,width:40,background:`linear-gradient(to left,transparent,${C.phloxLt})`}}/>
+          </div>
+        </div>
+
+        {/* FORM */}
+        {!result && (
+          <div className="card fade-in" style={{padding:30}}>
+            {/* Pantone badge */}
+            <div style={{display:'flex',justifyContent:'center',marginBottom:22}}>
+              <div style={{
+                background:`linear-gradient(135deg,${C.phlox},${C.phloxDk})`,
+                borderRadius:8, padding:'6px 16px',
+                fontFamily:"'Cormorant Garamond',serif",
+                fontSize:12, letterSpacing:2, color:C.rose,
+              }}>
+                PANTONE® 19-2820 · PHLOX
+              </div>
+            </div>
+
+            <h2 style={{...txAccent,fontSize:15,textAlign:'center',marginBottom:22,letterSpacing:.5}}>
+              ✦ กรอกวันเดือนปีเกิด ✦
+            </h2>
+
+            <div style={{display:'grid',gap:14}}>
+              <div>
+                <label style={{...txMuted,display:'block',marginBottom:6}}>วันที่เกิด</label>
+                <input type="number" placeholder="เช่น 13" min="1" max="31"
+                  value={form.day} onChange={e=>setForm(f=>({...f,day:e.target.value}))}/>
+              </div>
+              <div>
+                <label style={{...txMuted,display:'block',marginBottom:6}}>เดือนเกิด</label>
+                <select value={form.month} onChange={e=>setForm(f=>({...f,month:e.target.value}))}>
+                  <option value="">— เลือกเดือน —</option>
+                  {MONTH_NAMES.slice(1).map((m,i)=>(
+                    <option key={i+1} value={i+1}>{i+1}. {m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{...txMuted,display:'block',marginBottom:6}}>ปีเกิด (พ.ศ.)</label>
+                <input type="number" placeholder="เช่น 2527" min="2400" max="2580"
+                  value={form.yearBE} onChange={e=>setForm(f=>({...f,yearBE:e.target.value}))}/>
+              </div>
+            </div>
+
+            <button className="btn-calc" style={{marginTop:24}} onClick={calculate}>
+              ✦ เปิดดูดวงชะตา ✦
+            </button>
+
+            <p style={{...txMuted,textAlign:'center',marginTop:14,fontSize:12,letterSpacing:.5}}>
+              ข้อมูลปฏิทิน 100 ปี · พ.ศ. 2466–2500, 2521–2522
+            </p>
+          </div>
+        )}
+
+        {/* RESULT */}
+        {result && (
+          <div className="fade-in">
+
+            {/* Info card */}
+            <div className="card" style={{padding:20,marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+                <div style={{flex:1}}>
+                  <div style={{
+                    fontFamily:"'Cormorant Garamond',serif",
+                    fontSize:20, fontWeight:600, fontStyle:'italic',
+                    color:C.rose, marginBottom:4,
+                  }}>
+                    {result.input.day} {MONTH_NAMES[result.input.month]} {result.input.yearBE}
+                  </div>
+                  <div style={txMuted}>
+                    วัน{DAY_NAMES[result.input.dowReal]} &nbsp;·&nbsp;
+                    ปี{ZODIAC_NAMES[result.input.zodiacNum]} &nbsp;·&nbsp;
+                    {result.input.isWaning ? '🌒 ข้างแรม' : '🌕 ข้างขึ้น'} &nbsp;·&nbsp;
+                    อายุ {result.input.age} ปี
+                  </div>
+                  {!result.calFound && (
+                    <div style={{color:'#f59e0b',fontSize:11,marginTop:4}}>
+                      ⚠ ปีนี้ยังไม่มีในปฏิทิน 100 ปี (ประมาณการ)
+                    </div>
+                  )}
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:12}}>
+                  <div style={{textAlign:'center'}}>
+                    <div style={{...txMuted,fontSize:11,marginBottom:5}}>เลขรหัส</div>
+                    <div className="badge-code">{result.code}</div>
+                  </div>
+                  <button className="btn-back" onClick={()=>{setResult(null);setForm({day:'',month:'',yearBE:''});}}>
+                    ← ใหม่
+                  </button>
+                </div>
+              </div>
+
+              {/* Number row */}
+              <div style={{display:'flex',gap:8,marginTop:16,flexWrap:'wrap'}}>
+                {[
+                  {l:'วัน',v:result.input.dowReal},
+                  {l:'เดือน',v:result.input.month},
+                  {l:'ปีนักษัตร',v:result.input.zodiacNum},
+                  {l:'อายุ',v:result.input.age},
+                  {l:'รหัส',v:result.code},
+                ].map(item=>(
+                  <div key={item.l} style={{textAlign:'center',flex:1,minWidth:55}}>
+                    <div style={{...txMuted,fontSize:11,marginBottom:4}}>{item.l}</div>
+                    <div className="num-chip">{item.v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div style={{display:'flex',gap:8,marginBottom:14,overflowX:'auto',paddingBottom:2}}>
+              {[
+                {id:'yearly',   label:'☽ รายปี 12 ตัว'},
+                {id:'yearly21', label:'✦ รายปี 21 ตัว'},
+                {id:'monthly',  label:'◎ รายเดือน'},
+              ].map(t=>(
+                <button key={t.id} className={`tab ${tab===t.id?'on':''}`} onClick={()=>setTab(t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* ── TAB 1: รายปี 12 ── */}
+            {tab==='yearly' && (
+              <div className="card fade-in" style={{padding:22}}>
+                <h3 style={{...txAccent,fontSize:15,marginBottom:18,
+                  fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',letterSpacing:.5}}>
+                  ☽ เหตุการณ์รายปี &nbsp;—&nbsp; ตาราง ๑ (๑๒ ตัว)
+                </h3>
+
+                <div style={{overflowX:'auto',marginBottom:16}}>
+                  <div style={{display:'inline-flex',flexDirection:'column',gap:4}}>
+                    {['วัน','เดือน','ปี'].map((lbl,ri)=>(
+                      <div key={ri} style={{display:'flex',gap:4,alignItems:'center'}}>
+                        <div style={{...txMuted,width:46,fontSize:11}}>{lbl}</div>
+                        {result.table1[ri].map((v,ci)=>(
+                          <div key={ci} className={`tcell ${ci===0?'hi':''}`}>{v}</div>
+                        ))}
+                      </div>
+                    ))}
+                    <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                      <div style={{...txMuted,width:46,fontSize:11}}>รวม</div>
+                      {result.row4_1.map((v,ci)=>(
+                        <div key={ci} className={`tcell ${ci===0?'hi':''}`}>{v}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{...txMuted,marginBottom:16,fontSize:12}}>
+                  อายุ {result.input.age} ปี → ตำแหน่งตาราง 12 = ช่องที่ {result.agePos12}
+                </div>
+
+                {[
+                  [result.agePos12, result.t1head],
+                  [result.agePos12, result.t1tail],
+                  [result.agePos12, result.input.ageSum],
+                ].filter((c,i,arr)=>i===0||JSON.stringify(c)!==JSON.stringify(arr[i-1]))
+                 .map((cmd,i)=>(
+                  <div key={i} className="mcard">
+                    <div style={{...txMuted,marginBottom:6,fontSize:12}}>
+                      คำสั่งที่ {i+1} &nbsp;<span className="pair-tag">{cmd[0]} – {cmd[1]}</span>
+                    </div>
+                    <div style={{fontSize:14,lineHeight:2,...tx}}>{getMeaning(cmd[0],cmd[1])}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── TAB 2: รายปี 21 ── */}
+            {tab==='yearly21' && (
+              <div className="card fade-in" style={{padding:22}}>
+                <h3 style={{...txAccent,fontSize:15,marginBottom:18,
+                  fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',letterSpacing:.5}}>
+                  ✦ เหตุการณ์รายปี &nbsp;—&nbsp; ตาราง ๒ (๒๑ ตัว)
+                </h3>
+
+                <div style={{overflowX:'auto',marginBottom:16}}>
+                  <div style={{display:'inline-flex',flexDirection:'column',gap:4}}>
+                    {['วัน','เดือน','ปี','รวม'].map((lbl,ri)=>(
+                      <div key={ri} style={{display:'flex',gap:4,alignItems:'center'}}>
+                        <div style={{...txMuted,width:46,fontSize:11}}>{lbl}</div>
+                        {result.table2[ri].map((v,ci)=>(
+                          <div key={ci} className={`tcell ${ci===0?'hi':''}`}>{v}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* องค์เทวดา */}
+                <div className="card-inner" style={{padding:14,marginBottom:16}}>
+                  <div style={{...txAccent,fontSize:14,marginBottom:10,
+                    fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic'}}>
+                    ◎ องค์เทวดา
+                  </div>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
+                    <span className="pair-tag">เทวดา {result.devaHoriz}</span>
+                    <span className="pair-tag">อายุรวม {result.input.ageSum}</span>
+                  </div>
+                  <div className="mcard">
+                    <div style={{fontSize:14,lineHeight:2,...tx}}>{getMeaning(result.devaHoriz,result.input.ageSum)}</div>
+                  </div>
+                </div>
+
+                {/* เหตุการณ์ */}
+                <div style={{...txAccent,fontSize:14,marginBottom:10}}>เหตุการณ์รายปี</div>
+                {[
+                  [result.code, result.t2head],
+                  [result.code, result.t2tail],
+                  [result.code, result.input.ageSum],
+                ].filter((c,i,arr)=>i===0||JSON.stringify(c)!==JSON.stringify(arr[i-1]))
+                 .map((cmd,i)=>(
+                  <div key={i} className="mcard">
+                    <div style={{...txMuted,marginBottom:6,fontSize:12}}>
+                      คำสั่งที่ {i+1} &nbsp;<span className="pair-tag">{cmd[0]} – {cmd[1]}</span>
+                    </div>
+                    <div style={{fontSize:14,lineHeight:2,...tx}}>{getMeaning(cmd[0],cmd[1])}</div>
+                  </div>
+                ))}
+
+                <hr className="divider"/>
+
+                {/* เส้นชีวิต 7 ช่อง */}
+                <div style={{...txAccent,fontSize:14,marginBottom:14,
+                  fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic'}}>
+                  เส้นชีวิต ๗ ช่อง
+                </div>
+                {SECTION_NAMES.map((name,si)=>{
+                  const cols=findCols([result.table2[0],result.table2[1],result.table2[2]],si+1);
+                  const pairs=cols.map((col,ri)=>{
+                    if(!col) return null;
+                    const p=result.table2[ri][col-1];
+                    return p?[si+1,p]:null;
+                  }).filter(Boolean);
+                  const uPairs=pairs.filter((p,i,a)=>i===a.findIndex(x=>x[0]===p[0]&&x[1]===p[1]));
+                  return (
+                    <div key={si} style={{marginBottom:16}}>
+                      <div className="section-hd">({si+1}) {name}</div>
+                      {uPairs.map((pair,pi)=>(
+                        <div key={pi} className="mcard" style={{marginBottom:5}}>
+                          <div style={{...txMuted,marginBottom:4,fontSize:12}}>
+                            <span className="pair-tag">{pair[0]} – {pair[1]}</span>
+                          </div>
+                          <div style={{fontSize:13,lineHeight:2,...tx}}>{getMeaning(pair[0],pair[1])}</div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ── TAB 3: รายเดือน ── */}
+            {tab==='monthly' && (
+              <div className="card fade-in" style={{padding:22}}>
+                <h3 style={{...txAccent,fontSize:15,marginBottom:6,
+                  fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',letterSpacing:.5}}>
+                  ◎ เหตุการณ์รายเดือน &nbsp;—&nbsp; ตาราง ๓
+                </h3>
+                <div style={{...txMuted,marginBottom:16}}>
+                  {result.input.isWaning?'🌒 ข้างแรม · อ่านจากขวามือ':'🌕 ข้างขึ้น · อ่านจากซ้ายมือ'}
+                </div>
+
+                <div style={{overflowX:'auto',marginBottom:18}}>
+                  <div style={{display:'inline-flex',flexDirection:'column',gap:4}}>
+                    {['รหัส','อายุแรก','อายุหลัง'].map((lbl,ri)=>(
+                      <div key={ri} style={{display:'flex',gap:4,alignItems:'center'}}>
+                        <div style={{...txMuted,width:60,fontSize:11}}>{lbl}</div>
+                        {result.table3[ri].map((v,ci)=>(
+                          <div key={ci} className="tcell">{v}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {result.monthly.map(({month:m,cmd1,cmd2,cmd3})=>{
+                  const uCmds=[cmd1,cmd2,cmd3].filter((c,i,a)=>i===0||JSON.stringify(c)!==JSON.stringify(a[i-1]));
+                  return (
+                    <div key={m} style={{marginBottom:22}}>
+                      <div className="month-hd">{MONTH_NAMES[m]}</div>
+                      {uCmds.map((cmd,i)=>(
+                        <div key={i} className="mcard">
+                          <div style={{...txMuted,marginBottom:4,fontSize:12}}>
+                            <span className="pair-tag">{cmd[0]} – {cmd[1]}</span>
+                          </div>
+                          <div style={{fontSize:13,lineHeight:2,...tx}}>{getMeaning(cmd[0],cmd[1])}</div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{textAlign:'center',padding:'24px 0 8px',
+          fontFamily:"'Cormorant Garamond',serif",
+          color:C.dimmed,fontSize:13,letterSpacing:2,fontStyle:'italic'}}>
+          ✦ &nbsp; PANTONE 19-2820 · Phlox &nbsp; ✦
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function App() {
+  const [unlocked, setUnlocked] = React.useState(false);
+  if (!unlocked) return <CodeGate onUnlock={()=>setUnlocked(true)} />;
+  return <NumerologyApp />;
+}
+const domRoot = ReactDOM.createRoot(document.getElementById('root'));
+domRoot.render(<App />);
+
+</script>
+</body>
+</html>
