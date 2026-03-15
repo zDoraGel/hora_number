@@ -4,27 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — จักรวาลแห่งตัวเลข</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
 <style>
-:root{--p:#6B2D5E;--pl:#8B3D7A;--d:#1E0A1A;--dk:#3D1A35;--a:#C45FA0;--al:#E08AC0;--r:#F0C8DC;--c:#F5E8F0;--m:#9B6A8A;--dim:#5A3850;--g:#4CAF82;--red:#E05C7A;--gold:#D4A84B;}
+:root{--p:#6B2D5E;--pl:#8B3D7A;--a:#C45FA0;--al:#E08AC0;--r:#F0C8DC;--c:#EEE0E8;--m:#A07890;--dim:#705060;--g:#55BB88;--red:#FF7070;--gold:#D4A84B;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:radial-gradient(ellipse at 20% 0%,var(--dk),var(--d) 55%);font-family:'Sarabun',sans-serif;color:var(--c);min-height:100vh}
+body{background:#140810;font-family:'Prompt',sans-serif;color:var(--c);min-height:100vh}
 @keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .fade{animation:fadeUp .3s ease forwards}
 .card{background:linear-gradient(135deg,rgba(107,45,94,.14),rgba(74,31,65,.08));border:1px solid rgba(107,45,94,.3);border-radius:16px}
-input,select{background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:8px;color:var(--c);font-family:'Sarabun',sans-serif;font-size:14px;padding:10px 13px;outline:none;transition:all .2s;width:100%}
+input,select{background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:8px;color:var(--c);font-family:'Prompt',sans-serif;font-size:14px;padding:10px 13px;outline:none;transition:all .2s;width:100%}
 input:focus,select:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(107,45,94,.2)}
 input::placeholder{color:var(--dim)} select option{background:#3D1A35}
-.btn{border:none;cursor:pointer;border-radius:9px;font-family:'Sarabun',sans-serif;font-weight:600;font-size:14px;padding:10px 18px;transition:all .2s}
+.btn{border:none;cursor:pointer;border-radius:9px;font-family:'Prompt',sans-serif;font-weight:600;font-size:14px;padding:10px 18px;transition:all .2s}
 .btn-p{background:linear-gradient(135deg,var(--p),var(--pl),var(--a));background-size:200%;animation:shimmer 4s ease infinite;color:#fff}
 .btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(107,45,94,.5)}
 .btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .btn-g{background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.4);color:var(--r)}
 .btn-g:hover{background:rgba(107,45,94,.4)}
 .btn-d{background:rgba(224,92,122,.15);border:1px solid rgba(224,92,122,.4);color:var(--red);font-size:12px;padding:5px 10px}
-.tab{background:transparent;border:1px solid rgba(107,45,94,.3);color:var(--m);cursor:pointer;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;padding:8px 14px;transition:all .2s;white-space:nowrap}
+.tab{background:transparent;border:1px solid rgba(107,45,94,.3);color:var(--m);cursor:pointer;border-radius:8px;font-family:'Prompt',sans-serif;font-size:13px;padding:8px 14px;transition:all .2s;white-space:nowrap}
 .tab.on{background:rgba(107,45,94,.3);border-color:var(--pl);color:var(--r)}
 .chip{font-family:'Courier New',monospace;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 9px;color:var(--al);font-size:13px;letter-spacing:2px;font-weight:700}
 .sc{background:linear-gradient(135deg,rgba(107,45,94,.2),rgba(74,31,65,.1));border:1px solid rgba(107,45,94,.35);border-radius:14px;padding:18px 20px}
@@ -46,7 +46,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
 <div id="loginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center">
   <div class="card fade" style="padding:36px;width:100%;max-width:360px;text-align:center">
     <div style="font-size:38px;margin-bottom:10px">🔐</div>
-    <h2 style="color:var(--r);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;margin-bottom:4px">Admin Panel</h2>
+    <h2 style="color:var(--r);font-family:'DM Sans',sans-serif;font-size:22px;margin-bottom:4px">Admin Panel</h2>
     <p style="color:var(--m);font-size:12px;margin-bottom:20px">จักรวาลแห่งตัวเลข</p>
 
     <!-- ใส่ Script URL ก่อนใช้งาน -->
@@ -67,7 +67,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
   <div style="border-bottom:1px solid rgba(107,45,94,.3);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(30,10,26,.85);position:sticky;top:0;z-index:100">
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-size:20px">🔮</span>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--r);font-size:16px">Admin Panel</div>
+      <div style="font-family:'DM Sans',sans-serif;color:var(--r);font-size:16px">Admin Panel</div>
     </div>
     <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="logout()">ออกจากระบบ</button>
   </div>
@@ -98,7 +98,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
     <div id="tab-gen" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="card" style="padding:22px">
-          <h3 style="color:var(--r);font-size:14px;margin-bottom:18px;font-family:'Cormorant Garamond',serif;font-style:italic">✦ ออกโค้ดใหม่</h3>
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:18px;font-family:'DM Sans',sans-serif">✦ ออกโค้ดใหม่</h3>
           <div style="display:grid;gap:12px">
             <div>
               <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ราคา (บาท)</label>
@@ -123,7 +123,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
           </div>
         </div>
         <div class="card" style="padding:22px">
-          <h3 style="color:var(--r);font-size:14px;margin-bottom:14px;font-family:'Cormorant Garamond',serif;font-style:italic">🎫 โค้ดที่สร้างล่าสุด</h3>
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:14px;font-family:'DM Sans',sans-serif">🎫 โค้ดที่สร้างล่าสุด</h3>
           <div id="genOut" style="color:var(--dim);font-size:13px;text-align:center;padding:28px 0">กดสร้างโค้ดเพื่อดูผลลัพธ์</div>
         </div>
       </div>
@@ -281,7 +281,7 @@ async function loadDash() {
            {icon:'💰',label:'รายได้เดือนนี้',value:(d.month_revenue||0).toLocaleString(),unit:'บาท',color:'var(--gold)'},
            {icon:'🎫',label:'โค้ดยังไม่ใช้',value:d.total_unused,unit:'โค้ด',color:'var(--g)'},
            {icon:'✅',label:'ใช้ไปทั้งหมด',value:d.total_used,unit:'ครั้ง',color:'var(--r)'}]
-          .map(s=>`<div class="sc"><div style="font-size:20px;margin-bottom:5px">${s.icon}</div><div style="color:var(--m);font-size:11px;margin-bottom:3px">${s.label}</div><div style="font-size:24px;font-weight:700;color:${s.color};font-family:'Cormorant Garamond',serif">${s.value}</div><div style="color:var(--dim);font-size:11px">${s.unit}</div></div>`).join('')}
+          .map(s=>`<div class="sc"><div style="font-size:20px;margin-bottom:5px">${s.icon}</div><div style="color:var(--m);font-size:11px;margin-bottom:3px">${s.label}</div><div style="font-size:24px;font-weight:700;color:${s.color};font-family:'DM Sans',sans-serif">${s.value}</div><div style="color:var(--dim);font-size:11px">${s.unit}</div></div>`).join('')}
       </div>
       <div class="card" style="padding:18px;margin-bottom:14px">
         <h3 style="color:var(--r);font-size:13px;margin-bottom:14px">📈 ย้อนหลัง 6 เดือน</h3>
