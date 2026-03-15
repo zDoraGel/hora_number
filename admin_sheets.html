@@ -77,6 +77,8 @@ tr:hover td{background:rgba(107,45,94,.08)}
       <button class="tab on" onclick="switchTab('dash',this)">📊 Dashboard</button>
       <button class="tab" onclick="switchTab('gen',this)">🎫 ออกโค้ด</button>
       <button class="tab" onclick="switchTab('list',this)">📋 รายการโค้ด</button>
+      <button class="tab" onclick="switchTab('readings',this)">👤 ข้อมูลลูกค้า</button>
+      <button class="tab" onclick="switchTab('traffic',this)">📊 Traffic</button>
     </div>
 
     <!-- DASHBOARD -->
@@ -127,6 +129,16 @@ tr:hover td{background:rgba(107,45,94,.08)}
           <div id="genOut" style="color:var(--dim);font-size:13px;text-align:center;padding:28px 0">กดสร้างโค้ดเพื่อดูผลลัพธ์</div>
         </div>
       </div>
+    </div>
+
+    <!-- READINGS -->
+    <div id="tab-readings" style="display:none">
+      <div id="readingsOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+    </div>
+
+    <!-- TRAFFIC -->
+    <div id="tab-traffic" style="display:none">
+      <div id="trafficOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
     </div>
 
     <!-- LIST -->
@@ -210,6 +222,8 @@ function switchTab(name, btn) {
   document.getElementById('tab-'+name).style.display = 'block';
   btn.classList.add('on');
   if(name==='list') loadList();
+  if(name==='readings') loadReadings();
+  if(name==='traffic') loadTraffic();
   if(name==='dash') loadDash();
 }
 
@@ -280,7 +294,9 @@ async function loadDash() {
         ${[{icon:'👁',label:'คนดูดวงเดือนนี้',value:d.month_count,unit:'คน',color:'var(--a)'},
            {icon:'💰',label:'รายได้เดือนนี้',value:(d.month_revenue||0).toLocaleString(),unit:'บาท',color:'var(--gold)'},
            {icon:'🎫',label:'โค้ดยังไม่ใช้',value:d.total_unused,unit:'โค้ด',color:'var(--g)'},
-           {icon:'✅',label:'ใช้ไปทั้งหมด',value:d.total_used,unit:'ครั้ง',color:'var(--r)'}]
+           {icon:'✅',label:'ใช้ไปทั้งหมด',value:d.total_used,unit:'ครั้ง',color:'var(--r)'},
+           {icon:'👤',label:'ข้อมูลลูกค้า',value:d.readings_count||0,unit:'ราย',color:'var(--al)'},
+           {icon:'📊',label:'Traffic เดือนนี้',value:d.traffic_count||0,unit:'ครั้ง',color:'var(--g)'}]
           .map(s=>`<div class="sc"><div style="font-size:20px;margin-bottom:5px">${s.icon}</div><div style="color:var(--m);font-size:11px;margin-bottom:3px">${s.label}</div><div style="font-size:24px;font-weight:700;color:${s.color};font-family:'DM Sans',sans-serif">${s.value}</div><div style="color:var(--dim);font-size:11px">${s.unit}</div></div>`).join('')}
       </div>
       <div class="card" style="padding:18px;margin-bottom:14px">
@@ -365,6 +381,73 @@ async function delCode(code) {
     if(data.ok) { toast('ลบแล้ว'); loadList(); }
     else toast('❌ '+data.msg);
   } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
+}
+
+async function loadReadings() {
+  const out = document.getElementById('readingsOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'admin_readings', token:TOKEN });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+    const rows = data.readings || [];
+    out.innerHTML = `
+      <p style="color:var(--m);font-size:13px;margin-bottom:14px">ทั้งหมด ${rows.length} รายการ</p>
+      <div class="card" style="padding:18px;overflow-x:auto">
+        ${rows.length===0?'<p style="color:var(--dim);text-align:center;padding:16px">ยังไม่มีข้อมูล</p>':`
+        <table>
+          <thead><tr>
+            <th>ชื่อ</th><th>Line</th><th>วันเกิด</th><th>โค้ด</th><th>ราคา</th><th>วันที่ดู</th>
+          </tr></thead>
+          <tbody>${rows.map(r=>`
+            <tr>
+              <td style="font-weight:600;color:var(--r)">${r.name||'-'}</td>
+              <td style="color:var(--m)">${r.line||'-'}</td>
+              <td style="color:var(--m);font-size:12px">${r.day||''}/${r.month||''}/${r.yearBE||''}</td>
+              <td><span class="chip" style="font-size:10px">${r.code||'-'}</span></td>
+              <td style="color:var(--gold);font-weight:600">${(r.price||0).toLocaleString()} ฿</td>
+              <td style="color:var(--dim);font-size:11px">${fmtDate(r.date)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`}
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+async function loadTraffic() {
+  const out = document.getElementById('trafficOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'admin_traffic', token:TOKEN });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+    const byPage = data.by_page || {};
+    const recent = data.recent  || [];
+    out.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+        <div class="sc"><div style="font-size:20px;margin-bottom:5px">📈</div>
+          <div style="color:var(--m);font-size:11px">total visits</div>
+          <div style="font-size:24px;font-weight:700;color:var(--a);font-family:'DM Sans',sans-serif">${data.total||0}</div>
+        </div>
+        ${Object.entries(byPage).map(([p,c])=>`
+        <div class="sc"><div style="font-size:20px;margin-bottom:5px">📄</div>
+          <div style="color:var(--m);font-size:11px">${p}</div>
+          <div style="font-size:24px;font-weight:700;color:var(--al);font-family:'DM Sans',sans-serif">${c}</div>
+        </div>`).join('')}
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="color:var(--r);font-size:13px;margin-bottom:12px">🕐 ล่าสุด</h3>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>เวลา</th><th>หน้า</th><th>action</th><th>รายละเอียด</th></tr></thead>
+          <tbody>${recent.map(r=>`
+            <tr>
+              <td style="font-size:11px;color:var(--dim)">${fmtDate(r.time)}</td>
+              <td style="color:var(--al)">${r.page||'-'}</td>
+              <td style="color:var(--m);font-size:12px">${r.action||'-'}</td>
+              <td style="color:var(--dim);font-size:11px">${r.detail||'-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
 }
 </script>
 </body>
