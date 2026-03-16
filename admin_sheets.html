@@ -64,20 +64,19 @@ tr:hover td{background:rgba(107,45,94,.08)}
 <!-- LOGIN -->
 <div id="loginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center">
   <div class="card fade" style="padding:36px;width:100%;max-width:360px;text-align:center">
-    <div style="font-size:38px;margin-bottom:10px">🔐</div>
+    <div style="font-size:38px;margin-bottom:10px">🔮</div>
     <h2 style="color:var(--r);font-family:'DM Sans',sans-serif;font-size:22px;margin-bottom:4px">Admin Panel</h2>
-    <p style="color:var(--m);font-size:12px;margin-bottom:20px">จักรวาลแห่งตัวเลข</p>
-
-    <!-- ใส่ Script URL ก่อนใช้งาน -->
-    <div style="background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:10px;padding:10px 12px;margin-bottom:16px;text-align:left">
-      <p style="color:var(--gold);font-size:11px;margin-bottom:6px">⚙️ Apps Script URL</p>
-      <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." style="font-size:11px;padding:8px">
-      <p style="color:var(--dim);font-size:10px;margin-top:5px">วาง URL จาก Deploy → Web App</p>
+    <p style="color:var(--m);font-size:12px;margin-bottom:24px">จักรวาลแห่งตัวเลข</p>
+    <div style="display:grid;gap:10px;margin-bottom:8px">
+      <input type="text" id="loginUser" placeholder="Username เช่น ajarn / admin1"
+        style="text-align:center;font-size:14px"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()">
+      <input type="password" id="loginPw" placeholder="Password"
+        style="text-align:center;letter-spacing:4px;font-size:16px"
+        onkeydown="if(event.key==='Enter')login()">
     </div>
-
-    <input type="password" id="pw" placeholder="รหัสผ่าน" style="text-align:center;letter-spacing:4px;font-size:16px;margin-bottom:8px" onkeydown="if(event.key==='Enter')login()">
-    <div id="pwErr" class="err" style="display:none;margin-bottom:8px"></div>
-    <button class="btn btn-p" id="loginBtn" style="width:100%;padding:12px;margin-top:4px" onclick="login()">เข้าสู่ระบบ</button>
+    <div id="pwErr" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;padding:8px;background:rgba(255,100,100,.1);border-radius:8px"></div>
+    <button class="btn btn-p" id="loginBtn" style="width:100%;padding:12px;margin-top:4px" onclick="login()">✦ เข้าสู่ระบบ</button>
   </div>
 </div>
 
@@ -87,8 +86,13 @@ tr:hover td{background:rgba(107,45,94,.08)}
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-size:20px">🔮</span>
       <div style="font-family:'DM Sans',sans-serif;color:var(--r);font-size:16px">Admin Panel</div>
+      <span id="roleBadge" style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:1px"></span>
     </div>
-    <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="logout()">ออกจากระบบ</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="userLabel" style="color:var(--m);font-size:12px"></span>
+      <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="showChangePw()">🔑 เปลี่ยน Password</button>
+      <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="logout()">ออกจากระบบ</button>
+    </div>
   </div>
 
   <div style="max-width:920px;margin:0 auto;padding:18px 14px">
@@ -97,8 +101,10 @@ tr:hover td{background:rgba(107,45,94,.08)}
       <button class="tab" onclick="switchTab('gen',this)">🎫 ออกโค้ด</button>
       <button class="tab" onclick="switchTab('list',this)">📋 รายการโค้ด</button>
       <button class="tab" onclick="switchTab('readings',this)">👤 ข้อมูลลูกค้า</button>
+      <button class="tab revenue-tab" onclick="switchTab('revenue',this)" style="display:none">💰 รายได้</button>
       <button class="tab" onclick="switchTab('meanings',this)">📖 ความหมายเลข</button>
       <button class="tab" onclick="switchTab('traffic',this)">📊 Traffic</button>
+      <button class="tab" onclick="switchTab('backup',this)">💾 Backup DB</button>
     </div>
 
     <!-- DASHBOARD -->
@@ -186,10 +192,91 @@ tr:hover td{background:rgba(107,45,94,.08)}
       <div id="trafficOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
     </div>
 
+    <!-- REVENUE (อาจารย์เท่านั้น) -->
+    <div id="tab-revenue" style="display:none">
+      <!-- ตัวกรอง -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <span style="color:var(--m);font-size:13px">เดือน</span>
+        <select id="revM" style="width:140px">
+          <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option><option value="3">มีนาคม</option>
+          <option value="4">เมษายน</option><option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+          <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option><option value="9">กันยายน</option>
+          <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+        </select>
+        <select id="revY" style="width:100px"></select>
+        <button class="btn btn-p" style="padding:8px 16px;font-size:13px" onclick="loadRevenue()">🔍 ดูข้อมูล</button>
+        <button class="btn btn-g" style="padding:8px 16px;font-size:13px" onclick="exportExcel()">📥 Export Excel</button>
+      </div>
+
+      <!-- สรุปรายปี -->
+      <div id="revSummary" style="margin-bottom:14px"></div>
+
+      <!-- transaction รายการ -->
+      <div id="revOut"><div style="text-align:center;padding:40px;color:var(--dim)">กดดูข้อมูลเพื่อโหลดค่ะ</div></div>
+    </div>
+
     <!-- LIST -->
     <div id="tab-list" style="display:none">
       <div id="listOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
     </div>
+
+    <!-- BACKUP -->
+    <div id="tab-backup" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+
+        <!-- สร้าง Backup -->
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:18px;font-family:'DM Sans',sans-serif">💾 สร้าง Backup</h3>
+          <div style="display:grid;gap:12px">
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">เดือน (0 = ทั้งปี)</label>
+              <select id="bkMonth" style="width:100%">
+                <option value="0">— ทั้งปี —</option>
+                <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option><option value="3">มีนาคม</option>
+                <option value="4">เมษายน</option><option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+                <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option><option value="9">กันยายน</option>
+                <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+              </select>
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ปี (พ.ศ.)</label>
+              <select id="bkYear" style="width:100%"></select>
+            </div>
+            <button class="btn btn-p" id="bkBtn" onclick="doBackup()">💾 สร้าง Backup</button>
+          </div>
+          <div id="bkResult" style="margin-top:14px"></div>
+        </div>
+
+        <!-- คำแนะนำ -->
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:14px;font-family:'DM Sans',sans-serif">📋 วิธีใช้</h3>
+          <div style="display:grid;gap:10px">
+            <div class="sc" style="padding:12px 14px">
+              <div style="color:var(--gold);font-size:12px;font-weight:600;margin-bottom:4px">📅 Backup รายเดือน</div>
+              <div style="color:var(--m);font-size:12px;line-height:1.6">เลือกเดือน + ปี → ได้ข้อมูลเฉพาะเดือนนั้น<br>ไฟล์เล็ก โหลดเร็ว เหมาะสำหรับเก็บประจำเดือน</div>
+            </div>
+            <div class="sc" style="padding:12px 14px">
+              <div style="color:var(--al);font-size:12px;font-weight:600;margin-bottom:4px">📦 Backup ทั้งปี</div>
+              <div style="color:var(--m);font-size:12px;line-height:1.6">เลือก "ทั้งปี" → ได้ข้อมูลทุก table ทั้งปีนั้น<br>รวมตารางค่าคงที่ (meanings, calendar ฯลฯ)</div>
+            </div>
+            <div class="sc" style="padding:12px 14px">
+              <div style="color:var(--g);font-size:12px;font-weight:600;margin-bottom:4px">💡 หมายเหตุ</div>
+              <div style="color:var(--m);font-size:12px;line-height:1.6">ไฟล์ .sql เปิดด้วย phpMyAdmin → Import<br>เพื่อกู้ข้อมูลคืนได้ทุกเมื่อค่ะ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประวัติ Backup -->
+      <div class="card" style="padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 style="color:var(--r);font-size:14px;font-family:'DM Sans',sans-serif">🗂️ ประวัติ Backup</h3>
+          <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="loadBackups()">🔄 Refresh</button>
+        </div>
+        <div id="bkList"><div style="text-align:center;padding:24px;color:var(--dim)">กดสร้าง Backup หรือ Refresh เพื่อดูรายการค่ะ</div></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -198,7 +285,8 @@ tr:hover td{background:rgba(107,45,94,.08)}
 <script>
 const MONTHS = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 let TOKEN = '';
-let SCRIPT_URL = '';
+let ROLE  = '';   // 'Admin' = อาจารย์  |  'User' = admin ทั่วไป
+let SCRIPT_URL = 'api.php';   // ← เปลี่ยนเป็น path จริงของ api.php
 
 // init year selector
 const now = new Date();
@@ -208,72 +296,172 @@ for(let y=now.getFullYear();y>=now.getFullYear()-4;y--){
 }
 document.getElementById('selM').value = now.getMonth()+1;
 
-// โหลด script URL ที่บันทึกไว้
-const savedUrl = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
-document.getElementById('scriptUrl').value = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
-  SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
-  localStorage.setItem('gs_script_url', 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec');
-  localStorage.setItem('gs_script_url', 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec');
+// init year selector สำหรับ backup
+const bkY = document.getElementById('bkYear');
+for(let y=now.getFullYear()+543; y>=now.getFullYear()+543-5; y--){
+  const o=document.createElement('option');
+  o.value=y-543;
+  o.textContent='พ.ศ. '+y;
+  bkY.appendChild(o);
+}
+document.getElementById('bkMonth').value = now.getMonth()+1;
 
 async function api(body) {
   const res = await fetch(SCRIPT_URL, {
     method: 'POST',
+    headers: {'Content-Type':'application/json'},
     body: JSON.stringify(body)
   });
   return res.json();
 }
 
 async function login() {
-  const url = document.getElementById('scriptUrl').value.trim();
-  const pw  = document.getElementById('pw').value;
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPw').value;
   const err = document.getElementById('pwErr');
   const btn = document.getElementById('loginBtn');
-
-  if (!url) { err.textContent='กรุณาใส่ Script URL ก่อนค่ะ'; err.style.display='block'; return; }
-
-  SCRIPT_URL = url;
-  localStorage.setItem('gs_script_url', url);
-
+  if (!username) { err.textContent='กรุณาใส่ Username ค่ะ'; err.style.display='block'; return; }
+  if (!password) { err.textContent='กรุณาใส่ Password ค่ะ'; err.style.display='block'; return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>กำลังเข้าระบบ...';
   err.style.display = 'none';
-
   try {
-    const data = await api({ action:'admin_login', password: pw });
+    const data = await api({ action:'admin_login', username, password });
     if (data.ok) {
       TOKEN = data.token;
+      ROLE  = data.role;
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
+      // badge
+      const badge = document.getElementById('roleBadge');
+      document.getElementById('userLabel').textContent = username;
+      if (ROLE === 'Admin') {
+        badge.textContent = '⭐ อาจารย์';
+        badge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;background:rgba(212,168,75,.2);border:1px solid rgba(212,168,75,.5);color:var(--gold)';
+      } else {
+        badge.textContent = '🛠 Admin';
+        badge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);color:var(--al)';
+      }
+      applyRoleUI();
       loadDash();
     } else {
-      err.textContent = data.msg || 'รหัสผ่านไม่ถูกต้อง';
+      err.textContent = data.msg || 'Username หรือ Password ไม่ถูกต้อง';
       err.style.display = 'block';
     }
   } catch(e) {
-    err.textContent = 'เชื่อมต่อ Script ไม่ได้ — ตรวจสอบ URL อีกครั้งค่ะ';
+    err.textContent = 'เชื่อมต่อไม่ได้ — ตรวจสอบ SCRIPT_URL ใน admin_sheets.html';
     err.style.display = 'block';
   }
   btn.disabled = false;
-  btn.innerHTML = 'เข้าสู่ระบบ';
+  btn.innerHTML = '✦ เข้าสู่ระบบ';
+}
+
+function applyRoleUI() {
+  const dashTab    = document.querySelector('[onclick="switchTab(\'dash\',this)"]');
+  const revenueTabs = document.querySelectorAll('.revenue-tab');
+  if (ROLE !== 'Admin') {
+    // admin ทั่วไป — ซ่อน Dashboard และ tab รายได้
+    if (dashTab) dashTab.style.display = 'none';
+    revenueTabs.forEach(t => t.style.display = 'none');
+    document.getElementById('tab-dash').style.display = 'none';
+    document.getElementById('tab-gen').style.display  = 'block';
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+    document.querySelector('[onclick="switchTab(\'gen\',this)"]').classList.add('on');
+  } else {
+    // อาจารย์ — แสดงทุก tab
+    if (dashTab) dashTab.style.display = '';
+    revenueTabs.forEach(t => t.style.display = '');
+    // init year selector สำหรับ revenue
+    const revY = document.getElementById('revY');
+    if (!revY.options.length) {
+      for(let y=now.getFullYear();y>=now.getFullYear()-4;y--){
+        const o=document.createElement('option');o.value=y;o.textContent=y+543;revY.appendChild(o);
+      }
+    }
+    document.getElementById('revM').value = now.getMonth()+1;
+  }
 }
 
 async function logout() {
-  await api({ action:'admin_logout', token: TOKEN });
-  TOKEN = '';
+  TOKEN = ''; ROLE = '';
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPw').value   = '';
+  // reset tab state
+  const dashTab = document.querySelector('[onclick="switchTab(\'dash\',this)"]');
+  if (dashTab) dashTab.style.display = '';
+  ['dash','gen','list','readings','meanings','traffic','backup'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = 'none';
+  });
+  document.getElementById('tab-dash').style.display = 'block';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  if (dashTab) dashTab.classList.add('on');
+}
+
+// ── เปลี่ยน Password ──────────────────────────────────
+function showChangePw() {
+  const overlay = document.createElement('div');
+  overlay.id = 'changePwOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,3,9,.85);z-index:400;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#2D1030,#1E0A1A);border:1px solid rgba(107,45,94,.5);border-radius:20px;padding:28px;width:90%;max-width:400px">
+      <h3 style="color:var(--r);font-size:15px;margin-bottom:18px">🔑 เปลี่ยน Password</h3>
+      <div style="display:grid;gap:10px">
+        <div>
+          <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">Password เดิม</label>
+          <input type="password" id="cpOld" placeholder="••••••••" style="letter-spacing:3px">
+        </div>
+        <div>
+          <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">Password ใหม่</label>
+          <input type="password" id="cpNew" placeholder="••••••••" style="letter-spacing:3px">
+        </div>
+        <div>
+          <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ยืนยัน Password ใหม่</label>
+          <input type="password" id="cpConfirm" placeholder="••••••••" style="letter-spacing:3px">
+        </div>
+        <div id="cpErr" style="display:none;color:var(--red);font-size:12px;padding:8px;background:rgba(255,100,100,.1);border-radius:8px"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-p" style="flex:1" onclick="doChangePw()">💾 บันทึก</button>
+        <button class="btn btn-g" style="flex:1" onclick="document.getElementById('changePwOverlay').remove()">ยกเลิก</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+}
+
+async function doChangePw() {
+  const old_pw  = document.getElementById('cpOld').value;
+  const new_pw  = document.getElementById('cpNew').value;
+  const confirm = document.getElementById('cpConfirm').value;
+  const err     = document.getElementById('cpErr');
+  if (!old_pw || !new_pw) { err.textContent='กรุณากรอกให้ครบค่ะ'; err.style.display='block'; return; }
+  if (new_pw !== confirm)  { err.textContent='Password ใหม่ไม่ตรงกันค่ะ'; err.style.display='block'; return; }
+  if (new_pw.length < 6)   { err.textContent='Password ต้องมีอย่างน้อย 6 ตัวค่ะ'; err.style.display='block'; return; }
+  try {
+    const data = await api({ action:'change_password', token:TOKEN, old_pw, new_pw });
+    if (data.ok) { document.getElementById('changePwOverlay').remove(); toast('✅ เปลี่ยน Password สำเร็จค่ะ'); }
+    else { err.textContent = data.msg; err.style.display='block'; }
+  } catch(e) { err.textContent='เชื่อมต่อล้มเหลว'; err.style.display='block'; }
 }
 
 function switchTab(name, btn) {
   if (name === 'meanings' && !document.getElementById('meaningsOut').querySelector('table')) loadMeanings();
-  ['dash','gen','list'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+  ['dash','gen','list','readings','meanings','traffic','backup','revenue'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display='none';
+  });
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.getElementById('tab-'+name).style.display = 'block';
   btn.classList.add('on');
-  if(name==='list') loadList();
+  if(name==='list')     loadList();
   if(name==='readings') loadReadings();
-  if(name==='traffic') loadTraffic();
-  if(name==='dash') loadDash();
+  if(name==='traffic')  loadTraffic();
+  if(name==='dash')     loadDash();
+  if(name==='backup')   loadBackups();
+  if(name==='revenue')  loadRevenue();
 }
 
 function toast(m) {
@@ -664,6 +852,244 @@ async function loadTraffic() {
       </div>`;
   } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
 }
+
+// ════════════════════════════════════════
+//  REVENUE FUNCTIONS (อาจารย์เท่านั้น)
+// ════════════════════════════════════════
+async function loadRevenue() {
+  const month = parseInt(document.getElementById('revM').value);
+  const year  = parseInt(document.getElementById('revY').value);
+  const out   = document.getElementById('revOut');
+  const sum   = document.getElementById('revSummary');
+  out.innerHTML = '<div style="text-align:center;padding:30px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+
+  try {
+    // โหลด transaction + สรุปรายปีพร้อมกัน
+    const [txData, sumData] = await Promise.all([
+      api({ action:'admin_transactions', token:TOKEN, month, year }),
+      api({ action:'monthly_summary',    token:TOKEN, year })
+    ]);
+
+    // ── สรุปรายปี ──
+    if (sumData.ok) {
+      const byAdmin  = sumData.by_admin  || [];
+      const byMethod = sumData.by_method || [];
+      const monthly  = sumData.monthly   || [];
+      sum.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px">
+          <div class="sc">
+            <div style="color:var(--m);font-size:11px;margin-bottom:4px">💰 รายได้ทั้งปี พ.ศ. ${year+543}</div>
+            <div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'DM Sans',sans-serif">${(sumData.total_year||0).toLocaleString()} ฿</div>
+          </div>
+          <div class="sc" style="overflow:auto">
+            <div style="color:var(--m);font-size:11px;margin-bottom:8px">🧑‍💼 แยกตาม Admin</div>
+            ${byAdmin.map(a=>`
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
+                <span style="color:var(--al)">${a.admin}</span>
+                <span style="color:var(--gold);font-weight:600">${(a.revenue||0).toLocaleString()} ฿
+                  <span style="color:var(--dim)">(${a.qty} โค้ด)</span>
+                </span>
+              </div>`).join('')}
+          </div>
+          <div class="sc" style="overflow:auto">
+            <div style="color:var(--m);font-size:11px;margin-bottom:8px">💳 แยกช่องทาง</div>
+            ${byMethod.map(m=>`
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
+                <span style="color:var(--al)">${m.pay_method||'-'}</span>
+                <span style="color:var(--gold);font-weight:600">${(m.revenue||0).toLocaleString()} ฿</span>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="card" style="padding:14px;margin-bottom:14px">
+          <div style="color:var(--r);font-size:12px;font-weight:600;margin-bottom:10px">📈 รายเดือน พ.ศ. ${year+543}</div>
+          <div style="display:flex;gap:6px;align-items:flex-end;height:80px">
+            ${(()=>{
+              const maxR = Math.max(...monthly.map(t=>parseFloat(t.revenue)||0),1);
+              return Array.from({length:12},(_,i)=>{
+                const m = monthly.find(t=>parseInt(t.month)===i+1);
+                const rev = m ? parseFloat(m.revenue)||0 : 0;
+                const h   = Math.max((rev/maxR)*100, rev>0?6:0);
+                return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                  <div style="font-size:9px;color:var(--a)">${rev>0?(rev/1000).toFixed(1)+'k':''}</div>
+                  <div style="width:100%;background:rgba(107,45,94,.2);border-radius:4px;height:56px;display:flex;align-items:flex-end">
+                    <div style="width:100%;height:${h}%;background:linear-gradient(to top,var(--p),var(--a));border-radius:4px"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--m)">${MONTHS[i+1].slice(0,3)}</div>
+                </div>`;
+              }).join('');
+            })()}
+          </div>
+        </div>`;
+    }
+
+    // ── รายการ transaction เดือนที่เลือก ──
+    if (!txData.ok) { out.innerHTML=`<p style="color:var(--red);text-align:center">${txData.msg}</p>`; return; }
+    const rows = txData.transactions || [];
+    out.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="color:var(--r);font-weight:600;font-size:14px">
+            ${MONTHS[month]} พ.ศ. ${year+543}
+          </span>
+          <span style="color:var(--m);font-size:13px;margin-left:10px">
+            ${rows.length} รายการ
+          </span>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'DM Sans',sans-serif">
+          รวม ${(txData.total||0).toLocaleString()} ฿
+        </div>
+      </div>
+      ${rows.length===0
+        ? '<p style="color:var(--dim);text-align:center;padding:24px">ไม่มีรายการในเดือนนี้ค่ะ</p>'
+        : `<div class="card" style="padding:16px;overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>โค้ด</th><th>ชื่อลูกค้า</th><th>เบอร์</th>
+                <th style="text-align:right">ราคา</th>
+                <th>ช่องทาง</th><th>ออกโดย</th><th>วันที่ใช้</th>
+              </tr></thead>
+              <tbody>${rows.map(r=>`
+                <tr>
+                  <td><span class="chip" style="font-size:10px">${r.code}</span></td>
+                  <td style="color:var(--r);font-weight:600">${r.customer_name||'-'}</td>
+                  <td style="color:var(--m);font-size:12px">${r.phone||'-'}</td>
+                  <td style="text-align:right;color:var(--gold);font-weight:600">${(r.price||0).toLocaleString()} ฿</td>
+                  <td style="font-size:12px">${r.pay_method==='สด'?'💵 สด':r.pay_method==='พร้อมเพย์'?'📲 พร้อมเพย์':'⏳ '+r.pay_method}</td>
+                  <td style="color:var(--al);font-size:12px">${r.created_by||'-'}</td>
+                  <td style="color:var(--dim);font-size:11px">${fmtDate(r.used_at)}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+async function exportExcel() {
+  const month = parseInt(document.getElementById('revM').value);
+  const year  = parseInt(document.getElementById('revY').value);
+  try {
+    const data = await api({ action:'export_transactions', token:TOKEN, month, year });
+    if (!data.ok) { toast('❌ '+data.msg); return; }
+    const rows = data.rows || [];
+    if (!rows.length) { toast('ไม่มีข้อมูลในเดือนนี้ค่ะ'); return; }
+
+    // สร้าง Excel ด้วย SheetJS (โหลดจาก CDN)
+    if (typeof XLSX === 'undefined') {
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
+    // เพิ่มแถวสรุป
+    const exportRows = [...rows, {}, {'โค้ด':'รวมทั้งหมด','ราคา (บาท)':data.total}];
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `รายได้ ${MONTHS[month]} ${year+543}`);
+    XLSX.writeFile(wb, `รายได้_${data.period}.xlsx`);
+    toast(`✅ Export ${MONTHS[month]} ${year+543} สำเร็จค่ะ`);
+  } catch(e) { toast('❌ Export ล้มเหลว'); }
+}
 </script>
 </body>
 </html>
+async function doBackup() {
+  const month = parseInt(document.getElementById('bkMonth').value);
+  const year  = parseInt(document.getElementById('bkYear').value);
+  const btn   = document.getElementById('bkBtn');
+  const res   = document.getElementById('bkResult');
+  const label = month === 0
+    ? `ทั้งปี พ.ศ. ${year+543}`
+    : `${MONTHS[month]} พ.ศ. ${year+543}`;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลัง Backup...';
+  res.innerHTML = '';
+
+  try {
+    const data = await api({ action:'backup_db', token:TOKEN, month, year });
+    if (!data.ok) {
+      res.innerHTML = `<div style="background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.3);border-radius:10px;padding:12px;color:var(--red);font-size:13px;margin-top:4px">❌ ${data.msg}</div>`;
+      toast('❌ Backup ไม่สำเร็จ');
+    } else {
+      res.innerHTML = `
+        <div style="background:rgba(85,187,136,.1);border:1px solid rgba(85,187,136,.3);border-radius:10px;padding:14px;margin-top:4px">
+          <div style="color:var(--g);font-weight:600;margin-bottom:8px">✅ Backup สำเร็จ!</div>
+          <div style="color:var(--m);font-size:12px;line-height:1.9">
+            📅 ช่วงเวลา: <b style="color:var(--c)">${label}</b><br>
+            📄 ไฟล์: <span style="color:var(--al);font-family:'Courier New',monospace;font-size:11px">${data.filename}</span><br>
+            📦 ขนาด: <b style="color:var(--c)">${data.size_kb} KB</b>
+          </div>
+          <button class="btn btn-g" style="margin-top:10px;font-size:12px;width:100%"
+            onclick="downloadBackup('${data.filename}')">⬇️ ดาวน์โหลด .sql</button>
+        </div>`;
+      toast(`✅ Backup ${label} สำเร็จ!`);
+      loadBackups();
+    }
+  } catch(e) {
+    res.innerHTML = `<div style="color:var(--red);font-size:13px;padding:10px">❌ เชื่อมต่อไม่ได้ — ตรวจสอบ SCRIPT_URL</div>`;
+    toast('❌ เชื่อมต่อล้มเหลว');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '💾 สร้าง Backup';
+}
+
+async function loadBackups() {
+  const out = document.getElementById('bkList');
+  out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'list_backups', token:TOKEN });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+    const list = data.backups || [];
+    if (!list.length) {
+      out.innerHTML = '<p style="color:var(--dim);text-align:center;padding:20px">ยังไม่มี Backup ค่ะ</p>';
+      return;
+    }
+    out.innerHTML = `
+      <p style="color:var(--m);font-size:12px;margin-bottom:12px">ทั้งหมด ${list.length} ไฟล์</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>ไฟล์</th>
+            <th>ช่วงเวลา</th>
+            <th style="text-align:right">ขนาด</th>
+            <th>สร้างเมื่อ</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${list.map(b => `
+              <tr>
+                <td style="font-family:'Courier New',monospace;font-size:11px;color:var(--al);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.filename}</td>
+                <td><span class="chip" style="font-size:11px">${b.label||'-'}</span></td>
+                <td style="text-align:right;color:var(--m);font-size:12px;white-space:nowrap">${b.filesize ? Math.round(b.filesize/1024)+' KB' : '-'}</td>
+                <td style="color:var(--dim);font-size:11px;white-space:nowrap">${fmtShort(b.created_at)}</td>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-g" style="font-size:11px;padding:4px 9px;margin-right:4px"
+                    onclick="downloadBackup('${b.filename}')">⬇️ ดาวน์โหลด</button>
+                  <button class="btn btn-d"
+                    onclick="deleteBackup('${b.filename}')">🗑️ ลบ</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+function downloadBackup(filename) {
+  const url = SCRIPT_URL + '?action=download_backup'
+    + '&file=' + encodeURIComponent(filename)
+    + '&token=' + encodeURIComponent(TOKEN);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+}
+
+async function deleteBackup(filename) {
+  if (!confirm(`ลบไฟล์ Backup\n"${filename}"\nแน่ใจไหมคะ?`)) return;
+  try {
+    const data = await api({ action:'delete_backup', token:TOKEN, file:filename });
+    if (data.ok) { toast('🗑️ ลบแล้วค่ะ'); loadBackups(); }
+    else toast('❌ ' + data.msg);
+  } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
+}

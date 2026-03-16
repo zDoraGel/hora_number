@@ -155,12 +155,34 @@ function getAgeRow7(a) {
 function buildRow(s, l = 7) {
   return Array.from({ length: l }, (_, i) => (s - 1 + i) % 7 + 1);
 }
+// ===== ตาราง 1: สร้าง 3 แถว จากวัน (แต่ละแถวเลื่อน -1) =====
 function buildTable1(d) {
-  return [buildRow(d), buildRow(d - 1 < 1 ? d + 6 : d - 1), buildRow(d - 2 < 1 ? d + 5 : d - 2)];
+  // แถว 1: เริ่มจากวัน, แถว 2: วัน-1, แถว 3: วัน-2 (วนในกรอบ 1-7)
+  return [
+    buildRow(d),
+    buildRow(d - 1 < 1 ? d + 6 : d - 1),
+    buildRow(d - 2 < 1 ? d + 5 : d - 2)
+  ];
 }
+
+// ===== ตาราง 1 แถว 4: บวกแต่ละคอลัมน์ ถ้าเกิน 12 ลบ 12 แล้วบวกหลักถ้ายังเป็น 2 ตัว =====
+// ตามเอกสาร: ถ้าเกิน 12 → ลบ 12, ถ้ายังเป็น 2 ตัว → บวกหลักอีกครั้ง
+// เช่น 6+9+9=24 → 24-12=12 → 1+2=3
+function calcRow4_table1(col) {
+  let s = col;
+  // ลบ 12 จนไม่เกิน 12
+  while (s > 12) s -= 12;
+  // ถ้ายังเป็น 2 ตัว (11 หรือ 12) ให้บวกหลัก
+  if (s >= 10) s = Math.floor(s / 10) + (s % 10);
+  return s;
+}
+// ===== ตาราง 2: ใช้ค่า ≤7 (วัน/เดือน/ปีที่ reduceMax7 แล้ว) =====
+// แถว 1-3: เลขไม่เกิน 7, แถว 4: บวกทั้ง 3 แถว ไม่ต้องลบ (ตามเอกสาร)
 function buildTable2(d7, m7, y7) {
   const r1 = buildRow(d7), r2 = buildRow(m7), r3 = buildRow(y7);
-  return [r1, r2, r3, r1.map((_, i) => r1[i] + r2[i] + r3[i])];
+  // แถว 4: บวกแต่ละคอลัมน์ ไม่ต้องลบ 7 (ใช้ค่าจริงๆ ไม่ใช่ reduceMax7)
+  const r4 = r1.map((_, i) => r1[i] + r2[i] + r3[i]);
+  return [r1, r2, r3, r4];
 }
 function buildTable3(c, af, al) {
   return [buildRow(c), buildRow(af), buildRow(al)];
@@ -293,17 +315,28 @@ function NumerologyApp() {
     const total = dowReal + month + zodiacNum + ageDigits;
     const code = reduceMax7(total);
     const table1 = buildTable1(dowReal);
-    const row4_1 = table1[0].map((_, i) => digitSum(table1[0][i] + table1[1][i] + table1[2][i]));
+    // แถว 4 ตาราง 1: บวกแต่ละคอลัมน์ ตามกฎ >12 ลบ 12 แล้วบวกหลัก
+    const row4_1 = table1[0].map((_, i) => calcRow4_table1(table1[0][i] + table1[1][i] + table1[2][i]));
     const d7 = reduceMax7(dowReal), m7 = reduceMax7(month), y7 = reduceMax7(zodiacNum);
     const table2 = buildTable2(d7, m7, y7);
-    const devaHoriz = table2[3][(age - 1) % 7];
+    // องค์เทวดา: อ่านแนวนอน 1 แถว (แถว row4 ของ table2)
+    // นับอายุทีละ 7 วนซ้ำ ตำแหน่ง = (age-1)%7
+    // แต่ค่าที่ได้ต้องมาจาก row4 ของ table2 ตรงตำแหน่งนั้น
+    const agePos7 = getAgeRow7(age); // ตำแหน่งอายุในตารางนับ 7 (1-7)
+    const devaHoriz = table2[3][agePos7 - 1]; // ดึงค่าจาก row4 ตรงตำแหน่งอายุ
     const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
       const ci = isWaning ? 6 - (m - 1) % 7 : (m - 1) % 7;
       const safe = (ci % 7 + 7) % 7;
       const mCode = table3[0][safe];
-      return { month: m, cmd1: [mCode, table3[0][0]], cmd2: [mCode, table3[0][6]], cmd3: [mCode, ageSum] };
+      // ข้างขึ้น: อ่านจากซ้าย → cmd1=ช่องแรก(หัว), cmd2=ช่องสุดท้าย(ท้าย)
+      // ข้างแรม: อ่านจากขวา → cmd1=ช่องสุดท้าย(ท้าย), cmd2=ช่องแรก(หัว) (สลับกัน)
+      const leftVal  = table3[0][0]; // ช่องแรก (หัวแถว = ฝั่งข้างขึ้น)
+      const rightVal = table3[0][6]; // ช่องสุดท้าย (ท้ายแถว = ฝั่งข้างแรม)
+      const c1 = isWaning ? rightVal : leftVal;  // cmd1 หัวแถวฝั่งที่อ่าน
+      const c2 = isWaning ? leftVal  : rightVal; // cmd2 ท้ายแถวฝั่งที่อ่าน
+      return { month: m, cmd1: [mCode, c1], cmd2: [mCode, c2], cmd3: [mCode, ageSum] };
     });
     setResult({
       input: { day, month, yearBE, dowReal, zodiacNum, isWaning, age, ageFirst, ageLast, ageSum },
@@ -313,7 +346,8 @@ function NumerologyApp() {
       row4_1,
       table2,
       table3,
-      agePos12: getAgeRow12(age),
+      agePos12: getAgeRow12(age), // ตำแหน่งอายุในตารางนับ 12 (สำหรับตาราง 1)
+      agePos7,                    // ตำแหน่งอายุในตารางนับ 7 (สำหรับองค์เทวดา)
       t1head: row4_1[0],
       t1tail: row4_1[6],
       t2head: table2[0][0],
