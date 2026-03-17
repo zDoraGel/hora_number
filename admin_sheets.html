@@ -1352,9 +1352,7 @@ async function exportExcel() {
     toast(`✅ Export ${MONTHS[month]} ${year+543} สำเร็จค่ะ`);
   } catch(e) { toast('❌ Export ล้มเหลว'); }
 }
-</script>
-</body>
-</html>
+
 async function doBackup() {
   const month = parseInt(document.getElementById('bkMonth').value);
   const year  = parseInt(document.getElementById('bkYear').value);
@@ -1454,3 +1452,6 @@ async function deleteBackup(filename) {
     else toast('❌ ' + data.msg);
   } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
 }
+</script>
+</body>
+</html>
