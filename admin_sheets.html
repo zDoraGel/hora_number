@@ -26,7 +26,7 @@ input::placeholder{color:var(--dim)} select option{background:#3D1A35}
 .btn-d{background:rgba(224,92,122,.15);border:1px solid rgba(224,92,122,.4);color:var(--red);font-size:12px;padding:5px 10px}
 .tab{background:transparent;border:1px solid rgba(107,45,94,.3);color:var(--m);cursor:pointer;border-radius:8px;font-family:'Prompt',sans-serif;font-size:13px;padding:8px 14px;transition:all .2s;white-space:nowrap}
 .tab.on{background:rgba(107,45,94,.3);border-color:var(--pl);color:var(--r)}
-.chip{font-family:'Courier New',monospace;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 9px;color:var(--al);font-size:13px;letter-spacing:2px;font-weight:700}
+.chip{font-family:'Courier New',monospace;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 9px;color:var(--al);font-size:13px;letter-spacing:2px;font-weight:700;white-space:nowrap;display:inline-block}
 .sc{background:linear-gradient(135deg,rgba(107,45,94,.2),rgba(74,31,65,.1));border:1px solid rgba(107,45,94,.35);border-radius:14px;padding:18px 20px}
 table{width:100%;border-collapse:collapse}
 th{color:var(--m);font-size:12px;font-weight:600;padding:8px 10px;text-align:left;border-bottom:1px solid rgba(107,45,94,.25)}
@@ -350,6 +350,29 @@ tr:hover td{background:rgba(107,45,94,.08)}
         </div>
         <div id="bkList"><div style="text-align:center;padding:24px;color:var(--dim)">กดสร้าง Backup หรือ Refresh เพื่อดูรายการค่ะ</div></div>
       </div>
+
+      <!-- Restore Backup -->
+      <div class="card" style="padding:22px;margin-top:14px;border:1px solid rgba(212,168,75,.2);background:rgba(212,168,75,.03)">
+        <h3 style="color:var(--gold);font-size:14px;margin-bottom:6px;font-family:'DM Sans',sans-serif">📥 Restore Backup</h3>
+        <p style="color:var(--m);font-size:12px;margin-bottom:16px;line-height:1.7">
+          เลือกไฟล์ <span style="color:var(--al)">.sql</span> ที่ backup ไว้ → กดปุ่ม Restore ได้เลยค่ะ<br>
+          ระบบจะนำข้อมูลกลับเข้ามาให้อัตโนมัติ ไม่ต้องเปิด phpMyAdmin
+        </p>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <label style="flex:1;min-width:200px">
+            <div style="color:var(--m);font-size:12px;margin-bottom:6px">เลือกไฟล์ .sql</div>
+            <input type="file" id="restoreFile" accept=".sql"
+              style="background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.4);border-radius:10px;color:var(--c);font-family:'Prompt',sans-serif;font-size:13px;padding:10px;width:100%;box-sizing:border-box;cursor:pointer"
+              onchange="document.getElementById('restoreBtn').style.opacity=this.files.length?'1':'.4'">
+          </label>
+          <button class="btn btn-p" id="restoreBtn"
+            style="opacity:.4;cursor:not-allowed;white-space:nowrap;padding:12px 20px;margin-top:20px"
+            onclick="doRestore()">
+            📥 Restore ข้อมูล
+          </button>
+        </div>
+        <div id="restoreResult" style="margin-top:12px"></div>
+      </div>
     </div>
 
   </div>
@@ -471,6 +494,7 @@ function mockApi(body) {
     else if (a==='change_password') resolve({ok:true});
     else if (a==='list_backups')   resolve({ok:true, backups:[]});
     else if (a==='backup_db')      resolve({ok:true, filename:'backup_mock.sql', label:'mock', size_kb:12.3});
+    else if (a==='restore_backup') resolve({ok:true, queries:42});
     else                           resolve({ok:true, msg:'mock ok'});
   }, 300));
 }
@@ -999,7 +1023,7 @@ async function loadMeanings() {
       <div class="card" style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th style="width:70px">คู่เลข</th>
+            <th style="width:90px;white-space:nowrap">คู่เลข</th>
             <th>ความหมาย</th>
             <th style="width:80px">อัปเดต</th>
           </tr></thead>
@@ -1438,6 +1462,59 @@ async function doBackup() {
   }
   btn.disabled = false;
   btn.innerHTML = '💾 สร้าง Backup';
+}
+
+async function doRestore() {
+  const fileInput = document.getElementById('restoreFile');
+  const res       = document.getElementById('restoreResult');
+  const btn       = document.getElementById('restoreBtn');
+
+  if (!fileInput.files.length) return;
+  const file = fileInput.files[0];
+  if (!file.name.endsWith('.sql')) {
+    res.innerHTML = '<div style="color:var(--red);font-size:13px;padding:10px;background:rgba(255,100,100,.1);border-radius:8px">❌ กรุณาเลือกไฟล์ .sql เท่านั้นค่ะ</div>';
+    return;
+  }
+
+  if (!confirm(`📥 Restore ข้อมูลจากไฟล์\n"${file.name}"\n\nข้อมูลที่ซ้ำจะถูก replace ค่ะ\nต้องการดำเนินการต่อไหม?`)) return;
+
+  btn.disabled   = true;
+  btn.style.opacity = '.5';
+  btn.innerHTML  = '<span class="spinner"></span>กำลัง Restore...';
+  res.innerHTML  = '<div style="color:var(--m);font-size:13px;padding:10px">⏳ กำลังอ่านไฟล์...</div>';
+
+  try {
+    // อ่านไฟล์เป็น text
+    const sql = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
+      reader.readAsText(file, 'utf-8');
+    });
+
+    res.innerHTML = '<div style="color:var(--m);font-size:13px;padding:10px">⏳ กำลังส่งข้อมูลไปยัง server...</div>';
+
+    const data = await api({ action:'restore_backup', token:TOKEN, sql, filename:file.name });
+
+    if (data.ok) {
+      res.innerHTML = `
+        <div style="background:rgba(85,187,136,.1);border:1px solid rgba(85,187,136,.3);border-radius:10px;padding:14px">
+          <div style="color:var(--g);font-weight:600;margin-bottom:6px">✅ Restore สำเร็จค่ะ!</div>
+          <div style="color:var(--m);font-size:12px">ไฟล์: ${file.name}</div>
+          <div style="color:var(--m);font-size:12px">ข้อมูลที่นำเข้า: ${data.queries || 0} คำสั่ง</div>
+        </div>`;
+      toast('✅ Restore สำเร็จค่ะ!');
+      fileInput.value = '';
+    } else {
+      res.innerHTML = `<div style="color:var(--red);font-size:13px;padding:10px;background:rgba(255,100,100,.1);border-radius:8px">❌ ${data.msg}</div>`;
+    }
+  } catch(e) {
+    res.innerHTML = `<div style="color:var(--red);font-size:13px;padding:10px;background:rgba(255,100,100,.1);border-radius:8px">❌ เกิดข้อผิดพลาด: ${e.message}</div>`;
+  }
+
+  btn.disabled  = false;
+  btn.style.opacity = '1';
+  btn.innerHTML = '📥 Restore ข้อมูล';
 }
 
 async function loadBackups() {
