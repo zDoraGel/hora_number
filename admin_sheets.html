@@ -66,7 +66,16 @@ tr:hover td{background:rgba(107,45,94,.08)}
   <div class="card fade" style="padding:36px;width:100%;max-width:360px;text-align:center">
     <div style="font-size:38px;margin-bottom:10px">🔮</div>
     <h2 style="color:var(--r);font-family:'DM Sans',sans-serif;font-size:22px;margin-bottom:4px">Admin Panel</h2>
-    <p style="color:var(--m);font-size:12px;margin-bottom:24px">จักรวาลแห่งตัวเลข</p>
+    <p style="color:var(--m);font-size:12px;margin-bottom:16px">จักรวาลแห่งตัวเลข</p>
+
+    <!-- Mock mode badge (แสดงเฉพาะ GitHub Pages) -->
+    <div id="mockBadge" style="display:none;background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--gold);text-align:left">
+      🧪 <b>Mock Mode</b> — GitHub Pages (ทดสอบ UI เท่านั้น)<br>
+      <div style="margin-top:5px;color:var(--m)">
+        👑 อาจารย์: <span style="color:var(--al);font-family:'Courier New',monospace">ajarn / ajarn1234</span><br>
+        🛠 Admin:  <span style="color:var(--al);font-family:'Courier New',monospace">admin1 / admin1234</span>
+      </div>
+    </div>
     <div style="display:grid;gap:10px;margin-bottom:8px">
       <input type="text" id="loginUser" placeholder="Username เช่น ajarn / admin1"
         style="text-align:center;font-size:14px"
@@ -351,11 +360,122 @@ tr:hover td{background:rgba(107,45,94,.08)}
 <script>
 const MONTHS = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 let TOKEN = '';
-let ROLE  = '';   // 'Admin' = อาจารย์  |  'User' = admin ทั่วไป
-let SCRIPT_URL = 'api.php';   // ← เปลี่ยนเป็น path จริงของ api.php
+let ROLE  = '';
+let SCRIPT_URL = 'api.php';
+
+// ── MOCK MODE (GitHub Pages / local) ──────────────────────────
+const IS_MOCK = window.location.hostname.includes('github.io')
+             || window.location.hostname === 'localhost'
+             || window.location.hostname === '127.0.0.1'
+             || window.location.protocol === 'file:';
+
+// Mock users (เทสเท่านั้น — ไม่ใช่ password จริง)
+const MOCK_USERS = {
+  'ajarn':  { password: 'ajarn1234',  role: 'Admin' },
+  'admin1': { password: 'admin1234',  role: 'User'  },
+};
+
+// Mock data สำหรับ UI ทดสอบ
+const MOCK_DATA = {
+  dash: {
+    ok:true, month_count:12, month_revenue:5988, total_unused:8,
+    total_used:24, readings_count:12, traffic_count:45,
+    trend:[
+      {month:10,year:2025,count:5,revenue:2495},
+      {month:11,year:2025,count:8,revenue:3992},
+      {month:12,year:2025,count:10,revenue:4990},
+      {month:1,year:2026,count:7,revenue:3493},
+      {month:2,year:2026,count:9,revenue:4491},
+      {month:3,year:2026,count:12,revenue:5988},
+    ],
+    recent:[
+      {code:'ABCD-EFGH',price:499,note:'คุณสมหญิง [พร้อมเพย์]',used_at:'2026-03-16 10:30:00'},
+      {code:'IJKL-MNOP',price:299,note:'คุณสมชาย [สด]',used_at:'2026-03-15 14:20:00'},
+    ]
+  },
+  codes:[
+    {code:'ABCD-EFGH',price:499,note:'คุณสมหญิง [พร้อมเพย์]',pay_method:'พร้อมเพย์',used:1,used_at:'2026-03-16 10:30:00',created_at:'2026-03-10 09:00:00'},
+    {code:'IJKL-MNOP',price:299,note:'คุณสมชาย [สด]',pay_method:'สด',used:1,used_at:'2026-03-15 14:20:00',created_at:'2026-03-12 08:00:00'},
+    {code:'QRST-UVWX',price:499,note:'VIP [พร้อมเพย์]',pay_method:'พร้อมเพย์',used:0,used_at:null,created_at:'2026-03-16 08:00:00'},
+    {code:'YZAB-CDEF',price:699,note:'[ยังไม่ได้เก็บ]',pay_method:'ยังไม่ได้เก็บ',used:0,used_at:null,created_at:'2026-03-16 09:00:00'},
+  ],
+  readings:[
+    {name:'สมหญิง ใจดี',phone:'081-234-5678',line:'@somying',day:15,month:3,yearBE:2510,code:'ABCD-EFGH',price:499,pay:'พร้อมเพย์',date:'2026-03-16 10:35:00'},
+    {name:'สมชาย รักดี',phone:'089-876-5432',line:null,day:22,month:7,yearBE:2505,code:'IJKL-MNOP',price:299,pay:'สด',date:'2026-03-15 14:25:00'},
+  ],
+  meanings:[
+    {pair_key:'1-1',from_num:1,to_num:1,meaning_th:'จะมีเรื่องลังเล ไม่กล้าตัดสินใจ...',meaning_note:'',updated_at:'2026-03-01'},
+    {pair_key:'1-2',from_num:1,to_num:2,meaning_th:'จะพบความลี้ลับ สับสน...',meaning_note:'',updated_at:'2026-03-01'},
+    {pair_key:'1-3',from_num:1,to_num:3,meaning_th:'',meaning_note:'',updated_at:null},
+    {pair_key:'2-2',from_num:2,to_num:2,meaning_th:'สิ่งที่หวังที่รอคอยมาถึงแล้ว...',meaning_note:'',updated_at:'2026-03-01'},
+    {pair_key:'3-3',from_num:3,to_num:3,meaning_th:'',meaning_note:'',updated_at:null},
+    {pair_key:'4-4',from_num:4,to_num:4,meaning_th:'จะต้องอดทน อดกลั้น...',meaning_note:'',updated_at:'2026-03-01'},
+  ],
+  traffic:{ok:true,total:287,by_page:{home:120,index:98,admin:69},recent:[
+    {time:'2026-03-16 10:30:00',page:'index',action:'use_code_ok',detail:'ABCD-EFGH'},
+    {time:'2026-03-16 09:00:00',page:'admin',action:'gen_codes',detail:'qty=2 price=499'},
+    {time:'2026-03-15 14:00:00',page:'index',action:'use_code_ok',detail:'IJKL-MNOP'},
+  ]},
+  packages:[
+    {id:1,name:'มาตรฐาน',price:299,sort_order:1,active:1},
+    {id:2,name:'มาตรฐาน',price:399,sort_order:2,active:1},
+    {id:3,name:'มาตรฐาน',price:499,sort_order:3,active:1},
+    {id:4,name:'พิเศษ',price:699,sort_order:4,active:1},
+    {id:5,name:'พิเศษ',price:999,sort_order:5,active:1},
+    {id:6,name:'ระบุเอง',price:0,sort_order:99,active:1},
+  ],
+  revenue_transactions:[
+    {code:'ABCD-EFGH',customer_name:'สมหญิง ใจดี',phone:'081-234-5678',price:499,pay_method:'พร้อมเพย์',created_by:'admin1',used_at:'2026-03-16 10:30:00'},
+    {code:'IJKL-MNOP',customer_name:'สมชาย รักดี',phone:'089-876-5432',price:299,pay_method:'สด',created_by:'ajarn',used_at:'2026-03-15 14:20:00'},
+  ],
+};
+
+async function api(body) {
+  if (IS_MOCK) return mockApi(body);
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  return res.json();
+}
+
+function mockApi(body) {
+  return new Promise(resolve => setTimeout(() => {
+    const a = body.action;
+    if (a==='admin_login') {
+      const u = MOCK_USERS[body.username];
+      if (u && u.password === body.password)
+        resolve({ok:true, token:'mock-token', role:u.role});
+      else
+        resolve({ok:false, msg:'Username หรือ Password ไม่ถูกต้องค่ะ (Mock: ajarn/ajarn1234)'});
+    }
+    else if (a==='admin_dash')     resolve({...MOCK_DATA.dash, ok:true, msg:'OK'});
+    else if (a==='admin_list')     resolve({ok:true, codes:MOCK_DATA.codes});
+    else if (a==='admin_readings') resolve({ok:true, readings:MOCK_DATA.readings});
+    else if (a==='admin_meanings') resolve({ok:true, meanings:MOCK_DATA.meanings});
+    else if (a==='admin_traffic')  resolve({...MOCK_DATA.traffic});
+    else if (a==='list_packages' || a==='admin_packages') resolve({ok:true, packages:MOCK_DATA.packages});
+    else if (a==='admin_transactions') resolve({ok:true, transactions:MOCK_DATA.revenue_transactions, total:798});
+    else if (a==='monthly_summary') resolve({ok:true, total_year:15948,
+      by_admin:[{admin:'admin1',qty:8,revenue:3992},{admin:'ajarn',qty:4,revenue:1996}],
+      by_method:[{pay_method:'พร้อมเพย์',qty:9,revenue:4491},{pay_method:'สด',qty:3,revenue:897}],
+      monthly:MOCK_DATA.dash.trend});
+    else if (a==='export_transactions') resolve({ok:true, rows:MOCK_DATA.revenue_transactions.map(r=>({'โค้ด':r.code,'ชื่อลูกค้า':r.customer_name,'ราคา (บาท)':r.price,'ช่องทาง':r.pay_method,'ออกโดย':r.created_by,'วันที่ใช้':r.used_at})), total:798, period:'2026-03'});
+    else if (a==='admin_gen')      resolve({ok:true, codes:['MOCK-CODE']});
+    else if (a==='save_package')   resolve({ok:true});
+    else if (a==='delete_package') resolve({ok:true});
+    else if (a==='update_meaning') resolve({ok:true});
+    else if (a==='change_password') resolve({ok:true});
+    else if (a==='list_backups')   resolve({ok:true, backups:[]});
+    else if (a==='backup_db')      resolve({ok:true, filename:'backup_mock.sql', label:'mock', size_kb:12.3});
+    else                           resolve({ok:true, msg:'mock ok'});
+  }, 300));
+}
 
 // init year selector
 const now = new Date();
+// แสดง mock badge ถ้าอยู่บน GitHub Pages
+if (IS_MOCK) document.getElementById('mockBadge').style.display = 'block';
 const sy  = document.getElementById('selY');
 for(let y=now.getFullYear();y>=now.getFullYear()-4;y--){
   const o=document.createElement('option');o.value=y;o.textContent=y+543;sy.appendChild(o);

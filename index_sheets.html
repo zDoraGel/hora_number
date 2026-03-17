@@ -20,7 +20,39 @@ function CodeGate({ onUnlock }) {
   const [custName, setCustName]   = React.useState("");
   const [custPhone, setCustPhone] = React.useState("");
   const [custLine, setCustLine]   = React.useState("");
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec";
+// ════════════════════════════════════════
+//  DUAL MODE: GitHub Pages = Mock, cPanel = api.php
+// ════════════════════════════════════════
+const IS_MOCK = window.location.hostname.includes('github.io')
+             || window.location.hostname === 'localhost'
+             || window.location.hostname === '127.0.0.1'
+             || window.location.protocol === 'file:';
+
+const API_URL = 'api.php';   // ← เปลี่ยน path ถ้าไฟล์อยู่ต่างโฟลเดอร์
+
+// Mock codes สำหรับทดสอบ
+const MOCK_CODES = ['TESTCODE','AAAABBBB','DEMO1234'];
+
+async function callApi(body) {
+  if (IS_MOCK) {
+    return new Promise(resolve => setTimeout(() => {
+      if (body.action === 'use_code') {
+        const ok = MOCK_CODES.includes(body.code.trim().toUpperCase());
+        resolve(ok ? {ok:true, session_token:'mock-session'} : {ok:false, msg:'โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ (Mock: TESTCODE / AAAABBBB / DEMO1234)'});
+      } else {
+        resolve({ok:true}); // save_reading, log_traffic ไม่ต้อง response จริง
+      }
+    }, 400));
+  }
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
   const S = {
     pg:{minHeight:"100vh",background:"radial-gradient(ellipse at 30% 0%,#2A1025,#140810 55%,#1A0818)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Prompt',sans-serif"},
     bx:{width:"100%",maxWidth:400},
@@ -41,9 +73,9 @@ function CodeGate({ onUnlock }) {
     const input = code.trim().toUpperCase(); if (!input) return;
     setLoading(true); setErr("");
     try {
-      const r = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"verify_code",code:input})});
-      const d = await r.json();
-      if (d.ok) { setVerifiedCode(input); setStep(2); } else { setErr(d.msg||"โค้ดไม่ถูกต้องค่ะ"); }
+      const d = await callApi({ action: "use_code", code: input });
+      if (d.ok) { setVerifiedCode(input); setStep(2); }
+      else { setErr(d.msg || "โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ"); }
     } catch(e) { setErr("เชื่อมต่อล้มเหลว กรุณาลองใหม่ค่ะ"); }
     setLoading(false);
   }
@@ -51,16 +83,23 @@ function CodeGate({ onUnlock }) {
     if (!custName.trim()) { setErr("กรุณากรอกชื่อค่ะ"); return; }
     setLoading(true); setErr("");
     try {
-      await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"save_reading",code:verifiedCode,name:custName.trim(),phone:custPhone.trim(),line:custLine.trim(),day:"",month:"",yearBE:""})});
+      await callApi({
+        action: "save_reading",
+        code: verifiedCode,
+        name: custName.trim(),
+        phone: custPhone.trim(),
+        line_id: custLine.trim(),
+        day: "", month: "", year_be: ""
+      });
     } catch(e) {}
-    sessionStorage.setItem("cust_name", custName.trim());
+    sessionStorage.setItem("cust_name",  custName.trim());
     sessionStorage.setItem("cust_phone", custPhone.trim());
-    sessionStorage.setItem("cust_line", custLine.trim());
-    sessionStorage.setItem("cust_code", verifiedCode);
+    sessionStorage.setItem("cust_line",  custLine.trim());
+    sessionStorage.setItem("cust_code",  verifiedCode);
     setLoading(false); onUnlock();
   }
   function skip() {
-    try { fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"save_reading",code:verifiedCode,name:"(ไม่ระบุ)",phone:"",line:"",day:"",month:"",yearBE:""})}); } catch(e) {}
+    try { callApi({action:"save_reading",code:verifiedCode,name:"(ไม่ระบุ)",phone:"",line_id:"",day:"",month:"",year_be:""}); } catch(e) {}
     onUnlock();
   }
   const h = React.createElement;
@@ -69,6 +108,8 @@ function CodeGate({ onUnlock }) {
     h("div",{style:S.cd},
       h("p",{style:S.st},"ขั้นตอน 1 / 2  ·  ยืนยันโค้ด"),
       h("label",{style:S.lb},"กรอกโค้ดที่ได้รับจากอาจารย์"),
+      IS_MOCK ? h("div",{style:{fontSize:11,color:"#C4956A",background:"rgba(196,149,106,.1)",border:"1px solid rgba(196,149,106,.3)",borderRadius:8,padding:"6px 10px",marginBottom:10,textAlign:"center"}},
+        "🧪 Mock: ใช้โค้ด TESTCODE / AAAABBBB / DEMO1234") : null,
       h("input",{type:"text",maxLength:8,placeholder:"XXXXXXXX",value:code,style:S.ci,
         onChange:e=>{setCode(e.target.value.toUpperCase());setErr("");},onKeyDown:e=>e.key==="Enter"&&verify()}),
       err?h("p",{style:S.er},err):null,
@@ -193,21 +234,22 @@ function findCols(rows, num) {
     return i >= 0 ? i + 1 : null;
   });
 }
-// MEANINGS จะถูกโหลดจาก meanings.json
+// MEANINGS โหลดจาก api.php (cPanel) หรือใช้ข้อมูล offline (GitHub/mock)
 let MEANINGS = {};
 (async function loadMeanings() {
-  // ดึง meanings จาก Apps Script เดิม (SCRIPT_URL เดียวกับที่ใช้ verify_code)
+  if (IS_MOCK) {
+    console.log('🧪 Mock mode: ใช้ meanings offline');
+    return; // ใช้ _MEANINGS_LEGACY แทน
+  }
   try {
-    const url = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
-    if (!url) return; // ไม่มี URL ใช้ข้อมูล offline
-    const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'get_meanings' }) });
+    const res  = await fetch(API_URL + '?action=load_data');
     const data = await res.json();
-    if (data.ok && data.meanings) {
+    if (data.meanings && typeof data.meanings === 'object') {
       Object.assign(MEANINGS, data.meanings);
-      console.log('✅ Loaded', Object.keys(data.meanings).length, 'meanings from Apps Script');
+      console.log('✅ Loaded', Object.keys(MEANINGS).length, 'meanings from api.php');
     }
   } catch(e) {
-    console.warn('⚠️ ใช้ข้อมูล offline แทน:', e.message);
+    console.warn('⚠️ โหลด meanings ล้มเหลว ใช้ offline แทน:', e.message);
   }
 })();
 const _MEANINGS_LEGACY = {
