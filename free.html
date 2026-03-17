@@ -499,18 +499,49 @@ function calcZodiac() {
   showZodiacDetail(zid);
 }
 
-// ===== MEANINGS (ดึงจาก Apps Script เดียวกับ index_sheets.html) =====
+// ===== DUAL MODE =====
+const GS_URL  = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
+const API_URL = 'api.php';
+const IS_MOCK = window.location.hostname.includes('github.io')
+             || window.location.hostname === 'localhost'
+             || window.location.hostname === '127.0.0.1'
+             || window.location.protocol === 'file:';
+
+async function callApi(body) {
+  if (IS_MOCK) {
+    const res = await fetch(GS_URL, { method:'POST', body: JSON.stringify(body) });
+    return res.json();
+  }
+  const res = await fetch(API_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ===== MEANINGS =====
 let MEANINGS = {};
 (async function loadMeanings() {
   try {
-    const url = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
-    if (!url) return;
-    const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'get_meanings' }) });
-    const data = await res.json();
-    if (data.ok && data.meanings) {
-      Object.assign(MEANINGS, data.meanings);
+    // GitHub → GS, cPanel → api.php
+    // merge กับ localStorage ถ้าอาจารย์แก้ไขใน Admin Panel
+    const local = localStorage.getItem('gs_meanings');
+    if (IS_MOCK) {
+      const data = await callApi({ action: 'get_meanings' });
+      if (data.ok && data.meanings) Object.assign(MEANINGS, data.meanings);
+      if (local) Object.assign(MEANINGS, JSON.parse(local));
+    } else {
+      const res  = await fetch(API_URL + '?action=load_data');
+      const data = await res.json();
+      if (data.meanings) Object.assign(MEANINGS, data.meanings);
     }
-  } catch(e) {}
+  } catch(e) {
+    // fallback localStorage
+    try {
+      const local = localStorage.getItem('gs_meanings');
+      if (local) Object.assign(MEANINGS, JSON.parse(local));
+    } catch(e2) {}
+  }
 })();
 
 function getMeaning(a, b) {
@@ -520,9 +551,7 @@ function getMeaning(a, b) {
 // ===== LOG TRAFFIC =====
 (function logTraffic() {
   try {
-    const url = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
-    if (!url) return;
-    fetch(url, { method: 'POST', body: JSON.stringify({ action: 'log_traffic', page: 'free', action: 'visit', detail: document.referrer || 'direct' }) });
+    callApi({ action: 'log_traffic', page: 'free', detail: document.referrer || 'direct' });
   } catch(e) {}
 })();
 
