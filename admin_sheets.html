@@ -363,6 +363,9 @@ let TOKEN = '';
 let ROLE  = '';
 let SCRIPT_URL = 'api.php';
 
+// Google Apps Script URL (สำหรับดึง meanings บน GitHub Pages)
+const GS_URL = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
+
 // ── MOCK MODE (GitHub Pages / local) ──────────────────────────
 const IS_MOCK = window.location.hostname.includes('github.io')
              || window.location.hostname === 'localhost'
@@ -956,9 +959,41 @@ async function loadMeanings() {
   const out = document.getElementById('meaningsOut');
   out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
   try {
-    const data = await api({ action:'admin_meanings', token:TOKEN });
-    if (!data.ok) { out.innerHTML=`<p style="color:var(--red);text-align:center">${data.msg}</p>`; return; }
-    const rows = data.meanings || [];
+    let rows = [];
+    if (IS_MOCK) {
+      // GitHub Pages → ดึงจาก Google Sheets
+      try {
+        const res  = await fetch(GS_URL, { method:'POST', body: JSON.stringify({ action:'get_meanings' }) });
+        const data = await res.json();
+        if (data.ok && data.meanings) {
+          // convert object {pair_key: meaning} → array
+          rows = Object.entries(data.meanings).map(([k,v]) => ({
+            pair_key: k,
+            meaning_th: v,
+            meaning_note: '',
+            updated_at: null
+          }));
+          // save to localStorage for editing
+          localStorage.setItem('gs_meanings', JSON.stringify(data.meanings));
+        }
+      } catch(e) {
+        // GS fail → ใช้ localStorage ที่เคย save ไว้
+        const saved = localStorage.getItem('gs_meanings');
+        if (saved) {
+          const obj = JSON.parse(saved);
+          rows = Object.entries(obj).map(([k,v]) => ({ pair_key:k, meaning_th:v, meaning_note:'', updated_at:null }));
+        } else {
+          // fallback mock
+          const data = await api({ action:'admin_meanings', token:TOKEN });
+          rows = data.meanings || [];
+        }
+      }
+    } else {
+      // cPanel → ดึงจาก api.php
+      const data = await api({ action:'admin_meanings', token:TOKEN });
+      if (!data.ok) { out.innerHTML=`<p style="color:var(--red);text-align:center">${data.msg}</p>`; return; }
+      rows = data.meanings || [];
+    }
     out.innerHTML = `
       <p style="color:var(--m);font-size:12px;margin-bottom:10px">ทั้งหมด ${rows.length} คู่เลข · คลิกแถวเพื่อแก้ไขค่ะ</p>
       <div class="card" style="overflow-x:auto">
@@ -1012,22 +1047,33 @@ function selectMeaning(pair_key, meaning_th, meaning_note) {
 }
 
 async function saveMeaning() {
-  const pair_key    = document.getElementById('mPairKey').value;
-  const meaning_th  = document.getElementById('mMeaningTh').value.trim();
+  const pair_key     = document.getElementById('mPairKey').value;
+  const meaning_th   = document.getElementById('mMeaningTh').value.trim();
   const meaning_note = document.getElementById('mMeaningNote').value.trim();
-  const msg = document.getElementById('mFormMsg');
 
-  if (!pair_key) { showMeaningMsg('กรุณาเลือกคู่เลขก่อนค่ะ', false); return; }
-  if (!meaning_th) { showMeaningMsg('กรุณากรอกความหมายค่ะ', false); return; }
+  if (!pair_key)    { showMeaningMsg('กรุณาเลือกคู่เลขก่อนค่ะ', false); return; }
+  if (!meaning_th)  { showMeaningMsg('กรุณากรอกความหมายค่ะ', false); return; }
 
   try {
-    const data = await api({ action:'update_meaning', token:TOKEN, pair_key, meaning_th, meaning_note });
-    if (data.ok) {
-      showMeaningMsg('✅ บันทึกสำเร็จค่ะ', true);
+    if (IS_MOCK) {
+      // GitHub Pages → save ลง localStorage
+      const saved  = localStorage.getItem('gs_meanings');
+      const obj    = saved ? JSON.parse(saved) : {};
+      obj[pair_key] = meaning_th;
+      localStorage.setItem('gs_meanings', JSON.stringify(obj));
+      showMeaningMsg('✅ บันทึกสำเร็จค่ะ (Mock: เก็บใน localStorage)', true);
       toast('✅ บันทึกแล้วค่ะ');
-      loadMeanings();   // refresh ตารางซ้าย
+      loadMeanings();
     } else {
-      showMeaningMsg('❌ '+data.msg, false);
+      // cPanel → save ลง MySQL
+      const data = await api({ action:'update_meaning', token:TOKEN, pair_key, meaning_th, meaning_note });
+      if (data.ok) {
+        showMeaningMsg('✅ บันทึกสำเร็จค่ะ', true);
+        toast('✅ บันทึกแล้วค่ะ');
+        loadMeanings();
+      } else {
+        showMeaningMsg('❌ '+data.msg, false);
+      }
     }
   } catch(e) { showMeaningMsg('❌ เชื่อมต่อล้มเหลว', false); }
 }
