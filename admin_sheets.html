@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — จักรวาลแห่งตัวเลข</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--p:#6B2D5E;--pl:#8B3D7A;--a:#C45FA0;--al:#E08AC0;--r:#F0C8DC;--c:#EEE0E8;--m:#A07890;--dim:#705060;--g:#55BB88;--red:#FF7070;--gold:#D4A84B;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#140810;font-family:'Prompt',sans-serif;color:var(--c);min-height:100vh}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade{animation:fadeUp .3s ease forwards}
+.card{background:linear-gradient(135deg,rgba(107,45,94,.14),rgba(74,31,65,.08));border:1px solid rgba(107,45,94,.3);border-radius:16px}
+input,select{background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:8px;color:var(--c);font-family:'Prompt',sans-serif;font-size:14px;padding:10px 13px;outline:none;transition:all .2s;width:100%}
+input:focus,select:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(107,45,94,.2)}
+input::placeholder{color:var(--dim)} select option{background:#3D1A35}
+.btn{border:none;cursor:pointer;border-radius:9px;font-family:'Prompt',sans-serif;font-weight:600;font-size:14px;padding:10px 18px;transition:all .2s}
+.btn-p{background:linear-gradient(135deg,var(--p),var(--pl),var(--a));background-size:200%;animation:shimmer 4s ease infinite;color:#fff}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(107,45,94,.5)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-g{background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.4);color:var(--r)}
+.btn-g:hover{background:rgba(107,45,94,.4)}
+.btn-d{background:rgba(224,92,122,.15);border:1px solid rgba(224,92,122,.4);color:var(--red);font-size:12px;padding:5px 10px}
+.tab{background:transparent;border:1px solid rgba(107,45,94,.3);color:var(--m);cursor:pointer;border-radius:8px;font-family:'Prompt',sans-serif;font-size:13px;padding:8px 14px;transition:all .2s;white-space:nowrap}
+.tab.on{background:rgba(107,45,94,.3);border-color:var(--pl);color:var(--r)}
+.chip{font-family:'Courier New',monospace;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 9px;color:var(--al);font-size:13px;letter-spacing:2px;font-weight:700}
+.sc{background:linear-gradient(135deg,rgba(107,45,94,.2),rgba(74,31,65,.1));border:1px solid rgba(107,45,94,.35);border-radius:14px;padding:18px 20px}
+table{width:100%;border-collapse:collapse}
+th{color:var(--m);font-size:12px;font-weight:600;padding:8px 10px;text-align:left;border-bottom:1px solid rgba(107,45,94,.25)}
+td{padding:9px 10px;border-bottom:1px solid rgba(107,45,94,.12);font-size:13px;color:var(--c)}
+tr:hover td{background:rgba(107,45,94,.08)}
+.cp{background:transparent;border:1px solid rgba(107,45,94,.4);color:var(--m);cursor:pointer;border-radius:5px;padding:2px 7px;font-size:11px;transition:all .2s}
+.cp:hover{border-color:var(--a);color:var(--al)}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--p);color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+.pay-opt{background:rgba(107,45,94,.15);border:1px solid rgba(107,45,94,.35);color:var(--m);cursor:pointer;border-radius:8px;font-family:'Prompt',sans-serif;font-size:12px;padding:6px 12px;transition:all .2s;white-space:nowrap}
+.pay-opt.on{background:rgba(107,45,94,.45);border-color:var(--a);color:var(--r);font-weight:600}
+.pay-opt:hover{border-color:var(--a);color:var(--al)}
+/* slip */
+.slip{background:linear-gradient(180deg,#fff 0%,#fafafa 100%);color:#222;border-radius:16px;padding:24px 20px;max-width:320px;margin:0 auto;font-family:'Prompt',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.slip-head{text-align:center;border-bottom:2px dashed #ddd;padding-bottom:14px;margin-bottom:14px}
+.slip-logo{font-size:28px;margin-bottom:4px}
+.slip-title{font-size:16px;font-weight:700;color:#4A1F40;letter-spacing:.5px}
+.slip-sub{font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase}
+.slip-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px}
+.slip-row .lbl{color:#888;font-size:11px}
+.slip-row .val{font-weight:600;color:#333}
+.slip-total{border-top:2px solid #eee;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;align-items:center}
+.slip-total .lbl{font-size:14px;font-weight:700;color:#4A1F40}
+.slip-total .val{font-size:22px;font-weight:800;color:#6B2D5E;font-family:'DM Sans',sans-serif}
+.slip-code{text-align:center;margin-top:14px;padding:12px;background:#f5f0f7;border-radius:10px;border:2px dashed #C45FA0}
+.slip-code-val{font-size:22px;font-weight:800;letter-spacing:4px;color:#6B2D5E;font-family:'Courier New',monospace}
+.slip-code-lbl{font-size:10px;color:#888;margin-top:3px;letter-spacing:1px}
+.slip-pay{display:inline-block;margin-top:12px;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px}
+.slip-footer{text-align:center;margin-top:14px;padding-top:12px;border-top:1px dashed #ddd;font-size:10px;color:#aaa}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center">
+  <div class="card fade" style="padding:36px;width:100%;max-width:360px;text-align:center">
+    <div style="font-size:38px;margin-bottom:10px">🔮</div>
+    <h2 style="color:var(--r);font-family:'DM Sans',sans-serif;font-size:22px;margin-bottom:4px">Admin Panel</h2>
+    <p style="color:var(--m);font-size:12px;margin-bottom:16px">จักรวาลแห่งตัวเลข</p>
+
+    <!-- Mock mode badge (แสดงเฉพาะ GitHub Pages) -->
+    <div id="mockBadge" style="display:none;background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--gold);text-align:left">
+      🧪 <b>Mock Mode</b> — GitHub Pages (ทดสอบ UI เท่านั้น)<br>
+      <div style="margin-top:5px;color:var(--m)">
+        👑 อาจารย์: <span style="color:var(--al);font-family:'Courier New',monospace">ajarn / ajarn1234</span><br>
+        🛠 Admin:  <span style="color:var(--al);font-family:'Courier New',monospace">admin1 / admin1234</span>
+      </div>
+    </div>
+    <div style="display:grid;gap:10px;margin-bottom:8px">
+      <input type="text" id="loginUser" placeholder="Username เช่น ajarn / admin1"
+        style="text-align:center;font-size:14px"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()">
+      <input type="password" id="loginPw" placeholder="Password"
+        style="text-align:center;letter-spacing:4px;font-size:16px"
+        onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div id="pwErr" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px;padding:8px;background:rgba(255,100,100,.1);border-radius:8px"></div>
+    <button class="btn btn-p" id="loginBtn" style="width:100%;padding:12px;margin-top:4px" onclick="login()">✦ เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div style="border-bottom:1px solid rgba(107,45,94,.3);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(30,10,26,.85);position:sticky;top:0;z-index:100">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">🔮</span>
+      <div style="font-family:'DM Sans',sans-serif;color:var(--r);font-size:16px">Admin Panel</div>
+      <span id="roleBadge" style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:1px"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="userLabel" style="color:var(--m);font-size:12px"></span>
+      <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="showChangePw()">🔑 เปลี่ยน Password</button>
+      <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="logout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <div style="max-width:920px;margin:0 auto;padding:18px 14px">
+    <div style="display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:2px">
+      <button class="tab on" onclick="switchTab('dash',this)">📊 Dashboard</button>
+      <button class="tab" onclick="switchTab('gen',this)">🎫 ออกโค้ด</button>
+      <button class="tab" onclick="switchTab('list',this)">📋 รายการโค้ด</button>
+      <button class="tab" onclick="switchTab('readings',this)">👤 ข้อมูลลูกค้า</button>
+      <button class="tab revenue-tab" onclick="switchTab('revenue',this)" style="display:none">💰 รายได้</button>
+      <button class="tab packages-tab" onclick="switchTab('packages',this)" style="display:none">💎 จัดการราคา</button>
+      <button class="tab" onclick="switchTab('meanings',this)">📖 ความหมายเลข</button>
+      <button class="tab" onclick="switchTab('traffic',this)">📊 Traffic</button>
+      <button class="tab" onclick="switchTab('backup',this)">💾 Backup DB</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dash" class="fade">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <span style="color:var(--m);font-size:13px">เดือน</span>
+        <select id="selM" style="width:140px" onchange="loadDash()">
+          <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option><option value="3">มีนาคม</option>
+          <option value="4">เมษายน</option><option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+          <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option><option value="9">กันยายน</option>
+          <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+        </select>
+        <select id="selY" style="width:100px" onchange="loadDash()"></select>
+      </div>
+      <div id="dashOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+    </div>
+
+    <!-- GENERATE -->
+    <div id="tab-gen" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:18px;font-family:'DM Sans',sans-serif">✦ ออกโค้ดใหม่</h3>
+          <div style="display:grid;gap:12px">
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:8px">ราคา (บาท)</label>
+              <div id="pkgBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+                <div style="color:var(--dim);font-size:12px"><span class="spinner"></span> กำลังโหลดราคา...</div>
+              </div>
+              <input type="number" id="gPrice" value="499"
+                style="display:none"
+                placeholder="ระบุราคา (บาท)">
+              <div id="gPriceCustomWrap" style="display:none">
+                <input type="number" id="gPriceCustom" placeholder="ระบุราคา เช่น 5000, 10000"
+                  style="margin-top:6px"
+                  oninput="document.getElementById('gPrice').value=this.value">
+              </div>
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">จำนวน (สูงสุด 50)</label>
+              <input type="number" id="gQty" value="1" min="1" max="50">
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ช่องทางชำระเงิน</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="pay-opt on" id="pay-cash"    onclick="setPay('สด',this)">💵 สด</button>
+                <button class="pay-opt"    id="pay-prompt"  onclick="setPay('พร้อมเพย์',this)">📲 พร้อมเพย์</button>
+                <button class="pay-opt"    id="pay-pending" onclick="setPay('ยังไม่ได้เก็บ',this)">⏳ ยังไม่ได้เก็บ</button>
+              </div>
+              <input type="hidden" id="gPayMethod" value="สด">
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">หมายเหตุ / ชื่อลูกค้า</label>
+              <input type="text" id="gNote" placeholder="ชื่อลูกค้า / VIP / โปร">
+            </div>
+            <button class="btn btn-p" id="genBtn" onclick="genCodes()">✦ สร้างโค้ด</button>
+          </div>
+        </div>
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:14px;font-family:'DM Sans',sans-serif">🎫 โค้ดที่สร้างล่าสุด</h3>
+          <div id="genOut" style="color:var(--dim);font-size:13px;text-align:center;padding:28px 0">กดสร้างโค้ดเพื่อดูผลลัพธ์</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- READINGS -->
+    <div id="tab-readings" style="display:none">
+      <div id="readingsOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+    </div>
+
+    <!-- MEANINGS -->
+    <div id="tab-meanings" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:14px;align-items:start">
+
+        <!-- ตารางซ้าย -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <h3 style="color:var(--r);font-size:15px;font-family:'DM Sans',sans-serif">📖 ความหมายคู่เลข</h3>
+            <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="loadMeanings()">🔄 Refresh</button>
+          </div>
+          <div id="meaningsOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+        </div>
+
+        <!-- form ขวา (sticky) -->
+        <div class="card" style="padding:22px;position:sticky;top:76px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:6px;font-family:'DM Sans',sans-serif">✏️ แก้ไขความหมาย</h3>
+          <div id="mFormPairKey" style="color:var(--m);font-size:12px;margin-bottom:14px">← คลิกแถวที่ต้องการแก้ไขค่ะ</div>
+          <input type="hidden" id="mPairKey" value="">
+          <div style="display:grid;gap:12px">
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ความหมาย</label>
+              <textarea id="mMeaningTh" rows="8"
+                placeholder="กรอกความหมายของคู่เลขนี้..."
+                style="background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);border-radius:10px;color:var(--c);font-family:'Prompt',sans-serif;font-size:13px;padding:12px;width:100%;outline:none;resize:vertical;line-height:1.8;box-sizing:border-box"></textarea>
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">หมายเหตุ (ไม่บังคับ)</label>
+              <input type="text" id="mMeaningNote" placeholder="หมายเหตุเพิ่มเติม">
+            </div>
+            <div id="mFormMsg" style="display:none;font-size:12px;padding:8px;border-radius:8px"></div>
+            <button class="btn btn-p" id="mSaveBtn" onclick="saveMeaning()" disabled
+              style="opacity:.4;cursor:not-allowed">💾 บันทึก</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAFFIC -->
+    <div id="tab-traffic" style="display:none">
+      <div id="trafficOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+    </div>
+
+    <!-- REVENUE (อาจารย์เท่านั้น) -->
+    <div id="tab-revenue" style="display:none">
+      <!-- ตัวกรอง -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <span style="color:var(--m);font-size:13px">เดือน</span>
+        <select id="revM" style="width:140px">
+          <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option><option value="3">มีนาคม</option>
+          <option value="4">เมษายน</option><option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+          <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option><option value="9">กันยายน</option>
+          <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+        </select>
+        <select id="revY" style="width:100px"></select>
+        <button class="btn btn-p" style="padding:8px 16px;font-size:13px" onclick="loadRevenue()">🔍 ดูข้อมูล</button>
+        <button class="btn btn-g" style="padding:8px 16px;font-size:13px" onclick="exportExcel()">📥 Export Excel</button>
+      </div>
+
+      <!-- สรุปรายปี -->
+      <div id="revSummary" style="margin-bottom:14px"></div>
+
+      <!-- transaction รายการ -->
+      <div id="revOut"><div style="text-align:center;padding:40px;color:var(--dim)">กดดูข้อมูลเพื่อโหลดค่ะ</div></div>
+    </div>
+
+    <!-- PACKAGES (อาจารย์เท่านั้น) -->
+    <div id="tab-packages" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:14px">
+
+        <!-- form เพิ่ม/แก้ไข -->
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:18px;font-family:'DM Sans',sans-serif">💎 เพิ่ม / แก้ไขราคา</h3>
+          <input type="hidden" id="pkgId" value="0">
+          <div style="display:grid;gap:12px">
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ชื่อ Package</label>
+              <input type="text" id="pkgName" placeholder="เช่น มาตรฐาน, VIP, รายใหญ่">
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ราคา (บาท)</label>
+              <input type="number" id="pkgPrice" placeholder="เช่น 499, 5000, 10000" min="0">
+              <div style="color:var(--dim);font-size:11px;margin-top:4px">ใส่ 0 = "ระบุเอง" (admin กรอกราคาเองได้)</div>
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ลำดับแสดงผล</label>
+              <input type="number" id="pkgSort" placeholder="1, 2, 3... (น้อย = แสดงก่อน)" min="0">
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-p" style="flex:1" onclick="savePkg()">💾 บันทึก</button>
+              <button class="btn btn-g" style="flex:1" onclick="resetPkgForm()">🔄 ล้าง</button>
+            </div>
+            <div id="pkgFormMsg" style="display:none;font-size:12px;padding:8px;border-radius:8px"></div>
+          </div>
+        </div>
+
+        <!-- รายการ packages -->
+        <div class="card" style="padding:22px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <h3 style="color:var(--r);font-size:14px;font-family:'DM Sans',sans-serif">📋 ราคาทั้งหมด</h3>
+            <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="loadPackages()">🔄 Refresh</button>
+          </div>
+          <div id="pkgList"><div style="text-align:center;padding:20px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div id="tab-list" style="display:none">
+      <div id="listOut"><div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div></div>
+    </div>
+
+    <!-- BACKUP -->
+    <div id="tab-backup" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+
+        <!-- สร้าง Backup -->
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:18px;font-family:'DM Sans',sans-serif">💾 สร้าง Backup</h3>
+          <div style="display:grid;gap:12px">
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">เดือน (0 = ทั้งปี)</label>
+              <select id="bkMonth" style="width:100%">
+                <option value="0">— ทั้งปี —</option>
+                <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option><option value="3">มีนาคม</option>
+                <option value="4">เมษายน</option><option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+                <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option><option value="9">กันยายน</option>
+                <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+              </select>
+            </div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ปี (พ.ศ.)</label>
+              <select id="bkYear" style="width:100%"></select>
+            </div>
+            <button class="btn btn-p" id="bkBtn" onclick="doBackup()">💾 สร้าง Backup</button>
+          </div>
+          <div id="bkResult" style="margin-top:14px"></div>
+        </div>
+
+        <!-- คำแนะนำ -->
+        <div class="card" style="padding:22px">
+          <h3 style="color:var(--r);font-size:14px;margin-bottom:14px;font-family:'DM Sans',sans-serif">📋 วิธีใช้</h3>
+          <div style="display:grid;gap:10px">
+            <div class="sc" style="padding:12px 14px">
+              <div style="color:var(--gold);font-size:12px;font-weight:600;margin-bottom:4px">📅 Backup รายเดือน</div>
+              <div style="color:var(--m);font-size:12px;line-height:1.6">เลือกเดือน + ปี → ได้ข้อมูลเฉพาะเดือนนั้น<br>ไฟล์เล็ก โหลดเร็ว เหมาะสำหรับเก็บประจำเดือน</div>
+            </div>
+            <div class="sc" style="padding:12px 14px">
+              <div style="color:var(--al);font-size:12px;font-weight:600;margin-bottom:4px">📦 Backup ทั้งปี</div>
+              <div style="color:var(--m);font-size:12px;line-height:1.6">เลือก "ทั้งปี" → ได้ข้อมูลทุก table ทั้งปีนั้น<br>รวมตารางค่าคงที่ (meanings, calendar ฯลฯ)</div>
+            </div>
+            <div class="sc" style="padding:12px 14px">
+              <div style="color:var(--g);font-size:12px;font-weight:600;margin-bottom:4px">💡 หมายเหตุ</div>
+              <div style="color:var(--m);font-size:12px;line-height:1.6">ไฟล์ .sql เปิดด้วย phpMyAdmin → Import<br>เพื่อกู้ข้อมูลคืนได้ทุกเมื่อค่ะ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประวัติ Backup -->
+      <div class="card" style="padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 style="color:var(--r);font-size:14px;font-family:'DM Sans',sans-serif">🗂️ ประวัติ Backup</h3>
+          <button class="btn btn-g" style="font-size:12px;padding:6px 12px" onclick="loadBackups()">🔄 Refresh</button>
+        </div>
+        <div id="bkList"><div style="text-align:center;padding:24px;color:var(--dim)">กดสร้าง Backup หรือ Refresh เพื่อดูรายการค่ะ</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const MONTHS = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+let TOKEN = '';
+let ROLE  = '';
+let SCRIPT_URL = 'api.php';
+
+// ── MOCK MODE (GitHub Pages / local) ──────────────────────────
+const IS_MOCK = window.location.hostname.includes('github.io')
+             || window.location.hostname === 'localhost'
+             || window.location.hostname === '127.0.0.1'
+             || window.location.protocol === 'file:';
+
+// Mock users (เทสเท่านั้น — ไม่ใช่ password จริง)
+const MOCK_USERS = {
+  'ajarn':  { password: 'ajarn1234',  role: 'Admin' },
+  'admin1': { password: 'admin1234',  role: 'User'  },
+};
+
+// Mock data สำหรับ UI ทดสอบ
+const MOCK_DATA = {
+  dash: {
+    ok:true, month_count:12, month_revenue:5988, total_unused:8,
+    total_used:24, readings_count:12, traffic_count:45,
+    trend:[
+      {month:10,year:2025,count:5,revenue:2495},
+      {month:11,year:2025,count:8,revenue:3992},
+      {month:12,year:2025,count:10,revenue:4990},
+      {month:1,year:2026,count:7,revenue:3493},
+      {month:2,year:2026,count:9,revenue:4491},
+      {month:3,year:2026,count:12,revenue:5988},
+    ],
+    recent:[
+      {code:'ABCD-EFGH',price:499,note:'คุณสมหญิง [พร้อมเพย์]',used_at:'2026-03-16 10:30:00'},
+      {code:'IJKL-MNOP',price:299,note:'คุณสมชาย [สด]',used_at:'2026-03-15 14:20:00'},
+    ]
+  },
+  codes:[
+    {code:'ABCD-EFGH',price:499,note:'คุณสมหญิง [พร้อมเพย์]',pay_method:'พร้อมเพย์',used:1,used_at:'2026-03-16 10:30:00',created_at:'2026-03-10 09:00:00'},
+    {code:'IJKL-MNOP',price:299,note:'คุณสมชาย [สด]',pay_method:'สด',used:1,used_at:'2026-03-15 14:20:00',created_at:'2026-03-12 08:00:00'},
+    {code:'QRST-UVWX',price:499,note:'VIP [พร้อมเพย์]',pay_method:'พร้อมเพย์',used:0,used_at:null,created_at:'2026-03-16 08:00:00'},
+    {code:'YZAB-CDEF',price:699,note:'[ยังไม่ได้เก็บ]',pay_method:'ยังไม่ได้เก็บ',used:0,used_at:null,created_at:'2026-03-16 09:00:00'},
+  ],
+  readings:[
+    {name:'สมหญิง ใจดี',phone:'081-234-5678',line:'@somying',day:15,month:3,yearBE:2510,code:'ABCD-EFGH',price:499,pay:'พร้อมเพย์',date:'2026-03-16 10:35:00'},
+    {name:'สมชาย รักดี',phone:'089-876-5432',line:null,day:22,month:7,yearBE:2505,code:'IJKL-MNOP',price:299,pay:'สด',date:'2026-03-15 14:25:00'},
+  ],
+  meanings:[
+    {pair_key:'1-1',from_num:1,to_num:1,meaning_th:'จะมีเรื่องลังเล ไม่กล้าตัดสินใจ...',meaning_note:'',updated_at:'2026-03-01'},
+    {pair_key:'1-2',from_num:1,to_num:2,meaning_th:'จะพบความลี้ลับ สับสน...',meaning_note:'',updated_at:'2026-03-01'},
+    {pair_key:'1-3',from_num:1,to_num:3,meaning_th:'',meaning_note:'',updated_at:null},
+    {pair_key:'2-2',from_num:2,to_num:2,meaning_th:'สิ่งที่หวังที่รอคอยมาถึงแล้ว...',meaning_note:'',updated_at:'2026-03-01'},
+    {pair_key:'3-3',from_num:3,to_num:3,meaning_th:'',meaning_note:'',updated_at:null},
+    {pair_key:'4-4',from_num:4,to_num:4,meaning_th:'จะต้องอดทน อดกลั้น...',meaning_note:'',updated_at:'2026-03-01'},
+  ],
+  traffic:{ok:true,total:287,by_page:{home:120,index:98,admin:69},recent:[
+    {time:'2026-03-16 10:30:00',page:'index',action:'use_code_ok',detail:'ABCD-EFGH'},
+    {time:'2026-03-16 09:00:00',page:'admin',action:'gen_codes',detail:'qty=2 price=499'},
+    {time:'2026-03-15 14:00:00',page:'index',action:'use_code_ok',detail:'IJKL-MNOP'},
+  ]},
+  packages:[
+    {id:1,name:'มาตรฐาน',price:299,sort_order:1,active:1},
+    {id:2,name:'มาตรฐาน',price:399,sort_order:2,active:1},
+    {id:3,name:'มาตรฐาน',price:499,sort_order:3,active:1},
+    {id:4,name:'พิเศษ',price:699,sort_order:4,active:1},
+    {id:5,name:'พิเศษ',price:999,sort_order:5,active:1},
+    {id:6,name:'ระบุเอง',price:0,sort_order:99,active:1},
+  ],
+  revenue_transactions:[
+    {code:'ABCD-EFGH',customer_name:'สมหญิง ใจดี',phone:'081-234-5678',price:499,pay_method:'พร้อมเพย์',created_by:'admin1',used_at:'2026-03-16 10:30:00'},
+    {code:'IJKL-MNOP',customer_name:'สมชาย รักดี',phone:'089-876-5432',price:299,pay_method:'สด',created_by:'ajarn',used_at:'2026-03-15 14:20:00'},
+  ],
+};
+
+async function api(body) {
+  if (IS_MOCK) return mockApi(body);
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  return res.json();
+}
+
+function mockApi(body) {
+  return new Promise(resolve => setTimeout(() => {
+    const a = body.action;
+    if (a==='admin_login') {
+      const u = MOCK_USERS[body.username];
+      if (u && u.password === body.password)
+        resolve({ok:true, token:'mock-token', role:u.role});
+      else
+        resolve({ok:false, msg:'Username หรือ Password ไม่ถูกต้องค่ะ (Mock: ajarn/ajarn1234)'});
+    }
+    else if (a==='admin_dash')     resolve({...MOCK_DATA.dash, ok:true, msg:'OK'});
+    else if (a==='admin_list')     resolve({ok:true, codes:MOCK_DATA.codes});
+    else if (a==='admin_readings') resolve({ok:true, readings:MOCK_DATA.readings});
+    else if (a==='admin_meanings') resolve({ok:true, meanings:MOCK_DATA.meanings});
+    else if (a==='admin_traffic')  resolve({...MOCK_DATA.traffic});
+    else if (a==='list_packages' || a==='admin_packages') resolve({ok:true, packages:MOCK_DATA.packages});
+    else if (a==='admin_transactions') resolve({ok:true, transactions:MOCK_DATA.revenue_transactions, total:798});
+    else if (a==='monthly_summary') resolve({ok:true, total_year:15948,
+      by_admin:[{admin:'admin1',qty:8,revenue:3992},{admin:'ajarn',qty:4,revenue:1996}],
+      by_method:[{pay_method:'พร้อมเพย์',qty:9,revenue:4491},{pay_method:'สด',qty:3,revenue:897}],
+      monthly:MOCK_DATA.dash.trend});
+    else if (a==='export_transactions') resolve({ok:true, rows:MOCK_DATA.revenue_transactions.map(r=>({'โค้ด':r.code,'ชื่อลูกค้า':r.customer_name,'ราคา (บาท)':r.price,'ช่องทาง':r.pay_method,'ออกโดย':r.created_by,'วันที่ใช้':r.used_at})), total:798, period:'2026-03'});
+    else if (a==='admin_gen')      resolve({ok:true, codes:['MOCK-CODE']});
+    else if (a==='save_package')   resolve({ok:true});
+    else if (a==='delete_package') resolve({ok:true});
+    else if (a==='update_meaning') resolve({ok:true});
+    else if (a==='change_password') resolve({ok:true});
+    else if (a==='list_backups')   resolve({ok:true, backups:[]});
+    else if (a==='backup_db')      resolve({ok:true, filename:'backup_mock.sql', label:'mock', size_kb:12.3});
+    else                           resolve({ok:true, msg:'mock ok'});
+  }, 300));
+}
+
+// init year selector
+const now = new Date();
+// แสดง mock badge ถ้าอยู่บน GitHub Pages
+if (IS_MOCK) document.getElementById('mockBadge').style.display = 'block';
+const sy  = document.getElementById('selY');
+for(let y=now.getFullYear();y>=now.getFullYear()-4;y--){
+  const o=document.createElement('option');o.value=y;o.textContent=y+543;sy.appendChild(o);
+}
+document.getElementById('selM').value = now.getMonth()+1;
+
+// init year selector สำหรับ backup
+const bkY = document.getElementById('bkYear');
+for(let y=now.getFullYear()+543; y>=now.getFullYear()+543-5; y--){
+  const o=document.createElement('option');
+  o.value=y-543;
+  o.textContent='พ.ศ. '+y;
+  bkY.appendChild(o);
+}
+document.getElementById('bkMonth').value = now.getMonth()+1;
+
+
+
+async function login() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPw').value;
+  const err = document.getElementById('pwErr');
+  const btn = document.getElementById('loginBtn');
+  if (!username) { err.textContent='กรุณาใส่ Username ค่ะ'; err.style.display='block'; return; }
+  if (!password) { err.textContent='กรุณาใส่ Password ค่ะ'; err.style.display='block'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลังเข้าระบบ...';
+  err.style.display = 'none';
+  try {
+    const data = await api({ action:'admin_login', username, password });
+    if (data.ok) {
+      TOKEN = data.token;
+      ROLE  = data.role;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      // badge
+      const badge = document.getElementById('roleBadge');
+      document.getElementById('userLabel').textContent = username;
+      if (ROLE === 'Admin') {
+        badge.textContent = '⭐ อาจารย์';
+        badge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;background:rgba(212,168,75,.2);border:1px solid rgba(212,168,75,.5);color:var(--gold)';
+      } else {
+        badge.textContent = '🛠 Admin';
+        badge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.5);color:var(--al)';
+      }
+      applyRoleUI();
+      loadDash();
+    } else {
+      err.textContent = data.msg || 'Username หรือ Password ไม่ถูกต้อง';
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'เชื่อมต่อไม่ได้ — ตรวจสอบ SCRIPT_URL ใน admin_sheets.html';
+    err.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '✦ เข้าสู่ระบบ';
+}
+
+function applyRoleUI() {
+  const dashTab    = document.querySelector('[onclick="switchTab(\'dash\',this)"]');
+  const revenueTabs  = document.querySelectorAll('.revenue-tab');
+  const packagesTabs = document.querySelectorAll('.packages-tab');
+  if (ROLE !== 'Admin') {
+    if (dashTab) dashTab.style.display = 'none';
+    revenueTabs.forEach(t  => t.style.display = 'none');
+    packagesTabs.forEach(t => t.style.display = 'none');
+    document.getElementById('tab-dash').style.display = 'none';
+    document.getElementById('tab-gen').style.display  = 'block';
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+    document.querySelector('[onclick="switchTab(\'gen\',this)"]').classList.add('on');
+  } else {
+    if (dashTab) dashTab.style.display = '';
+    revenueTabs.forEach(t  => t.style.display = '');
+    packagesTabs.forEach(t => t.style.display = '');
+    // init year selector สำหรับ revenue
+    const revY = document.getElementById('revY');
+    if (!revY.options.length) {
+      for(let y=now.getFullYear();y>=now.getFullYear()-4;y--){
+        const o=document.createElement('option');o.value=y;o.textContent=y+543;revY.appendChild(o);
+      }
+    }
+    document.getElementById('revM').value = now.getMonth()+1;
+  }
+  // โหลด packages ปุ่มราคาในหน้าออกโค้ดเสมอ
+  loadPkgButtons();
+}
+
+async function logout() {
+  TOKEN = ''; ROLE = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPw').value   = '';
+  // reset tab state
+  ['dash','gen','list','readings','meanings','traffic','backup','revenue','packages'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = 'none';
+  });
+  document.getElementById('tab-dash').style.display = 'block';
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.classList.remove('on');
+    // ซ่อน tab ที่เป็น role-specific ก่อนก็จะ applyRoleUI ใหม่ตอน login
+    if(b.classList.contains('revenue-tab') || b.classList.contains('packages-tab'))
+      b.style.display = 'none';
+  });
+  const dashTab = document.querySelector('[onclick="switchTab(\'dash\',this)"]');
+  if (dashTab) { dashTab.style.display = ''; dashTab.classList.add('on'); }
+  // clear pkg buttons
+  document.getElementById('pkgBtns').innerHTML = '<div style="color:var(--dim);font-size:12px">—</div>';
+  document.getElementById('gPrice').value = '';
+  document.getElementById('gPriceCustomWrap').style.display = 'none';
+}
+
+// ── เปลี่ยน Password ──────────────────────────────────
+function showChangePw() {
+  const overlay = document.createElement('div');
+  overlay.id = 'changePwOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,3,9,.85);z-index:400;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#2D1030,#1E0A1A);border:1px solid rgba(107,45,94,.5);border-radius:20px;padding:28px;width:90%;max-width:400px">
+      <h3 style="color:var(--r);font-size:15px;margin-bottom:18px">🔑 เปลี่ยน Password</h3>
+      <div style="display:grid;gap:10px">
+        <div>
+          <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">Password เดิม</label>
+          <input type="password" id="cpOld" placeholder="••••••••" style="letter-spacing:3px">
+        </div>
+        <div>
+          <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">Password ใหม่</label>
+          <input type="password" id="cpNew" placeholder="••••••••" style="letter-spacing:3px">
+        </div>
+        <div>
+          <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">ยืนยัน Password ใหม่</label>
+          <input type="password" id="cpConfirm" placeholder="••••••••" style="letter-spacing:3px">
+        </div>
+        <div id="cpErr" style="display:none;color:var(--red);font-size:12px;padding:8px;background:rgba(255,100,100,.1);border-radius:8px"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-p" style="flex:1" onclick="doChangePw()">💾 บันทึก</button>
+        <button class="btn btn-g" style="flex:1" onclick="document.getElementById('changePwOverlay').remove()">ยกเลิก</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+}
+
+async function doChangePw() {
+  const old_pw  = document.getElementById('cpOld').value;
+  const new_pw  = document.getElementById('cpNew').value;
+  const confirm = document.getElementById('cpConfirm').value;
+  const err     = document.getElementById('cpErr');
+  if (!old_pw || !new_pw) { err.textContent='กรุณากรอกให้ครบค่ะ'; err.style.display='block'; return; }
+  if (new_pw !== confirm)  { err.textContent='Password ใหม่ไม่ตรงกันค่ะ'; err.style.display='block'; return; }
+  if (new_pw.length < 6)   { err.textContent='Password ต้องมีอย่างน้อย 6 ตัวค่ะ'; err.style.display='block'; return; }
+  try {
+    const data = await api({ action:'change_password', token:TOKEN, old_pw, new_pw });
+    if (data.ok) { document.getElementById('changePwOverlay').remove(); toast('✅ เปลี่ยน Password สำเร็จค่ะ'); }
+    else { err.textContent = data.msg; err.style.display='block'; }
+  } catch(e) { err.textContent='เชื่อมต่อล้มเหลว'; err.style.display='block'; }
+}
+
+function switchTab(name, btn) {
+  ['dash','gen','list','readings','meanings','traffic','backup','revenue','packages'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display='none';
+  });
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+name).style.display = 'block';
+  btn.classList.add('on');
+  if(name==='list')     loadList();
+  if(name==='readings') loadReadings();
+  if(name==='traffic')  loadTraffic();
+  if(name==='dash')     loadDash();
+  if(name==='backup')   loadBackups();
+  if(name==='revenue')  loadRevenue();
+  if(name==='packages') loadPackages();
+  if(name==='meanings') loadMeanings();
+}
+
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2300);
+}
+
+function fmtDate(s) {
+  if(!s) return '-';
+  const d = new Date(s);
+  return `${d.getDate()} ${MONTHS[d.getMonth()+1]} ${d.getFullYear()+543} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtShort(s) {
+  if(!s) return '-';
+  const d = new Date(s);
+  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+}
+
+async function genCodes() {
+  const price     = parseInt(document.getElementById('gPrice').value)||499;
+  const qty       = Math.min(Math.max(parseInt(document.getElementById('gQty').value)||1,1),50);
+  const note      = document.getElementById('gNote').value.trim();
+  const payMethod = document.getElementById('gPayMethod').value;
+  const btn       = document.getElementById('genBtn');
+  const out       = document.getElementById('genOut');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลังสร้าง...';
+  out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim)"><span class="spinner"></span>รอสักครู่...</div>';
+
+  try {
+    const noteWithPay = note ? `${note} [${payMethod}]` : `[${payMethod}]`;
+    const data = await api({ action:'admin_gen', token:TOKEN, price, qty, note: noteWithPay });
+    if (!data.ok) { toast('❌ '+data.msg); out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+
+    const payColor = payMethod==='สด'?'#2ecc71':payMethod==='พร้อมเพย์'?'#3498db':'#e67e22';
+    const payBg    = payMethod==='สด'?'#e8f8f0':payMethod==='พร้อมเพย์'?'#e8f4fd':'#fdf0e3';
+    const now      = new Date();
+    const dateStr  = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543}`;
+    const timeStr  = now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    const receiptNo = 'RCP'+Date.now().toString().slice(-8);
+
+    if (qty === 1) {
+      // แสดง slip ใบเดียว
+      out.innerHTML = `
+        <div id="slipWrap" class="slip">
+          <div class="slip-head">
+            <div class="slip-logo">🔮</div>
+            <div class="slip-title">จักรวาลแห่งตัวเลข</div>
+            <div class="slip-sub">ใบเสร็จรับเงิน</div>
+          </div>
+          <div class="slip-row"><span class="lbl">เลขที่</span><span class="val" style="font-size:11px">${receiptNo}</span></div>
+          <div class="slip-row"><span class="lbl">วันที่</span><span class="val">${dateStr} ${timeStr}</span></div>
+          <div class="slip-row"><span class="lbl">รายการ</span><span class="val">ดูดวงตัวเลขศาสตร์</span></div>
+          ${note?`<div class="slip-row"><span class="lbl">ลูกค้า</span><span class="val">${note}</span></div>`:''}
+          <div class="slip-total">
+            <span class="lbl">ยอดชำระ</span>
+            <span class="val">${price.toLocaleString()} ฿</span>
+          </div>
+          <div class="slip-code">
+            <div class="slip-code-val">${data.codes[0]}</div>
+            <div class="slip-code-lbl">CODE ACCESS</div>
+          </div>
+          <div style="text-align:center;margin-top:10px">
+            <span class="slip-pay" style="background:${payBg};color:${payColor};border:1px solid ${payColor}">
+              ${payMethod==='สด'?'💵':payMethod==='พร้อมเพย์'?'📲':'⏳'} ${payMethod}
+            </span>
+          </div>
+          <div class="slip-footer">ขอบคุณที่ใช้บริการค่ะ 🙏<br>zdoragel.github.io/hora_number</div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:12px">
+          <button class="btn btn-g" style="flex:1;font-size:12px"
+            onclick="navigator.clipboard.writeText('${data.codes[0]}');toast('คัดลอกโค้ดแล้ว!')">
+            📋 copy โค้ด
+          </button>
+          <button class="btn btn-g" style="flex:1;font-size:12px" onclick="printSlip()">
+            🖨️ พิมพ์ใบเสร็จ
+          </button>
+        </div>`;
+    } else {
+      // หลายโค้ด แสดงรายการ
+      out.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <p style="color:var(--m);font-size:12px">${qty} โค้ด · ${price.toLocaleString()} ฿ · <span style="color:${payColor}">${payMethod}</span></p>
+          <button class="btn btn-g" style="font-size:11px;padding:5px 10px"
+            onclick="navigator.clipboard.writeText(\`${data.codes.join('\n')}\`);toast('คัดลอกทั้งหมดแล้ว!')">
+            copy ทั้งหมด
+          </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;max-height:280px;overflow-y:auto">
+          ${data.codes.map((c,i)=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(107,45,94,.15);border-radius:8px;padding:9px 11px;border:1px solid rgba(107,45,94,.3)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:var(--dim);font-size:11px">${i+1}.</span>
+                <span class="chip">${c}</span>
+              </div>
+              <button class="cp" onclick="navigator.clipboard.writeText('${c}');toast('คัดลอกแล้ว!')">copy</button>
+            </div>`).join('')}
+        </div>
+        <div style="margin-top:12px;background:rgba(107,45,94,.1);border-radius:10px;padding:12px;font-size:12px;color:var(--m)">
+          💰 รวม ${qty} โค้ด = <span style="color:var(--gold);font-weight:700">${(qty*price).toLocaleString()} ฿</span>
+          &nbsp;·&nbsp; ช่องทาง: <span style="color:${payColor};font-weight:700">${payMethod}</span>
+        </div>`;
+    }
+    toast(`✦ สร้าง ${qty} โค้ดแล้ว!`);
+  } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
+  btn.disabled = false;
+  btn.innerHTML = '✦ สร้างโค้ด';
+}
+
+function setPay(val, el) {
+  document.getElementById('gPayMethod').value = val;
+  document.querySelectorAll('.pay-opt').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function printSlip() {
+  const slip = document.getElementById('slipWrap');
+  if (!slip) return;
+  const w = window.open('','','width=400,height=600');
+  w.document.write(`<html><head><title>ใบเสร็จ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      body{margin:0;padding:20px;background:#f0e8f0;display:flex;justify-content:center;font-family:'Prompt',sans-serif}
+      .slip{background:#fff;border-radius:16px;padding:24px 20px;max-width:300px;width:100%}
+      .slip-head{text-align:center;border-bottom:2px dashed #ddd;padding-bottom:14px;margin-bottom:14px}
+      .slip-logo{font-size:28px;margin-bottom:4px}
+      .slip-title{font-size:16px;font-weight:700;color:#4A1F40}
+      .slip-sub{font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase}
+      .slip-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}
+      .lbl{color:#888;font-size:11px} .val{font-weight:600;color:#333}
+      .slip-total{border-top:2px solid #eee;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between}
+      .slip-total .lbl{font-size:14px;font-weight:700;color:#4A1F40}
+      .slip-total .val{font-size:22px;font-weight:800;color:#6B2D5E}
+      .slip-code{text-align:center;margin-top:14px;padding:12px;background:#f5f0f7;border-radius:10px;border:2px dashed #C45FA0}
+      .slip-code-val{font-size:22px;font-weight:800;letter-spacing:4px;color:#6B2D5E;font-family:'Courier New',monospace}
+      .slip-footer{text-align:center;margin-top:14px;padding-top:12px;border-top:1px dashed #ddd;font-size:10px;color:#aaa}
+    </style></head><body><div class="slip">${slip.innerHTML}</div></body></html>`);
+  w.document.close();
+  setTimeout(()=>{ w.print(); w.close(); }, 600);
+}
+
+async function loadDash() {
+  const month = parseInt(document.getElementById('selM').value);
+  const year  = parseInt(document.getElementById('selY').value);
+  const out   = document.getElementById('dashOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+
+  try {
+    const d = await api({ action:'admin_dash', token:TOKEN, month, year });
+    if (!d.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+d.msg+'</p>'; return; }
+
+    const maxC = Math.max(...d.trend.map(t=>t.count), 1);
+    const statsCards = [
+      {icon:'👁',label:'คนดูดวงเดือนนี้',value:d.month_count,unit:'คน',color:'var(--a)',adminOnly:false},
+      {icon:'💰',label:'รายได้เดือนนี้',value:(d.month_revenue||0).toLocaleString(),unit:'บาท',color:'var(--gold)',adminOnly:true},
+      {icon:'🎫',label:'โค้ดยังไม่ใช้',value:d.total_unused,unit:'โค้ด',color:'var(--g)',adminOnly:false},
+      {icon:'✅',label:'ใช้ไปทั้งหมด',value:d.total_used,unit:'ครั้ง',color:'var(--r)',adminOnly:false},
+      {icon:'👤',label:'ข้อมูลลูกค้า',value:d.readings_count||0,unit:'ราย',color:'var(--al)',adminOnly:false},
+      {icon:'📊',label:'Traffic เดือนนี้',value:d.traffic_count||0,unit:'ครั้ง',color:'var(--g)',adminOnly:false},
+    ].filter(s => !s.adminOnly || ROLE === 'Admin');
+    out.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px">
+        ${statsCards.map(s=>`<div class="sc"><div style="font-size:20px;margin-bottom:5px">${s.icon}</div><div style="color:var(--m);font-size:11px;margin-bottom:3px">${s.label}</div><div style="font-size:24px;font-weight:700;color:${s.color};font-family:'DM Sans',sans-serif">${s.value}</div><div style="color:var(--dim);font-size:11px">${s.unit}</div></div>`).join('')}
+      </div>
+      <div class="card" style="padding:18px;margin-bottom:14px">
+        <h3 style="color:var(--r);font-size:13px;margin-bottom:14px">📈 ย้อนหลัง 6 เดือน</h3>
+        <div style="display:flex;gap:8px;align-items:flex-end;height:100px">
+          ${d.trend.map(t=>`
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="font-size:11px;color:var(--a);font-weight:700">${t.count||''}</div>
+              <div style="width:100%;background:rgba(107,45,94,.2);border-radius:6px;height:70px;display:flex;align-items:flex-end;overflow:hidden">
+                <div style="width:100%;height:${Math.max((t.count/maxC)*100,t.count>0?8:0)}%;background:linear-gradient(to top,var(--p),var(--a));border-radius:6px"></div>
+              </div>
+              <div style="font-size:10px;color:var(--m)">${MONTHS[t.month].slice(0,3)}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      ${d.recent && d.recent.length ? `
+      <div class="card" style="padding:18px">
+        <h3 style="color:var(--r);font-size:13px;margin-bottom:12px">🕐 ล่าสุด (เดือนนี้)</h3>
+        <div style="overflow-x:auto"><table>
+          <thead><tr>
+            <th>โค้ด</th>
+            ${ROLE==='Admin'?'<th>ราคา</th>':''}
+            <th>หมายเหตุ</th><th>ใช้เมื่อ</th>
+          </tr></thead>
+          <tbody>${d.recent.map(c=>`
+            <tr>
+              <td><span class="chip" style="font-size:11px">${c.code}</span></td>
+              ${ROLE==='Admin'?`<td style="color:var(--gold);font-weight:600">${(c.price||0).toLocaleString()} ฿</td>`:''}
+              <td style="color:var(--m)">${c.note||'-'}</td>
+              <td style="color:var(--m);font-size:11px">${fmtDate(c.used_at)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>` : ''}`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+async function loadList() {
+  const out = document.getElementById('listOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+
+  try {
+    const data = await api({ action:'admin_list', token:TOKEN, filter:'all' });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+
+    const all    = data.codes;
+    const unused = all.filter(c=>!c.used);
+    const used   = all.filter(c=>c.used);
+
+    out.innerHTML = `
+      <p style="color:var(--m);font-size:13px;margin-bottom:14px">ทั้งหมด ${all.length} · ใช้แล้ว ${used.length} · <span style="color:var(--g)">ยังไม่ใช้ ${unused.length}</span></p>
+      <div class="card" style="padding:18px;margin-bottom:14px">
+        <h3 style="color:var(--gold);font-size:13px;margin-bottom:12px">🎫 ยังไม่ได้ใช้ (${unused.length})</h3>
+        ${unused.length===0?'<p style="color:var(--dim);font-size:13px;text-align:center;padding:14px 0">ไม่มีโค้ดว่าง</p>':`
+          <div style="overflow-x:auto"><table>
+            <thead><tr>
+              <th>โค้ด</th>
+              ${ROLE==='Admin'?'<th>ราคา</th>':''}
+              <th>หมายเหตุ</th><th>สร้างเมื่อ</th><th></th>
+            </tr></thead>
+            <tbody>${[...unused].reverse().map(c=>`
+              <tr><td><span class="chip">${c.code}</span>
+                <button class="cp" style="margin-left:5px" onclick="navigator.clipboard.writeText('${c.code}');toast('คัดลอกแล้ว!')">copy</button>
+              </td>
+              ${ROLE==='Admin'?`<td style="color:var(--gold);font-weight:600">${(c.price||0).toLocaleString()} ฿</td>`:''}
+              <td style="color:var(--m);font-size:12px">${c.note||'-'}</td>
+              <td style="color:var(--m);font-size:11px">${fmtShort(c.created_at)}</td>
+              <td><button class="btn btn-d" onclick="delCode('${c.code}')">ลบ</button></td></tr>`).join('')}
+            </tbody>
+          </table></div>`}
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="color:var(--m);font-size:13px;margin-bottom:12px">✅ ใช้แล้ว (${used.length})</h3>
+        ${used.length===0?'<p style="color:var(--dim);font-size:13px;text-align:center;padding:14px 0">ยังไม่มี</p>':`
+          <div style="overflow-x:auto;max-height:350px;overflow-y:auto"><table>
+            <thead><tr>
+              <th>โค้ด</th>
+              ${ROLE==='Admin'?'<th>ราคา</th>':''}
+              <th>หมายเหตุ</th><th>ใช้เมื่อ</th>
+            </tr></thead>
+            <tbody>${[...used].reverse().map(c=>`
+              <tr><td><span class="chip" style="opacity:.55;font-size:11px">${c.code}</span></td>
+              ${ROLE==='Admin'?`<td style="color:var(--m)">${(c.price||0).toLocaleString()} ฿</td>`:''}
+              <td style="color:var(--m);font-size:12px">${c.note||'-'}</td>
+              <td style="color:var(--m);font-size:11px">${fmtDate(c.used_at)}</td></tr>`).join('')}
+            </tbody>
+          </table></div>`}
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+async function delCode(code) {
+  if(!confirm(`ลบโค้ด ${code} ?`)) return;
+  try {
+    const data = await api({ action:'admin_delete', token:TOKEN, code });
+    if(data.ok) { toast('ลบแล้ว'); loadList(); }
+    else toast('❌ '+data.msg);
+  } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
+}
+
+async function loadReadings() {
+  const out = document.getElementById('readingsOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'admin_readings', token:TOKEN });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+    const rows = data.readings || [];
+    out.innerHTML = `
+      <p style="color:var(--m);font-size:13px;margin-bottom:14px">ทั้งหมด ${rows.length} รายการ</p>
+      <div class="card" style="padding:18px;overflow-x:auto">
+        ${rows.length===0?'<p style="color:var(--dim);text-align:center;padding:16px">ยังไม่มีข้อมูล</p>':`
+        <table>
+          <thead><tr>
+            <th>ชื่อ</th><th>เบอร์โทร</th><th>Line</th><th>วันเกิด</th><th>โค้ด</th>
+            ${ROLE==='Admin'?'<th>ราคา</th><th>ช่องทาง</th>':''}
+            <th>วันที่ดู</th>
+          </tr></thead>
+          <tbody>${rows.map(r=>`
+            <tr>
+              <td style="font-weight:600;color:var(--r)">${r.name||'-'}</td>
+              <td style="color:var(--c)">${r.phone||'-'}</td>
+              <td style="color:var(--m)">${r.line||'-'}</td>
+              <td style="color:var(--m);font-size:12px">${r.day||''}/${r.month||''}/${r.yearBE||''}</td>
+              <td><span class="chip" style="font-size:10px">${r.code||'-'}</span></td>
+              ${ROLE==='Admin'?`
+                <td style="color:var(--gold);font-weight:600">${(r.price||0).toLocaleString()} ฿</td>
+                <td style="font-size:11px">${r.pay==='สด'?'💵 สด':r.pay==='พร้อมเพย์'?'📲 พร้อมเพย์':r.pay==='ยังไม่ได้เก็บ'?'⏳ ค้างชำระ':r.pay||'-'}</td>`:''}
+              <td style="color:var(--dim);font-size:11px">${fmtDate(r.date)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`}
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+async function loadMeanings() {
+  const out = document.getElementById('meaningsOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'admin_meanings', token:TOKEN });
+    if (!data.ok) { out.innerHTML=`<p style="color:var(--red);text-align:center">${data.msg}</p>`; return; }
+    const rows = data.meanings || [];
+    out.innerHTML = `
+      <p style="color:var(--m);font-size:12px;margin-bottom:10px">ทั้งหมด ${rows.length} คู่เลข · คลิกแถวเพื่อแก้ไขค่ะ</p>
+      <div class="card" style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th style="width:70px">คู่เลข</th>
+            <th>ความหมาย</th>
+            <th style="width:80px">อัปเดต</th>
+          </tr></thead>
+          <tbody>${rows.map(r => `
+            <tr id="mrow-${r.pair_key}"
+              onclick="selectMeaning('${r.pair_key}',${JSON.stringify(r.meaning_th||'')},${JSON.stringify(r.meaning_note||'')})"
+              style="cursor:pointer">
+              <td>
+                <span class="chip" style="font-size:11px">${r.pair_key||'-'}</span>
+              </td>
+              <td style="font-size:12px;line-height:1.6;color:${r.meaning_th?'var(--c)':'var(--dim)'}">
+                ${r.meaning_th
+                  ? (r.meaning_th.substring(0,80) + (r.meaning_th.length>80?'...':''))
+                  : '— ยังไม่มีความหมาย —'}
+              </td>
+              <td style="color:var(--dim);font-size:10px;white-space:nowrap">${fmtShort(r.updated_at)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+function selectMeaning(pair_key, meaning_th, meaning_note) {
+  // highlight แถวที่เลือก
+  document.querySelectorAll('#meaningsOut tr').forEach(r=>r.style.background='');
+  const row = document.getElementById('mrow-'+pair_key);
+  if (row) row.style.background = 'rgba(107,45,94,.25)';
+
+  // ใส่ข้อมูลลง form ขวา
+  document.getElementById('mPairKey').value      = pair_key;
+  document.getElementById('mMeaningTh').value    = meaning_th;
+  document.getElementById('mMeaningNote').value  = meaning_note;
+  document.getElementById('mFormPairKey').innerHTML =
+    `แก้ไขคู่เลข <span class="chip" style="font-size:12px">${pair_key}</span>`;
+
+  // เปิด button บันทึก
+  const btn = document.getElementById('mSaveBtn');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor  = 'pointer';
+
+  // scroll form ให้เห็น
+  document.getElementById('mMeaningTh').focus();
+}
+
+async function saveMeaning() {
+  const pair_key    = document.getElementById('mPairKey').value;
+  const meaning_th  = document.getElementById('mMeaningTh').value.trim();
+  const meaning_note = document.getElementById('mMeaningNote').value.trim();
+  const msg = document.getElementById('mFormMsg');
+
+  if (!pair_key) { showMeaningMsg('กรุณาเลือกคู่เลขก่อนค่ะ', false); return; }
+  if (!meaning_th) { showMeaningMsg('กรุณากรอกความหมายค่ะ', false); return; }
+
+  try {
+    const data = await api({ action:'update_meaning', token:TOKEN, pair_key, meaning_th, meaning_note });
+    if (data.ok) {
+      showMeaningMsg('✅ บันทึกสำเร็จค่ะ', true);
+      toast('✅ บันทึกแล้วค่ะ');
+      loadMeanings();   // refresh ตารางซ้าย
+    } else {
+      showMeaningMsg('❌ '+data.msg, false);
+    }
+  } catch(e) { showMeaningMsg('❌ เชื่อมต่อล้มเหลว', false); }
+}
+
+function showMeaningMsg(text, ok) {
+  const el = document.getElementById('mFormMsg');
+  el.textContent = text;
+  el.style.cssText = `display:block;font-size:12px;padding:8px;border-radius:8px;${ok
+    ? 'background:rgba(85,187,136,.1);color:var(--g);border:1px solid rgba(85,187,136,.3)'
+    : 'background:rgba(255,100,100,.1);color:var(--red);border:1px solid rgba(255,100,100,.3)'}`;
+  setTimeout(()=>{ el.style.display='none'; }, 3000);
+}
+
+function refreshMeanings() { loadMeanings(); }
+
+async function loadTraffic() {
+  const out = document.getElementById('trafficOut');
+  out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'admin_traffic', token:TOKEN });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+    const byPage = data.by_page || {};
+    const recent = data.recent  || [];
+    out.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+        <div class="sc"><div style="font-size:20px;margin-bottom:5px">📈</div>
+          <div style="color:var(--m);font-size:11px">total visits</div>
+          <div style="font-size:24px;font-weight:700;color:var(--a);font-family:'DM Sans',sans-serif">${data.total||0}</div>
+        </div>
+        ${Object.entries(byPage).map(([p,c])=>`
+        <div class="sc"><div style="font-size:20px;margin-bottom:5px">📄</div>
+          <div style="color:var(--m);font-size:11px">${p}</div>
+          <div style="font-size:24px;font-weight:700;color:var(--al);font-family:'DM Sans',sans-serif">${c}</div>
+        </div>`).join('')}
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="color:var(--r);font-size:13px;margin-bottom:12px">🕐 ล่าสุด</h3>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>เวลา</th><th>หน้า</th><th>action</th><th>รายละเอียด</th></tr></thead>
+          <tbody>${recent.map(r=>`
+            <tr>
+              <td style="font-size:11px;color:var(--dim)">${fmtDate(r.time)}</td>
+              <td style="color:var(--al)">${r.page||'-'}</td>
+              <td style="color:var(--m);font-size:12px">${r.action||'-'}</td>
+              <td style="color:var(--dim);font-size:11px">${r.detail||'-'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+// ════════════════════════════════════════
+//  PACKAGES FUNCTIONS
+// ════════════════════════════════════════
+async function loadPkgButtons() {
+  try {
+    const data = await api({ action:'list_packages', token:TOKEN });
+    if (!data.ok) return;
+    const pkgs = data.packages || [];
+    const wrap = document.getElementById('pkgBtns');
+    wrap.innerHTML = pkgs.map(p => {
+      if (p.price == 0) {
+        return `<button class="pay-opt" onclick="selectPkg(0,'ระบุเอง',this)">✏️ ระบุเอง</button>`;
+      }
+      return `<button class="pay-opt" onclick="selectPkg(${p.price},'${p.name}',this)">
+        <span style="font-size:10px;display:block;color:var(--m)">${p.name}</span>
+        <span style="font-weight:700">${p.price.toLocaleString()} ฿</span>
+      </button>`;
+    }).join('');
+    // default เลือกอันแรก
+    const first = wrap.querySelector('.pay-opt');
+    if (first) first.click();
+  } catch(e) {}
+}
+
+function selectPkg(price, name, el) {
+  document.querySelectorAll('#pkgBtns .pay-opt').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const customWrap = document.getElementById('gPriceCustomWrap');
+  if (price == 0) {
+    // ระบุเอง
+    customWrap.style.display = 'block';
+    document.getElementById('gPriceCustom').value = '';
+    document.getElementById('gPrice').value = '';
+    document.getElementById('gPriceCustom').focus();
+  } else {
+    customWrap.style.display = 'none';
+    document.getElementById('gPrice').value = price;
+  }
+}
+
+async function loadPackages() {
+  const out = document.getElementById('pkgList');
+  out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim)"><span class="spinner"></span></div>';
+  try {
+    const data = await api({ action:'admin_packages', token:TOKEN });
+    if (!data.ok) { out.innerHTML=`<p style="color:var(--red)">${data.msg}</p>`; return; }
+    const pkgs = data.packages || [];
+    out.innerHTML = pkgs.length === 0
+      ? '<p style="color:var(--dim);text-align:center;padding:16px">ยังไม่มี package ค่ะ</p>'
+      : `<table>
+          <thead><tr>
+            <th>ชื่อ</th>
+            <th style="text-align:right">ราคา</th>
+            <th style="text-align:center">ลำดับ</th>
+            <th style="text-align:center">สถานะ</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${pkgs.map(p=>`
+            <tr>
+              <td style="color:var(--r);font-weight:600">${p.name}</td>
+              <td style="text-align:right;color:var(--gold);font-weight:700">
+                ${p.price > 0 ? p.price.toLocaleString()+' ฿' : '<span style="color:var(--m)">ระบุเอง</span>'}
+              </td>
+              <td style="text-align:center;color:var(--m)">${p.sort_order}</td>
+              <td style="text-align:center">
+                <span style="font-size:11px;padding:2px 8px;border-radius:10px;${p.active?'background:rgba(85,187,136,.2);color:var(--g)':'background:rgba(255,100,100,.1);color:var(--red)'}">
+                  ${p.active ? '✅ เปิด' : '🚫 ปิด'}
+                </span>
+              </td>
+              <td style="white-space:nowrap">
+                <button class="btn btn-g" style="font-size:11px;padding:3px 8px;margin-right:4px"
+                  onclick="editPkg(${p.id},'${p.name.replace(/'/g,"\\'")}',${p.price},${p.sort_order},${p.active})">✏️</button>
+                <button class="btn btn-d"
+                  onclick="deletePkg(${p.id},'${p.name.replace(/'/g,"\\'")}')">ลบ</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red)">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+function editPkg(id, name, price, sort_order, active) {
+  document.getElementById('pkgId').value    = id;
+  document.getElementById('pkgName').value  = name;
+  document.getElementById('pkgPrice').value = price;
+  document.getElementById('pkgSort').value  = sort_order;
+  // scroll to form
+  document.getElementById('pkgName').focus();
+}
+
+function resetPkgForm() {
+  document.getElementById('pkgId').value    = 0;
+  document.getElementById('pkgName').value  = '';
+  document.getElementById('pkgPrice').value = '';
+  document.getElementById('pkgSort').value  = '';
+  document.getElementById('pkgFormMsg').style.display = 'none';
+}
+
+async function savePkg() {
+  const id    = parseInt(document.getElementById('pkgId').value);
+  const name  = document.getElementById('pkgName').value.trim();
+  const price = parseFloat(document.getElementById('pkgPrice').value);
+  const sort  = parseInt(document.getElementById('pkgSort').value) || 0;
+  const msg   = document.getElementById('pkgFormMsg');
+  if (!name)        { showPkgMsg('กรุณาใส่ชื่อ package ค่ะ', false); return; }
+  if (isNaN(price)) { showPkgMsg('กรุณาใส่ราคาค่ะ', false); return; }
+  try {
+    const data = await api({ action:'save_package', token:TOKEN, id, name, price, sort_order:sort, active:1 });
+    if (data.ok) {
+      showPkgMsg(id ? '✅ อัปเดตสำเร็จ' : '✅ เพิ่มสำเร็จ', true);
+      resetPkgForm();
+      loadPackages();
+      loadPkgButtons();   // refresh ปุ่มในหน้าออกโค้ดด้วย
+    } else { showPkgMsg('❌ '+data.msg, false); }
+  } catch(e) { showPkgMsg('❌ เชื่อมต่อล้มเหลว', false); }
+}
+
+function showPkgMsg(text, ok) {
+  const el = document.getElementById('pkgFormMsg');
+  el.textContent = text;
+  el.style.cssText = `display:block;font-size:12px;padding:8px;border-radius:8px;${ok
+    ? 'background:rgba(85,187,136,.1);color:var(--g);border:1px solid rgba(85,187,136,.3)'
+    : 'background:rgba(255,100,100,.1);color:var(--red);border:1px solid rgba(255,100,100,.3)'}`;
+}
+
+async function deletePkg(id, name) {
+  if (!confirm(`ลบ "${name}" ?\nปุ่มราคานี้จะหายไปจากหน้าออกโค้ดค่ะ`)) return;
+  try {
+    const data = await api({ action:'delete_package', token:TOKEN, id });
+    if (data.ok) { toast('🗑️ ลบแล้วค่ะ'); loadPackages(); loadPkgButtons(); }
+    else toast('❌ '+data.msg);
+  } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
+}
+
+// ════════════════════════════════════════
+//  REVENUE FUNCTIONS (อาจารย์เท่านั้น)
+// ════════════════════════════════════════
+async function loadRevenue() {
+  const month = parseInt(document.getElementById('revM').value);
+  const year  = parseInt(document.getElementById('revY').value);
+  const out   = document.getElementById('revOut');
+  const sum   = document.getElementById('revSummary');
+  out.innerHTML = '<div style="text-align:center;padding:30px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+
+  try {
+    // โหลด transaction + สรุปรายปีพร้อมกัน
+    const [txData, sumData] = await Promise.all([
+      api({ action:'admin_transactions', token:TOKEN, month, year }),
+      api({ action:'monthly_summary',    token:TOKEN, year })
+    ]);
+
+    // ── สรุปรายปี ──
+    if (sumData.ok) {
+      const byAdmin  = sumData.by_admin  || [];
+      const byMethod = sumData.by_method || [];
+      const monthly  = sumData.monthly   || [];
+      sum.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px">
+          <div class="sc">
+            <div style="color:var(--m);font-size:11px;margin-bottom:4px">💰 รายได้ทั้งปี พ.ศ. ${year+543}</div>
+            <div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'DM Sans',sans-serif">${(sumData.total_year||0).toLocaleString()} ฿</div>
+          </div>
+          <div class="sc" style="overflow:auto">
+            <div style="color:var(--m);font-size:11px;margin-bottom:8px">🧑‍💼 แยกตาม Admin</div>
+            ${byAdmin.map(a=>`
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
+                <span style="color:var(--al)">${a.admin}</span>
+                <span style="color:var(--gold);font-weight:600">${(a.revenue||0).toLocaleString()} ฿
+                  <span style="color:var(--dim)">(${a.qty} โค้ด)</span>
+                </span>
+              </div>`).join('')}
+          </div>
+          <div class="sc" style="overflow:auto">
+            <div style="color:var(--m);font-size:11px;margin-bottom:8px">💳 แยกช่องทาง</div>
+            ${byMethod.map(m=>`
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
+                <span style="color:var(--al)">${m.pay_method||'-'}</span>
+                <span style="color:var(--gold);font-weight:600">${(m.revenue||0).toLocaleString()} ฿</span>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="card" style="padding:14px;margin-bottom:14px">
+          <div style="color:var(--r);font-size:12px;font-weight:600;margin-bottom:10px">📈 รายเดือน พ.ศ. ${year+543}</div>
+          <div style="display:flex;gap:6px;align-items:flex-end;height:80px">
+            ${(()=>{
+              const maxR = Math.max(...monthly.map(t=>parseFloat(t.revenue)||0),1);
+              return Array.from({length:12},(_,i)=>{
+                const m = monthly.find(t=>parseInt(t.month)===i+1);
+                const rev = m ? parseFloat(m.revenue)||0 : 0;
+                const h   = Math.max((rev/maxR)*100, rev>0?6:0);
+                return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                  <div style="font-size:9px;color:var(--a)">${rev>0?(rev/1000).toFixed(1)+'k':''}</div>
+                  <div style="width:100%;background:rgba(107,45,94,.2);border-radius:4px;height:56px;display:flex;align-items:flex-end">
+                    <div style="width:100%;height:${h}%;background:linear-gradient(to top,var(--p),var(--a));border-radius:4px"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--m)">${MONTHS[i+1].slice(0,3)}</div>
+                </div>`;
+              }).join('');
+            })()}
+          </div>
+        </div>`;
+    }
+
+    // ── รายการ transaction เดือนที่เลือก ──
+    if (!txData.ok) { out.innerHTML=`<p style="color:var(--red);text-align:center">${txData.msg}</p>`; return; }
+    const rows = txData.transactions || [];
+    out.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="color:var(--r);font-weight:600;font-size:14px">
+            ${MONTHS[month]} พ.ศ. ${year+543}
+          </span>
+          <span style="color:var(--m);font-size:13px;margin-left:10px">
+            ${rows.length} รายการ
+          </span>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'DM Sans',sans-serif">
+          รวม ${(txData.total||0).toLocaleString()} ฿
+        </div>
+      </div>
+      ${rows.length===0
+        ? '<p style="color:var(--dim);text-align:center;padding:24px">ไม่มีรายการในเดือนนี้ค่ะ</p>'
+        : `<div class="card" style="padding:16px;overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>โค้ด</th><th>ชื่อลูกค้า</th><th>เบอร์</th>
+                <th style="text-align:right">ราคา</th>
+                <th>ช่องทาง</th><th>ออกโดย</th><th>วันที่ใช้</th>
+              </tr></thead>
+              <tbody>${rows.map(r=>`
+                <tr>
+                  <td><span class="chip" style="font-size:10px">${r.code}</span></td>
+                  <td style="color:var(--r);font-weight:600">${r.customer_name||'-'}</td>
+                  <td style="color:var(--m);font-size:12px">${r.phone||'-'}</td>
+                  <td style="text-align:right;color:var(--gold);font-weight:600">${(r.price||0).toLocaleString()} ฿</td>
+                  <td style="font-size:12px">${r.pay_method==='สด'?'💵 สด':r.pay_method==='พร้อมเพย์'?'📲 พร้อมเพย์':'⏳ '+r.pay_method}</td>
+                  <td style="color:var(--al);font-size:12px">${r.created_by||'-'}</td>
+                  <td style="color:var(--dim);font-size:11px">${fmtDate(r.used_at)}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+async function exportExcel() {
+  const month = parseInt(document.getElementById('revM').value);
+  const year  = parseInt(document.getElementById('revY').value);
+  try {
+    const data = await api({ action:'export_transactions', token:TOKEN, month, year });
+    if (!data.ok) { toast('❌ '+data.msg); return; }
+    const rows = data.rows || [];
+    if (!rows.length) { toast('ไม่มีข้อมูลในเดือนนี้ค่ะ'); return; }
+
+    // สร้าง Excel ด้วย SheetJS (โหลดจาก CDN)
+    if (typeof XLSX === 'undefined') {
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
+    // เพิ่มแถวสรุป
+    const exportRows = [...rows, {}, {'โค้ด':'รวมทั้งหมด','ราคา (บาท)':data.total}];
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `รายได้ ${MONTHS[month]} ${year+543}`);
+    XLSX.writeFile(wb, `รายได้_${data.period}.xlsx`);
+    toast(`✅ Export ${MONTHS[month]} ${year+543} สำเร็จค่ะ`);
+  } catch(e) { toast('❌ Export ล้มเหลว'); }
+}
+</script>
+</body>
+</html>
+async function doBackup() {
+  const month = parseInt(document.getElementById('bkMonth').value);
+  const year  = parseInt(document.getElementById('bkYear').value);
+  const btn   = document.getElementById('bkBtn');
+  const res   = document.getElementById('bkResult');
+  const label = month === 0
+    ? `ทั้งปี พ.ศ. ${year+543}`
+    : `${MONTHS[month]} พ.ศ. ${year+543}`;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลัง Backup...';
+  res.innerHTML = '';
+
+  try {
+    const data = await api({ action:'backup_db', token:TOKEN, month, year });
+    if (!data.ok) {
+      res.innerHTML = `<div style="background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.3);border-radius:10px;padding:12px;color:var(--red);font-size:13px;margin-top:4px">❌ ${data.msg}</div>`;
+      toast('❌ Backup ไม่สำเร็จ');
+    } else {
+      res.innerHTML = `
+        <div style="background:rgba(85,187,136,.1);border:1px solid rgba(85,187,136,.3);border-radius:10px;padding:14px;margin-top:4px">
+          <div style="color:var(--g);font-weight:600;margin-bottom:8px">✅ Backup สำเร็จ!</div>
+          <div style="color:var(--m);font-size:12px;line-height:1.9">
+            📅 ช่วงเวลา: <b style="color:var(--c)">${label}</b><br>
+            📄 ไฟล์: <span style="color:var(--al);font-family:'Courier New',monospace;font-size:11px">${data.filename}</span><br>
+            📦 ขนาด: <b style="color:var(--c)">${data.size_kb} KB</b>
+          </div>
+          <button class="btn btn-g" style="margin-top:10px;font-size:12px;width:100%"
+            onclick="downloadBackup('${data.filename}')">⬇️ ดาวน์โหลด .sql</button>
+        </div>`;
+      toast(`✅ Backup ${label} สำเร็จ!`);
+      loadBackups();
+    }
+  } catch(e) {
+    res.innerHTML = `<div style="color:var(--red);font-size:13px;padding:10px">❌ เชื่อมต่อไม่ได้ — ตรวจสอบ SCRIPT_URL</div>`;
+    toast('❌ เชื่อมต่อล้มเหลว');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '💾 สร้าง Backup';
+}
+
+async function loadBackups() {
+  const out = document.getElementById('bkList');
+  out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
+  try {
+    const data = await api({ action:'list_backups', token:TOKEN });
+    if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
+    const list = data.backups || [];
+    if (!list.length) {
+      out.innerHTML = '<p style="color:var(--dim);text-align:center;padding:20px">ยังไม่มี Backup ค่ะ</p>';
+      return;
+    }
+    out.innerHTML = `
+      <p style="color:var(--m);font-size:12px;margin-bottom:12px">ทั้งหมด ${list.length} ไฟล์</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>ไฟล์</th>
+            <th>ช่วงเวลา</th>
+            <th style="text-align:right">ขนาด</th>
+            <th>สร้างเมื่อ</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${list.map(b => `
+              <tr>
+                <td style="font-family:'Courier New',monospace;font-size:11px;color:var(--al);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.filename}</td>
+                <td><span class="chip" style="font-size:11px">${b.label||'-'}</span></td>
+                <td style="text-align:right;color:var(--m);font-size:12px;white-space:nowrap">${b.filesize ? Math.round(b.filesize/1024)+' KB' : '-'}</td>
+                <td style="color:var(--dim);font-size:11px;white-space:nowrap">${fmtShort(b.created_at)}</td>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-g" style="font-size:11px;padding:4px 9px;margin-right:4px"
+                    onclick="downloadBackup('${b.filename}')">⬇️ ดาวน์โหลด</button>
+                  <button class="btn btn-d"
+                    onclick="deleteBackup('${b.filename}')">🗑️ ลบ</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
+}
+
+function downloadBackup(filename) {
+  const url = SCRIPT_URL + '?action=download_backup'
+    + '&file=' + encodeURIComponent(filename)
+    + '&token=' + encodeURIComponent(TOKEN);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+}
+
+async function deleteBackup(filename) {
+  if (!confirm(`ลบไฟล์ Backup\n"${filename}"\nแน่ใจไหมคะ?`)) return;
+  try {
+    const data = await api({ action:'delete_backup', token:TOKEN, file:filename });
+    if (data.ok) { toast('🗑️ ลบแล้วค่ะ'); loadBackups(); }
+    else toast('❌ ' + data.msg);
+  } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
+}
