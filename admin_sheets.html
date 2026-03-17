@@ -492,14 +492,7 @@ for(let y=now.getFullYear()+543; y>=now.getFullYear()+543-5; y--){
 }
 document.getElementById('bkMonth').value = now.getMonth()+1;
 
-async function api(body) {
-  const res = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(body)
-  });
-  return res.json();
-}
+
 
 async function login() {
   const username = document.getElementById('loginUser').value.trim();
