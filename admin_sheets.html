@@ -1156,9 +1156,16 @@ async function loadTraffic() {
 // ════════════════════════════════════════
 async function loadPkgButtons() {
   try {
-    const data = await api({ action:'list_packages', token:TOKEN });
-    if (!data.ok) return;
-    const pkgs = data.packages || [];
+    let pkgs = [];
+    if (IS_MOCK) {
+      const saved = localStorage.getItem('mock_packages');
+      pkgs = saved ? JSON.parse(saved) : MOCK_DATA.packages;
+    } else {
+      const data = await api({ action:'list_packages', token:TOKEN });
+      if (!data.ok) return;
+      pkgs = data.packages || [];
+    }
+    pkgs = pkgs.filter(p => p.active).sort((a,b) => a.sort_order - b.sort_order);
     const wrap = document.getElementById('pkgBtns');
     wrap.innerHTML = pkgs.map(p => {
       if (p.price == 0) {
@@ -1166,10 +1173,9 @@ async function loadPkgButtons() {
       }
       return `<button class="pay-opt" onclick="selectPkg(${p.price},'${p.name}',this)">
         <span style="font-size:10px;display:block;color:var(--m)">${p.name}</span>
-        <span style="font-weight:700">${p.price.toLocaleString()} ฿</span>
+        <span style="font-weight:700">${Number(p.price).toLocaleString()} ฿</span>
       </button>`;
     }).join('');
-    // default เลือกอันแรก
     const first = wrap.querySelector('.pay-opt');
     if (first) first.click();
   } catch(e) {}
@@ -1195,9 +1201,15 @@ async function loadPackages() {
   const out = document.getElementById('pkgList');
   out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim)"><span class="spinner"></span></div>';
   try {
-    const data = await api({ action:'admin_packages', token:TOKEN });
-    if (!data.ok) { out.innerHTML=`<p style="color:var(--red)">${data.msg}</p>`; return; }
-    const pkgs = data.packages || [];
+    let pkgs = [];
+    if (IS_MOCK) {
+      const saved = localStorage.getItem('mock_packages');
+      pkgs = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(MOCK_DATA.packages));
+    } else {
+      const data = await api({ action:'admin_packages', token:TOKEN });
+      if (!data.ok) { out.innerHTML=`<p style="color:var(--red)">${data.msg}</p>`; return; }
+      pkgs = data.packages || [];
+    }
     out.innerHTML = pkgs.length === 0
       ? '<p style="color:var(--dim);text-align:center;padding:16px">ยังไม่มี package ค่ะ</p>'
       : `<table>
@@ -1250,22 +1262,39 @@ function resetPkgForm() {
 }
 
 async function savePkg() {
-  const id    = parseInt(document.getElementById('pkgId').value);
+  const id    = parseInt(document.getElementById('pkgId').value) || 0;
   const name  = document.getElementById('pkgName').value.trim();
   const price = parseFloat(document.getElementById('pkgPrice').value);
   const sort  = parseInt(document.getElementById('pkgSort').value) || 0;
-  const msg   = document.getElementById('pkgFormMsg');
   if (!name)        { showPkgMsg('กรุณาใส่ชื่อ package ค่ะ', false); return; }
   if (isNaN(price)) { showPkgMsg('กรุณาใส่ราคาค่ะ', false); return; }
   try {
-    const data = await api({ action:'save_package', token:TOKEN, id, name, price, sort_order:sort, active:1 });
-    if (data.ok) {
+    if (IS_MOCK) {
+      // GitHub → save ลง localStorage
+      const saved = localStorage.getItem('mock_packages');
+      const pkgs  = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(MOCK_DATA.packages));
+      if (id) {
+        const idx = pkgs.findIndex(p => p.id === id);
+        if (idx >= 0) pkgs[idx] = { ...pkgs[idx], name, price, sort_order:sort };
+      } else {
+        const newId = Math.max(0, ...pkgs.map(p => p.id)) + 1;
+        pkgs.push({ id:newId, name, price, sort_order:sort, active:1 });
+      }
+      localStorage.setItem('mock_packages', JSON.stringify(pkgs));
       showPkgMsg(id ? '✅ อัปเดตสำเร็จ' : '✅ เพิ่มสำเร็จ', true);
       resetPkgForm();
       loadPackages();
-      loadPkgButtons();   // refresh ปุ่มในหน้าออกโค้ดด้วย
-    } else { showPkgMsg('❌ '+data.msg, false); }
-  } catch(e) { showPkgMsg('❌ เชื่อมต่อล้มเหลว', false); }
+      loadPkgButtons();
+    } else {
+      const data = await api({ action:'save_package', token:TOKEN, id, name, price, sort_order:sort, active:1 });
+      if (data.ok) {
+        showPkgMsg(id ? '✅ อัปเดตสำเร็จ' : '✅ เพิ่มสำเร็จ', true);
+        resetPkgForm();
+        loadPackages();
+        loadPkgButtons();
+      } else { showPkgMsg('❌ '+data.msg, false); }
+    }
+  } catch(e) { showPkgMsg('❌ เชื่อมต่อล้มเหลว: '+e.message, false); }
 }
 
 function showPkgMsg(text, ok) {
@@ -1279,9 +1308,17 @@ function showPkgMsg(text, ok) {
 async function deletePkg(id, name) {
   if (!confirm(`ลบ "${name}" ?\nปุ่มราคานี้จะหายไปจากหน้าออกโค้ดค่ะ`)) return;
   try {
-    const data = await api({ action:'delete_package', token:TOKEN, id });
-    if (data.ok) { toast('🗑️ ลบแล้วค่ะ'); loadPackages(); loadPkgButtons(); }
-    else toast('❌ '+data.msg);
+    if (IS_MOCK) {
+      const saved = localStorage.getItem('mock_packages');
+      const pkgs  = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(MOCK_DATA.packages));
+      const filtered = pkgs.filter(p => p.id !== id);
+      localStorage.setItem('mock_packages', JSON.stringify(filtered));
+      toast('🗑️ ลบแล้วค่ะ'); loadPackages(); loadPkgButtons();
+    } else {
+      const data = await api({ action:'delete_package', token:TOKEN, id });
+      if (data.ok) { toast('🗑️ ลบแล้วค่ะ'); loadPackages(); loadPkgButtons(); }
+      else toast('❌ '+data.msg);
+    }
   } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
 }
 
