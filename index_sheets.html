@@ -347,6 +347,11 @@ const _MEANINGS_LEGACY = {
 function getMeaning(a, b) {
   return MEANINGS[`${a}-${b}`] || MEANINGS[`${b}-${a}`] || _MEANINGS_LEGACY[`${a}-${b}`] || _MEANINGS_LEGACY[`${b}-${a}`] || `(ยังไม่มีข้อมูล ${a}-${b})`;
 }
+// ลางร้าย: คู่เลขที่ is_bad=T (ตามเอกสารอาจารย์)
+const BAD_PAIRS = new Set(['2-1','2-5','2-7','6-7','2-8','3-8','5-8','4-9','10-3']);
+function isBad(a, b) {
+  return BAD_PAIRS.has(`${a}-${b}`) || BAD_PAIRS.has(`${b}-${a}`);
+}
 const C = {
   phlox: "#6B2D5E",
   phloxLt: "#8B3D7A",
@@ -441,8 +446,9 @@ function NumerologyApp() {
       agePos12: getAgeRow12(age), // ตำแหน่งอายุในตารางนับ 12 (สำหรับตาราง 1)
       agePos7,                    // ตำแหน่งอายุในตารางนับ 7 (สำหรับองค์เทวดา)
       t1val: row4_1[getAgeRow12(age) - 1],
-      t1head: row4_1[0],
-      t1tail: row4_1[row4_1.length - 1],
+      // หัวแถว/ท้ายแถว: ถ้า 2 หลัก บวกหลัก (เช่น 12→3)
+      t1head: digitSum(row4_1[0]),
+      t1tail: digitSum(row4_1[row4_1.length - 1]),
       t2head: table2[0][0],
       t2tail: table2[0][6],
       devaHoriz,
@@ -712,10 +718,13 @@ function NumerologyApp() {
   } }, "\u263D \u0E40\u0E2B\u0E15\u0E38\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E23\u0E32\u0E22\u0E1B\u0E35 \xA0\u2014\xA0 \u0E15\u0E32\u0E23\u0E32\u0E07 \u0E51 (\u0E51\u0E52 \u0E15\u0E31\u0E27)"), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } }, ["วัน","เดือน","ปี"].map((lbl, ri) => React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } }, React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl), result.table1[ri].map((v, ci) => React.createElement("div", { key: ci, className: "tcell" }, v)) )), React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center" } }, React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, "รวม"), result.row4_1.map((v, ci) => React.createElement("div", { key: ci, className: "tcell" + (ci === result.agePos12 - 1 ? " hi" : ""), style: ci === result.agePos12 - 1 ? { background: "rgba(212,168,75,.25)", borderColor: "#D4A84B" } : {} }, v)) ), React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center", marginTop: 2 } }, React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 9 } }, ""), ["ชาติ","ทรัพย์","ญาติ","มิตร","บุตร","ศัตรู","คู่ครอง","ภัย","ความสุข","โชคลาภ","อาชีพ","หายนะ"].map((name, ci) => React.createElement("div", { key: ci, style: { width: 36, height: 16, fontSize: 8, textAlign: "center", color: "#D4A84B", fontWeight: 600, lineHeight: "16px", overflow: "hidden" } }, name) ) ), /* yearly cmds */
   /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 16, fontSize: 12 } }, "อายุ ", result.input.age, " ปี → ตำแหน่ง = ", result.agePos12),
   [
-    [result.agePos12, result.t1val],
-    [result.agePos12, result.t1val],
-    [result.agePos12, result.input.ageSum]
-  ].filter((c, i, arr) => i === 0 || JSON.stringify(c) !== JSON.stringify(arr[i - 1])).map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } }, "\u0E04\u0E33\u0E2A\u0E31\u0E48\u0E07\u0E17\u0E35\u0E48 ", i + 1, " \xA0", /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " \u2013 ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1]))))), tab === "yearly21" && /* @__PURE__ */ React.createElement("div", { className: "card fade-in", style: { padding: 22 } }, /* @__PURE__ */ React.createElement("h3", { style: {
+    // คำสั่ง 1: t1val จับคู่ หัวแถว (row4[0]) — ถ้า 2 หลัก บวกหลัก
+    [result.t1val, result.t1head],
+    // คำสั่ง 2: t1val จับคู่ ท้ายแถว (row4[11])
+    [result.t1val, result.t1tail],
+    // คำสั่ง 3: t1val จับคู่ ageSum (บวกหลักอายุ เช่น 46→10→1)
+    [result.t1val, result.input.ageSum]
+  ].filter((c, i, arr) => i === 0 || JSON.stringify(c) !== JSON.stringify(arr[i - 1])).map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } }, "คำสั่งที่ ", i + 1, "  ", isBad(cmd[0],cmd[1]) ? /* @__PURE__ */ React.createElement("span", { style: { color:"#ff6b6b", fontSize:10 } }, "✦ลางร้าย ") : null, /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " – ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1]))))), tab === "yearly21" && /* @__PURE__ */ React.createElement("div", { className: "card fade-in", style: { padding: 22 } }, /* @__PURE__ */ React.createElement("h3", { style: {
     ...txAccent,
     fontSize: 15,
     marginBottom: 18,
