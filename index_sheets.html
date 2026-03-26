@@ -26,7 +26,6 @@ function CodeGate({ onUnlock }) {
 const IS_MOCK = window.location.hostname.includes('github.io')
              || window.location.hostname === 'localhost'
              || window.location.hostname === '127.0.0.1'
-             || window.location.protocol === 'file:'
              || window.location.protocol === 'file:';
 
 const API_URL = 'api.php';   // ← เปลี่ยน path ถ้าไฟล์อยู่ต่างโฟลเดอร์
@@ -124,7 +123,7 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
       h("input",{type:"text",maxLength:8,placeholder:"XXXXXXXX",value:code,style:S.ci,
         onChange:e=>{setCode(e.target.value.toUpperCase());setErr("");},onKeyDown:e=>e.key==="Enter"&&verify()}),
       err?h("p",{style:S.er},err):null,
-      h("button",{onClick:verify,disabled:loading,style:{...S.bt,opacity:loading?.7:1}},loading?"⏳ กำลังตรวจสอบ...":"✦ ยืนยันโค้ด ✦")
+      h("button",{onClick:verify,disabled:loading,style:{...S.bt,opacity: loading ? 0.7 : 1}},loading?"⏳ กำลังตรวจสอบ...":"✦ ยืนยันโค้ด ✦")
     )
   ));
   return h("div",{style:S.pg},h("div",{style:S.bx},
