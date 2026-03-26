@@ -228,13 +228,16 @@ function buildRow(s, l = 7) {
 // แถว 2 = เดือน (12 ช่อง, วนใน 1-12)
 // แถว 3 = ปีนักษัตร (12 ช่อง, วนใน 1-12)
 // แถว 4 = row1[i%7] + row2[i] + row3[i] → while>12 ลบ12 → if>=10 บวกหลัก
+// buildTable1: logic ถูกต้องตาม Excel
+// แถว 1 = วัน (7 ช่อง), แถว 2 = เดือน (12 ช่อง), แถว 3 = ปีนักษัตร (12 ช่อง)
+// แถว 4: ช่อง 1-7 = row1+row2+row3, ช่อง 8-12 = row2+row3 เท่านั้น
 function buildTable1(dow, month, zodiacNum) {
   const row1 = generateRow(dow, 7, 7);
   const row2 = generateRow(month, 12, 12);
   const row3 = generateRow(zodiacNum, 12, 12);
   const row4 = [];
   for (let i = 0; i < 12; i++) {
-    let s = row1[i % 7] + row2[i] + row3[i];
+    let s = (i < 7 ? row1[i] : 0) + row2[i] + row3[i];
     while (s > 12) s -= 12;
     if (s >= 10) s = Math.floor(s / 10) + (s % 10);
     row4.push(s);
