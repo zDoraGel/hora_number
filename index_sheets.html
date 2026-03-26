@@ -26,6 +26,7 @@ function CodeGate({ onUnlock }) {
 const IS_MOCK = window.location.hostname.includes('github.io')
              || window.location.hostname === 'localhost'
              || window.location.hostname === '127.0.0.1'
+             || window.location.protocol === 'file:'
              || window.location.protocol === 'file:';
 
 const API_URL = 'api.php';   // ← เปลี่ยน path ถ้าไฟล์อยู่ต่างโฟลเดอร์
@@ -123,7 +124,7 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
       h("input",{type:"text",maxLength:8,placeholder:"XXXXXXXX",value:code,style:S.ci,
         onChange:e=>{setCode(e.target.value.toUpperCase());setErr("");},onKeyDown:e=>e.key==="Enter"&&verify()}),
       err?h("p",{style:S.er},err):null,
-      h("button",{onClick:verify,disabled:loading,style:{...S.bt,opacity: loading ? 0.7 : 1}},loading?"⏳ กำลังตรวจสอบ...":"✦ ยืนยันโค้ด ✦")
+      h("button",{onClick:verify,disabled:loading,style:{...S.bt,opacity:loading?.7:1}},loading?"⏳ กำลังตรวจสอบ...":"✦ ยืนยันโค้ด ✦")
     )
   ));
   return h("div",{style:S.pg},h("div",{style:S.bx},
@@ -168,20 +169,14 @@ const MONTH_NAMES = [
   "\u0E18\u0E31\u0E19\u0E27\u0E32\u0E04\u0E21"
 ];
 const ZODIAC_NAMES = ["", "\u0E0A\u0E27\u0E14", "\u0E09\u0E25\u0E39", "\u0E02\u0E32\u0E25", "\u0E40\u0E16\u0E32\u0E30", "\u0E21\u0E30\u0E42\u0E23\u0E07", "\u0E21\u0E30\u0E40\u0E2A\u0E47\u0E07", "\u0E21\u0E30\u0E40\u0E21\u0E35\u0E22", "\u0E21\u0E30\u0E41\u0E21", "\u0E27\u0E2D\u0E01", "\u0E23\u0E30\u0E01\u0E32", "\u0E08\u0E2D", "\u0E01\u0E38\u0E19"];
-// ===== 12 section ของตาราง 1 ตามเอกสารโหราศาสตร์ (ชาติ ทรัพย์ ญาติ ... หายนะ) =====
 const SECTION_NAMES = [
-  "ชาติ",
-  "ทรัพย์",
-  "ญาติ",
-  "มิตร",
-  "บุตร",
-  "ศัตรู",
-  "คู่ครอง",
-  "ภัย",
-  "ความสุข",
-  "โชคลาภ",
-  "อาชีพ",
-  "หายนะ"
+  "\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07\u0E01\u0E31\u0E1A\u0E15\u0E31\u0E27\u0E40\u0E23\u0E32",
+  "\u0E21\u0E31\u0E19\u0E2A\u0E21\u0E2D\u0E07",
+  "\u0E42\u0E0A\u0E04\u0E25\u0E32\u0E20 \u0E21\u0E34\u0E15\u0E23\u0E1C\u0E39\u0E49\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07",
+  "\u0E1B\u0E32\u0E01 \u0E25\u0E21\u0E2B\u0E32\u0E22\u0E43\u0E08 \u0E04\u0E27\u0E32\u0E21\u0E23\u0E39\u0E49\u0E2A\u0E36\u0E01\u0E19\u0E36\u0E01\u0E04\u0E34\u0E14",
+  "\u0E1A\u0E34\u0E14\u0E32 \u0E1C\u0E39\u0E49\u0E43\u0E2B\u0E0D\u0E48 \u0E2A\u0E15\u0E34\u0E2D\u0E32\u0E23\u0E21\u0E13\u0E4C",
+  "\u0E27\u0E34\u0E2A\u0E31\u0E22\u0E17\u0E31\u0E28\u0E19\u0E4C \u0E41\u0E23\u0E07\u0E1A\u0E31\u0E19\u0E14\u0E32\u0E25\u0E43\u0E08",
+  "\u0E21\u0E34\u0E15\u0E23\u0E17\u0E32\u0E07\u0E44\u0E01\u0E25 \u0E04\u0E19\u0E17\u0E35\u0E48\u0E40\u0E01\u0E35\u0E48\u0E22\u0E27\u0E02\u0E49\u0E2D\u0E07"
 ];
 function getZodiac(y) {
   const c = y - 543;
@@ -692,13 +687,7 @@ function NumerologyApp() {
     fontFamily: "'Cormorant Garamond',serif",
     fontStyle: "italic",
     letterSpacing: 0.5
-  } }, "\u263D \u0E40\u0E2B\u0E15\u0E38\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E23\u0E32\u0E22\u0E1B\u0E35 \xA0\u2014\xA0 \u0E15\u0E32\u0E23\u0E32\u0E07 \u0E51 (\u0E51\u0E52 \u0E15\u0E31\u0E27)"), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } }, ["\u0E27\u0E31\u0E19", "\u0E40\u0E14\u0E37\u0E2D\u0E19", "\u0E1B\u0E35"].map((lbl, ri) => /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl), result.table1[ri].map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: `tcell ${ci === 0 ? "hi" : ""}` }, v)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, "\u0E23\u0E27\u0E21"), result.row4_1.map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: `tcell ${ci === 0 ? "hi" : ""}` }, v))),
-          /* แถวชื่อช่อง 12 หัวข้อ ใต้ row4 */
-          React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center", marginTop: 4 } },
-            React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 9 } }, ""),
-            ["\u0E0A\u0E32\u0E15\u0E34","\u0E17\u0E23\u0E31\u0E1E\u0E22\u0E4C","\u0E0D\u0E32\u0E15\u0E34","\u0E21\u0E34\u0E15\u0E23","\u0E1A\u0E38\u0E15\u0E23","\u0E28\u0E31\u0E15\u0E23\u0E39","\u0E04\u0E39\u0E48\u0E04\u0E23\u0E2D\u0E07","\u0E20\u0E31\u0E22","\u0E04\u0E27\u0E32\u0E21\u0E2A\u0E38\u0E02","\u0E42\u0E0A\u0E04\u0E25\u0E32\u0E20","\u0E2D\u0E32\u0E0A\u0E35\u0E1E","\u0E2B\u0E32\u0E22\u0E19\u0E30"].map((name, ci) =>
-              React.createElement("div", { key: ci, style: { width: 36, height: 18, fontSize: 8, textAlign: "center", color: "var(--gold)", fontWeight: 600, lineHeight: "18px", overflow: "hidden" } }, name)
-          ))), /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 16, fontSize: 12 } }, "\u0E2D\u0E32\u0E22\u0E38 ", result.input.age, " \u0E1B\u0E35 \u2192 \u0E15\u0E33\u0E41\u0E2B\u0E19\u0E48\u0E07\u0E15\u0E32\u0E23\u0E32\u0E07 12 = \u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E35\u0E48 ", result.agePos12), [
+  } }, "\u263D \u0E40\u0E2B\u0E15\u0E38\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E23\u0E32\u0E22\u0E1B\u0E35 \xA0\u2014\xA0 \u0E15\u0E32\u0E23\u0E32\u0E07 \u0E51 (\u0E51\u0E52 \u0E15\u0E31\u0E27)"), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } }, ["\u0E27\u0E31\u0E19", "\u0E40\u0E14\u0E37\u0E2D\u0E19", "\u0E1B\u0E35"].map((lbl, ri) => /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl), result.table1[ri].map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: `tcell ${ci === 0 ? "hi" : ""}` }, v)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, "\u0E23\u0E27\u0E21"), result.row4_1.map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: `tcell ${ci === 0 ? "hi" : ""}` }, v))))), /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 16, fontSize: 12 } }, "\u0E2D\u0E32\u0E22\u0E38 ", result.input.age, " \u0E1B\u0E35 \u2192 \u0E15\u0E33\u0E41\u0E2B\u0E19\u0E48\u0E07\u0E15\u0E32\u0E23\u0E32\u0E07 12 = \u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E35\u0E48 ", result.agePos12), [
     [result.agePos12, result.t1head],
     [result.agePos12, result.t1tail],
     [result.agePos12, result.input.ageSum]
@@ -741,16 +730,7 @@ function NumerologyApp() {
     fontFamily: "'Cormorant Garamond',serif",
     fontStyle: "italic",
     letterSpacing: 0.5
-  } }, "\u25CE \u0E40\u0E2B\u0E15\u0E38\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xA0\u2014\xA0 \u0E15\u0E32\u0E23\u0E32\u0E07 \u0E53"), /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 16 } }, result.input.isWaning ? "\u{1F312} \u0E02\u0E49\u0E32\u0E07\u0E41\u0E23\u0E21 \xB7 \u0E2D\u0E48\u0E32\u0E19\u0E08\u0E32\u0E01\u0E02\u0E27\u0E32\u0E21\u0E37\u0E2D" : "\u{1F315} \u0E02\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19 \xB7 \u0E2D\u0E48\u0E32\u0E19\u0E08\u0E32\u0E01\u0E0B\u0E49\u0E32\u0E22\u0E21\u0E37\u0E2D"), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 18 } },
-            /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
-              result.table3.map((row, ri) =>
-                /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
-                  /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 60, fontSize: 11 } }, ""),
-                  row.map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v))
-                )
-              )
-            )
-          ), result.monthly.map(({ month: m, cmd1, cmd2, cmd3 }) => {
+  } }, "\u25CE \u0E40\u0E2B\u0E15\u0E38\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \xA0\u2014\xA0 \u0E15\u0E32\u0E23\u0E32\u0E07 \u0E53"), /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 16 } }, result.input.isWaning ? "\u{1F312} \u0E02\u0E49\u0E32\u0E07\u0E41\u0E23\u0E21 \xB7 \u0E2D\u0E48\u0E32\u0E19\u0E08\u0E32\u0E01\u0E02\u0E27\u0E32\u0E21\u0E37\u0E2D" : "\u{1F315} \u0E02\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19 \xB7 \u0E2D\u0E48\u0E32\u0E19\u0E08\u0E32\u0E01\u0E0B\u0E49\u0E32\u0E22\u0E21\u0E37\u0E2D"), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 18 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } }, ["\u0E23\u0E2B\u0E31\u0E2A", "\u0E2D\u0E32\u0E22\u0E38\u0E41\u0E23\u0E01", "\u0E2D\u0E32\u0E22\u0E38\u0E2B\u0E25\u0E31\u0E07"].map((lbl, ri) => /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 60, fontSize: 11 } }, lbl), result.table3[ri].map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v)))))), result.monthly.map(({ month: m, cmd1, cmd2, cmd3 }) => {
     const uCmds = [cmd1, cmd2, cmd3].filter((c, i, a) => i === 0 || JSON.stringify(c) !== JSON.stringify(a[i - 1]));
     return /* @__PURE__ */ React.createElement("div", { key: m, style: { marginBottom: 22 } }, /* @__PURE__ */ React.createElement("div", { className: "month-hd" }, MONTH_NAMES[m]), uCmds.map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 4, fontSize: 12 } }, /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " \u2013 ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1])))));
   }))), /* @__PURE__ */ React.createElement("div", { style: {
