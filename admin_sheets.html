@@ -1627,54 +1627,38 @@ async function deleteBackup(filename) {
         </p>
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:16px;margin-bottom:16px">
           <div style="margin-bottom:12px">
-            <label style="color:var(--m);font-size:13px;display:block;margin-bottom:6px">📁 ไฟล์ Excel (.xlsx)</label>
+            <label style="color:var(--m);font-size:13px;display:block;margin-bottom:6px">📁 ไฟล์ Excel (.xlsx) — ระบบอ่านปีนักษัตร/เดือน/ปี จาก Excel อัตโนมัติ</label>
             <input type="file" id="calFile" accept=".xlsx" style="color:var(--r);font-size:13px">
           </div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-            <div>
-              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">เริ่มต้นจากเดือน</label>
-              <input type="number" id="calStartMonth" value="1" min="1" max="12"
-                style="width:60px;padding:6px;border-radius:6px;border:1px solid rgba(107,45,94,.4);background:rgba(0,0,0,.3);color:var(--r);font-size:13px">
-            </div>
-            <div>
-              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">ปี CE เริ่มต้น</label>
-              <input type="number" id="calStartYear" value="1978"
-                style="width:80px;padding:6px;border-radius:6px;border:1px solid rgba(107,45,94,.4);background:rgba(0,0,0,.3);color:var(--r);font-size:13px">
-            </div>
-            <div>
-              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">ปีนักษัตรเริ่มต้น</label>
-              <select id="calStartZodiac"
-                style="padding:6px;border-radius:6px;border:1px solid rgba(107,45,94,.4);background:rgba(0,0,0,.3);color:var(--r);font-size:13px">
-                <option value="1">1 ชวด</option><option value="2">2 ฉลู</option><option value="3">3 ขาล</option>
-                <option value="4">4 เถาะ</option><option value="5">5 มะโรง</option><option value="6">6 มะเส็ง</option>
-                <option value="7">7 มะเมีย</option><option value="8">8 มะแม</option>
-                <option value="9" selected>9 วอก</option>
-                <option value="10">10 ระกา</option><option value="11">11 จอ</option><option value="12">12 กุน</option>
-              </select>
-            </div>
-            <div>
-              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">บรรทัดแรกข้อมูล</label>
-              <input type="number" id="calDataRow" value="4" min="1"
-                style="width:60px;padding:6px;border-radius:6px;border:1px solid rgba(107,45,94,.4);background:rgba(0,0,0,.3);color:var(--r);font-size:13px">
-            </div>
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:4px">
             <div>
               <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">Tab ที่ Import</label>
-              <input type="number" id="calSheetIdx" value="2" min="1"
+              <input type="number" id="calSheetIdx" value="1" min="1"
                 style="width:60px;padding:6px;border-radius:6px;border:1px solid rgba(107,45,94,.4);background:rgba(0,0,0,.3);color:var(--r);font-size:13px">
             </div>
+            <button onclick="readCalendar()"
+              style="background:linear-gradient(135deg,#6B2D5E,#9B4E8A);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:'Prompt',sans-serif">
+              📖 อ่านข้อมูล
+            </button>
           </div>
-          <button onclick="readCalendar()"
-            style="background:linear-gradient(135deg,#6B2D5E,#9B4E8A);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:'Prompt',sans-serif">
-            📖 อ่านข้อมูล
-          </button>
+          <div style="color:var(--m);font-size:11px;margin-top:8px">
+            💡 ระบบอ่าน ปีนักษัตร / เดือน / ปี BE จาก header ของ Excel อัตโนมัติ ไม่ต้องกรอกเอง
+          </div>
         </div>
         <div id="calPreview" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
             <div id="calPreviewInfo" style="color:var(--m);font-size:13px"></div>
-            <button onclick="exportCalJSON()"
-              style="background:rgba(107,45,94,.4);color:var(--r);border:1px solid rgba(107,45,94,.5);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'Prompt',sans-serif">
-              📤 Export JSON
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button id="calSaveBtn" onclick="saveCalendarToGS()"
+                style="background:linear-gradient(135deg,#6B2D5E,#9B4E8A);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'Prompt',sans-serif">
+                ☁️ บันทึกลง Google Sheets
+              </button>
+              <button onclick="exportCalJSON()"
+                style="background:rgba(107,45,94,.4);color:var(--r);border:1px solid rgba(107,45,94,.5);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'Prompt',sans-serif">
+                📤 Export JSON
+              </button>
+            </div>
+            <div id="calMsg" style="display:none"></div>
           </div>
           <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px;max-height:300px;overflow-y:auto">
             <table>
@@ -1700,63 +1684,153 @@ async function deleteBackup(filename) {
       </div>
     </div>
     <script>
+    <script>
+    // ===== Calendar Import — parse Excel ปฏิทิน 100 ปี =====
     var _calData = {};
     var _zodiacNames = ['','ชวด','ฉลู','ขาล','เถาะ','มะโรง','มะเส็ง','มะเมีย','มะแม','วอก','ระกา','จอ','กุน'];
     var _dayNames   = ['','อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+    var _monthMapTh = {
+      'เมษายน':4,'พฤษภาคม':5,'มิถุนายน':6,'มถิ':6,'มิถ':6,
+      'กรกฎาคม':7,'สิงหาคม':8,'กันยายน':9,'กนั':9,
+      'ตุลาคม':10,'พฤศจิกายน':11,'พฤศจกิ':11,
+      'ธันวาคม':12,'มกราคม':1,'กุมภาพันธ์':2,'กมุ':2,'มีนาคม':3,'มนี':3
+    };
+    var _zodiacMap = {
+      'ชวด':1,'ฉลู':2,'ขาล':3,'เถาะ':4,'มะโรง':5,'มะเส็ง':6,
+      'มะเมีย':7,'มะแม':8,'วอก':9,'ระกา':10,'จอ':11,'กุน':12
+    };
+
+    function parseWaning(val) {
+      var s = String(val).trim();
+      if (s.indexOf('ร') >= 0) return 0; // ข้างแรม
+      if (s.indexOf('ข') >= 0) return 1; // ข้างขึ้น
+      return null; // ต่อเนื่อง
+    }
+
     async function readCalendar() {
       var fileInput = document.getElementById('calFile');
       if (!fileInput.files[0]) { toast('กรุณาเลือกไฟล์ก่อนค่ะ'); return; }
-      var startMonth  = parseInt(document.getElementById('calStartMonth').value);
-      var startYearCE = parseInt(document.getElementById('calStartYear').value);
-      var startZodiac = parseInt(document.getElementById('calStartZodiac').value);
-      var dataRow     = parseInt(document.getElementById('calDataRow').value) - 1;
-      var sheetIdx    = parseInt(document.getElementById('calSheetIdx').value) - 1;
+      var sheetIdx = parseInt(document.getElementById('calSheetIdx').value) - 1;
+
       try {
         var buf  = await fileInput.files[0].arrayBuffer();
         var wb   = XLSX.read(buf, {type:'array'});
         var ws   = wb.Sheets[wb.SheetNames[sheetIdx]];
-        var rows = XLSX.utils.sheet_to_json(ws, {header:1});
+        var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+
         _calData = {};
-        var month = startMonth, yearCE = startYearCE, zodiac = startZodiac;
-        var count = 0, prevDay = 0;
-        for (var r = dataRow; r < rows.length; r++) {
-          var row = rows[r];
-          if (!row || row.length < 2) continue;
-          var day = parseInt(row[0]), dow = parseInt(row[1]);
-          var isWaning = (parseInt(row[2]) === 0) ? 0 : 1;
-          if (!day || !dow || isNaN(day) || isNaN(dow)) continue;
-          if (day < 1 || day > 31) continue;
-          if (day < prevDay && prevDay > 0) {
-            month++;
-            if (month > 12) { month = 1; yearCE++; }
-          }
-          prevDay = day;
-          var yearBE = yearCE + 543;
-          var key = yearBE + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
-          _calData[key] = [dow, isWaning, zodiac];
-          count++;
+
+        // 1. หาปีนักษัตรจาก row 0
+        var headerStr = String(rows[0] ? rows[0][0] : '');
+        var zodiacNum = 9; // default วอก
+        for (var zn in _zodiacMap) {
+          if (headerStr.indexOf(zn) >= 0) { zodiacNum = _zodiacMap[zn]; break; }
         }
+
+        // 2. หาเดือน+ปีจาก row 1
+        var months = []; // [{colStart, monthNum, yearBE}]
+        var row1 = rows[1] || [];
+        for (var ci = 0; ci < row1.length; ci++) {
+          if (!row1[ci]) continue;
+          var s = String(row1[ci]);
+          var yrMatch = s.match(/(\d{4})/);
+          if (!yrMatch) continue;
+          var yrBE = parseInt(yrMatch[1]);
+          var mnum = null;
+          for (var mname in _monthMapTh) {
+            if (s.indexOf(mname) >= 0) { mnum = _monthMapTh[mname]; break; }
+          }
+          if (mnum) months.push({col: ci, month: mnum, year: yrBE});
+        }
+
+        // 3. parse แต่ละวัน row 3 เป็นต้นไป (0-indexed = row index 3)
+        for (var mi = 0; mi < months.length; mi++) {
+          var m = months[mi];
+          var dowCol = m.col + 1;
+          var wrCol  = m.col + 2;
+          var prevWaning = 0;
+
+          for (var ri = 3; ri < rows.length; ri++) {
+            var row = rows[ri];
+            if (!row) continue;
+            var dayVal = row[0];
+            var dowVal = row[dowCol];
+            var wrVal  = row[wrCol];
+            if (dayVal == null || dowVal == null) continue;
+            var day = parseInt(dayVal);
+            var dow = parseInt(dowVal);
+            if (isNaN(day) || isNaN(dow)) continue;
+
+            var waning = parseWaning(wrVal);
+            if (waning === null) waning = prevWaning;
+            else prevWaning = waning;
+
+            var key = m.year + '-' +
+              String(m.month).padStart(2,'0') + '-' +
+              String(day).padStart(2,'0');
+            _calData[key] = [dow, waning, zodiacNum];
+          }
+        }
+
+        var count = Object.keys(_calData).length;
+
+        // แสดง preview
         var tbody = document.getElementById('calTableBody');
         tbody.innerHTML = '';
         Object.entries(_calData).slice(0,100).forEach(function(kv) {
           var k = kv[0], v = kv[1];
           var tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + k + '</td><td>' + (_dayNames[v[0]]||v[0]) + '</td>' +
-                         '<td>' + (v[1] ? '🌕 ขึ้น' : '🌑 แรม') + '</td>' +
-                         '<td>' + (_zodiacNames[v[2]]||v[2]) + '</td>';
+          tr.innerHTML = '<td>' + k + '</td>' +
+            '<td>' + (_dayNames[v[0]]||v[0]) + '</td>' +
+            '<td>' + (v[1] ? '🌕 ข้างขึ้น' : '🌑 ข้างแรม') + '</td>' +
+            '<td>' + (_zodiacNames[v[2]]||v[2]) + '</td>';
           tbody.appendChild(tr);
         });
-        document.getElementById('calPreviewInfo').textContent = 'พบ ' + count + ' รายการ (แสดง 100 แรก)';
+
+        document.getElementById('calPreviewInfo').textContent =
+          'พบ ' + count + ' รายการ | ปีนักษัตร: ' + _zodiacNames[zodiacNum] + ' (แสดง 100 แรก)';
         document.getElementById('calPreview').style.display = 'block';
         document.getElementById('calJsonOut').style.display = 'none';
-        toast('อ่านข้อมูลสำเร็จ ' + count + ' รายการ');
-      } catch(e) { toast('เกิดข้อผิดพลาด: ' + e.message); console.error(e); }
+        toast('อ่านข้อมูลสำเร็จ ' + count + ' รายการ ✓');
+      } catch(e) {
+        toast('เกิดข้อผิดพลาด: ' + e.message);
+        console.error(e);
+      }
     }
+
+    async function saveCalendarToGS() {
+      if (!Object.keys(_calData).length) { toast('ยังไม่มีข้อมูลค่ะ กด อ่านข้อมูล ก่อน'); return; }
+      var btn = document.getElementById('calSaveBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ กำลังบันทึก...';
+      try {
+        var data = await api({ action: 'save_calendar', token: TOKEN, calendar: _calData });
+        if (data.ok) {
+          toast('✅ บันทึกลง Google Sheets สำเร็จ ' + Object.keys(_calData).length + ' รายการ');
+          showCalMsg('✅ บันทึกสำเร็จค่ะ', true);
+        } else {
+          showCalMsg('❌ ' + (data.msg||'เกิดข้อผิดพลาด'), false);
+        }
+      } catch(e) {
+        showCalMsg('❌ เชื่อมต่อล้มเหลว: ' + e.message, false);
+      }
+      btn.disabled = false;
+      btn.textContent = '☁️ บันทึกลง Google Sheets';
+    }
+
     function exportCalJSON() {
       if (!Object.keys(_calData).length) { toast('ยังไม่มีข้อมูลค่ะ'); return; }
       document.getElementById('calJsonText').value = JSON.stringify(_calData);
       document.getElementById('calJsonOut').style.display = 'block';
       toast('Export สำเร็จ!');
+    }
+
+    function showCalMsg(text, ok) {
+      var el = document.getElementById('calMsg');
+      if (!el) return;
+      el.textContent = text;
+      el.style.cssText = 'display:block;font-size:12px;padding:8px;border-radius:8px;margin-top:8px;' +
+        (ok ? 'background:rgba(0,200,100,.15);color:#4ade80' : 'background:rgba(200,0,0,.15);color:#f87171');
     }
     </script>
 </body>
