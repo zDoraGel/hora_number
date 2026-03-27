@@ -724,7 +724,7 @@ function NumerologyApp() {
     [result.t1val, result.t1tail],
     // คำสั่ง 3: t1val จับคู่ ageSum (บวกหลักอายุ เช่น 46→10→1)
     [result.t1val, result.input.ageSum]
-  ].filter((c, i, arr) => i === 0 || JSON.stringify(c) !== JSON.stringify(arr[i - 1])).map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } }, "คำสั่งที่ ", i + 1, "  ", isBad(cmd[0],cmd[1]) ? /* @__PURE__ */ React.createElement("span", { style: { color:"#ff6b6b", fontSize:10 } }, "✦ลางร้าย ") : null, /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " – ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1]))))), tab === "yearly21" && /* @__PURE__ */ React.createElement("div", { className: "card fade-in", style: { padding: 22 } }, /* @__PURE__ */ React.createElement("h3", { style: {
+  ].map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } }, "คำสั่งที่ ", i + 1, "  ", isBad(cmd[0],cmd[1]) ? /* @__PURE__ */ React.createElement("span", { style: { color:"#ff6b6b", fontSize:10 } }, "✦ลางร้าย ") : null, /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " – ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1]))))), tab === "yearly21" && /* @__PURE__ */ React.createElement("div", { className: "card fade-in", style: { padding: 22 } }, /* @__PURE__ */ React.createElement("h3", { style: {
     ...txAccent,
     fontSize: 15,
     marginBottom: 18,
@@ -741,7 +741,7 @@ function NumerologyApp() {
     [result.code, result.t2head],
     [result.code, result.t2tail],
     [result.code, result.input.ageSum]
-  ].filter((c, i, arr) => i === 0 || JSON.stringify(c) !== JSON.stringify(arr[i - 1])).map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } }, "\u0E04\u0E33\u0E2A\u0E31\u0E48\u0E07\u0E17\u0E35\u0E48 ", i + 1, " \xA0", /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " \u2013 ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1])))), /* @__PURE__ */ React.createElement("hr", { className: "divider" }), /* @__PURE__ */ React.createElement("div", { style: {
+  ].map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } }, "\u0E04\u0E33\u0E2A\u0E31\u0E48\u0E07\u0E17\u0E35\u0E48 ", i + 1, " \xA0", /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " \u2013 ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1])))), /* @__PURE__ */ React.createElement("hr", { className: "divider" }), /* @__PURE__ */ React.createElement("div", { style: {
     ...txAccent,
     fontSize: 14,
     marginBottom: 14,
