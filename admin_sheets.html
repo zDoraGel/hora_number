@@ -392,7 +392,7 @@ let ROLE  = '';
 let SCRIPT_URL = 'api.php';
 
 // Google Apps Script URL (สำหรับดึง meanings บน GitHub Pages)
-const GS_URL = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbxmlDuHYvsn0lSgO3y6BJHISl0x5KlG6kSppMQGa90kwDHVRScGLgoPeWhX8DmGERRPCQ/exec';
 
 // ── MOCK MODE (GitHub Pages / local) ──────────────────────────
 const IS_MOCK = window.location.hostname.includes('github.io')
@@ -1623,26 +1623,21 @@ async function deleteBackup(filename) {
       <div class="card">
         <h2 style="margin-bottom:16px">📅 Import ปฏิทิน 100 ปี</h2>
         <p style="color:var(--m);font-size:13px;margin-bottom:16px">
-          นำเข้าข้อมูลปฏิทินจาก Excel — ได้ JSON format <code>[dow, isWaning, zodiac]</code> สำหรับ merge ใน CALENDAR_DATA
+          นำเข้าข้อมูลปฏิทินจาก Excel ปีนักษัตร 100 ปี — ระบบอ่านโครงสร้างอัตโนมัติ
         </p>
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:16px;margin-bottom:16px">
           <div style="margin-bottom:12px">
-            <label style="color:var(--m);font-size:13px;display:block;margin-bottom:6px">📁 ไฟล์ Excel (.xlsx) — ระบบอ่านปีนักษัตร/เดือน/ปี จาก Excel อัตโนมัติ</label>
+            <label style="color:var(--m);font-size:13px;display:block;margin-bottom:6px">📁 ไฟล์ Excel (.xlsx) — เลือกไฟล์ปีที่ต้องการ import เช่น 2523.xlsx</label>
             <input type="file" id="calFile" accept=".xlsx" style="color:var(--r);font-size:13px">
           </div>
           <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:4px">
-            <div>
-              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">Tab ที่ Import</label>
-              <input type="number" id="calSheetIdx" value="1" min="1"
-                style="width:60px;padding:6px;border-radius:6px;border:1px solid rgba(107,45,94,.4);background:rgba(0,0,0,.3);color:var(--r);font-size:13px">
-            </div>
             <button onclick="readCalendar()"
               style="background:linear-gradient(135deg,#6B2D5E,#9B4E8A);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:'Prompt',sans-serif">
               📖 อ่านข้อมูล
             </button>
           </div>
           <div style="color:var(--m);font-size:11px;margin-top:8px">
-            💡 ระบบอ่าน ปีนักษัตร / เดือน / ปี BE จาก header ของ Excel อัตโนมัติ ไม่ต้องกรอกเอง
+            💡 ระบบอ่านปีนักษัตร / เดือน / ปี BE / ข้างขึ้น-แรม จาก Excel อัตโนมัติ ไม่ต้องกรอกเอง
           </div>
         </div>
         <div id="calPreview" style="display:none">
@@ -1684,7 +1679,6 @@ async function deleteBackup(filename) {
       </div>
     </div>
     <script>
-    <script>
     // ===== Calendar Import — parse Excel ปฏิทิน 100 ปี =====
     var _calData = {};
     var _zodiacNames = ['','ชวด','ฉลู','ขาล','เถาะ','มะโรง','มะเส็ง','มะเมีย','มะแม','วอก','ระกา','จอ','กุน'];
@@ -1693,7 +1687,7 @@ async function deleteBackup(filename) {
       'เมษายน':4,'พฤษภาคม':5,'มิถุนายน':6,'มถิ':6,'มิถ':6,
       'กรกฎาคม':7,'สิงหาคม':8,'กันยายน':9,'กนั':9,
       'ตุลาคม':10,'พฤศจิกายน':11,'พฤศจกิ':11,
-      'ธันวาคม':12,'มกราคม':1,'กุมภาพันธ์':2,'กมุ':2,'มีนาคม':3,'มนี':3
+      'ธันวาคม':12,'มกราคม':1,'กุมภาพันธ์':2,'กมุ':2,'มีนาคม':3,'มนี':3,'มีน':3
     };
     var _zodiacMap = {
       'ชวด':1,'ฉลู':2,'ขาล':3,'เถาะ':4,'มะโรง':5,'มะเส็ง':6,
@@ -1701,6 +1695,7 @@ async function deleteBackup(filename) {
     };
 
     function parseWaning(val) {
+      if (val == null) return null;
       var s = String(val).trim();
       if (s.indexOf('ร') >= 0) return 0; // ข้างแรม
       if (s.indexOf('ข') >= 0) return 1; // ข้างขึ้น
@@ -1710,7 +1705,7 @@ async function deleteBackup(filename) {
     async function readCalendar() {
       var fileInput = document.getElementById('calFile');
       if (!fileInput.files[0]) { toast('กรุณาเลือกไฟล์ก่อนค่ะ'); return; }
-      var sheetIdx = parseInt(document.getElementById('calSheetIdx').value) - 1;
+      var sheetIdx = 0; // ใช้ sheet แรกเสมอ
 
       try {
         var buf  = await fileInput.files[0].arrayBuffer();
@@ -1728,8 +1723,10 @@ async function deleteBackup(filename) {
         }
 
         // 2. หาเดือน+ปีจาก row 1
-        var months = []; // [{colStart, monthNum, yearBE}]
+        //    แต่ละ col ที่มีค่า => dow อยู่ที่ col นั้น, ข-ร อยู่ col+1
+        //    (บาง Excel merge ข-ร กับ ด รวมเป็น col เดียว gap=2, บางอันแยก gap=3)
         var row1 = rows[1] || [];
+        var months = [];
         for (var ci = 0; ci < row1.length; ci++) {
           if (!row1[ci]) continue;
           var s = String(row1[ci]);
@@ -1743,11 +1740,17 @@ async function deleteBackup(filename) {
           if (mnum) months.push({col: ci, month: mnum, year: yrBE});
         }
 
-        // 3. parse แต่ละวัน row 3 เป็นต้นไป (0-indexed = row index 3)
+        if (months.length === 0) {
+          toast('ไม่พบข้อมูลเดือนในไฟล์ — ตรวจสอบ format Excel ค่ะ');
+          return;
+        }
+
+        // 3. parse แต่ละวัน row 3 เป็นต้นไป
+        //    col 0 = วันที่, dowCol = col เดือน, wrCol = col+1
         for (var mi = 0; mi < months.length; mi++) {
           var m = months[mi];
-          var dowCol = m.col + 1;
-          var wrCol  = m.col + 2;
+          var dowCol = m.col;      // ว (วันในสัปดาห์)
+          var wrCol  = m.col + 1;  // ข-ร
           var prevWaning = 0;
 
           for (var ri = 3; ri < rows.length; ri++) {
@@ -1759,7 +1762,8 @@ async function deleteBackup(filename) {
             if (dayVal == null || dowVal == null) continue;
             var day = parseInt(dayVal);
             var dow = parseInt(dowVal);
-            if (isNaN(day) || isNaN(dow)) continue;
+            if (isNaN(day) || day < 1 || day > 31) continue;
+            if (isNaN(dow) || dow < 1 || dow > 7) continue;
 
             var waning = parseWaning(wrVal);
             if (waning === null) waning = prevWaning;
