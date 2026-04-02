@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ปฏิทิน 78 ปี — จักรวาลแห่งตัวเลข</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#140810;
+  --r:#F0C8DC;--c:#EEE0E8;--m:#A07890;--dim:#705060;
+  --a:#C45FA0;--al:#E08AC0;--gold:#D4A84B;
+  --red:#FF7070;--blue:#8899FF;--g:#55BB88;
+  --nav-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg)}
+body{font-family:'Prompt',sans-serif;color:var(--c);font-weight:400}
+
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;border-radius:50%;background:#fff;animation:tw var(--d,3s) var(--dl,0s) ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.1}50%{opacity:.6}}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.scroll-area{position:fixed;top:0;left:0;right:0;bottom:var(--nav-h);overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:1}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(10,3,8,.97);border-top:1px solid rgba(150,80,130,.2);display:flex;z-index:100;backdrop-filter:blur(16px);padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;color:var(--dim);font-family:'Prompt',sans-serif}
+.nav-item.on{color:var(--al)}
+.nav-icon{font-size:21px;line-height:1}
+.nav-label{font-size:10px;font-weight:500}
+
+/* header */
+.header{padding:20px 16px 8px;text-align:center;position:relative;z-index:2}
+.header h1{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:600;color:var(--r);letter-spacing:-.3px;margin-bottom:2px}
+.header p{font-size:12px;color:var(--dim)}
+
+/* selector */
+.sel-row{display:flex;gap:8px;padding:8px 14px;position:relative;z-index:2}
+.sel{background:rgba(255,255,255,.06);border:1px solid rgba(150,80,130,.3);border-radius:10px;color:var(--c);font-family:'Prompt',sans-serif;font-size:14px;padding:10px 12px;outline:none;flex:1}
+.sel option{background:#2D1030}
+.btn-go{background:linear-gradient(135deg,#6B2D5E,#C45FA0);color:#fff;border:none;border-radius:10px;font-family:'Prompt',sans-serif;font-size:14px;font-weight:600;padding:10px 20px;cursor:pointer}
+
+/* month nav */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:4px 14px 10px;position:relative;z-index:2}
+.nav-btn{background:rgba(255,255,255,.07);border:none;color:var(--r);cursor:pointer;border-radius:12px;width:44px;height:44px;font-size:22px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.nav-btn:active{background:rgba(196,95,160,.25);transform:scale(.92)}
+.cal-title{text-align:center}
+.cal-month{font-family:'DM Sans',sans-serif;font-size:21px;font-weight:700;color:var(--r);letter-spacing:-.5px}
+.cal-year{font-size:12px;color:var(--dim);margin-top:2px}
+.cal-year b{color:var(--gold);font-weight:600}
+
+/* legend */
+.legend{display:flex;gap:14px;padding:2px 14px 8px;flex-wrap:wrap;position:relative;z-index:2}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--m)}
+.leg-box{width:28px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+
+/* chips */
+.chips{display:flex;gap:7px;padding:0 14px 10px;flex-wrap:wrap;position:relative;z-index:2}
+.chip{background:rgba(255,255,255,.05);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--dim)}
+.chip b{color:var(--c);font-weight:600}
+
+/* grid */
+.cal-wrap{padding:0 8px;position:relative;z-index:2}
+.day-hdrs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px}
+.dh{text-align:center;font-size:12px;font-weight:600;padding:4px 0;color:var(--dim)}
+.dh.hs{color:var(--red)}
+.dh.hst{color:var(--blue)}
+
+.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+
+/* cells — ไม่มีขอบเลย ใช้พื้นหลังอย่างเดียว */
+.dc{border-radius:12px;padding:7px 4px 6px;min-height:68px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:background .15s;position:relative}
+.dc:active:not(.de){opacity:.7}
+.de{background:transparent;cursor:default}
+
+/* ข้างขึ้น — พื้นหลังชมพูอ่อนมาก */
+.dk{background:rgba(224,138,192,.13)}
+/* ข้างแรม — พื้นหลังม่วงเข้มกว่า */
+.dr{background:rgba(40,15,35,.7)}
+/* วันนี้ */
+.dt{background:rgba(196,95,160,.22)!important}
+/* selected */
+.ds{background:rgba(212,168,75,.15)!important}
+/* no data */
+.dn{background:rgba(255,255,255,.02)}
+
+.dc-num{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;line-height:1;color:var(--c)}
+.ns{color:var(--red)}.nst{color:var(--blue)}.nnd{color:rgba(255,255,255,.18);font-weight:400;font-size:15px}
+
+/* lunar text */
+.dl{font-size:9px;font-weight:600;border-radius:4px;padding:2px 5px;line-height:1.2}
+.dlk{background:rgba(224,138,192,.2);color:#E8A0CC}
+.dlr{background:rgba(80,30,70,.5);color:#907080}
+
+/* วันพระ — แค่ emoji เล็กๆ */
+.phra-mark{position:absolute;top:3px;right:4px;font-size:10px;line-height:1}
+
+/* today dot */
+.today-dot{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--a)}
+
+/* detail */
+.detail{margin:12px 8px 0;background:rgba(255,255,255,.04);border-radius:16px;padding:18px;animation:up .25s ease;display:none}
+.detail.on{display:block}
+.dt-title{font-family:'DM Sans',sans-serif;font-size:17px;font-weight:600;color:var(--r);margin-bottom:14px}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.db{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}
+.db-lb{font-size:11px;color:var(--dim);margin-bottom:5px}
+.db-val{font-size:15px;font-weight:600;color:var(--c)}
+.vk{color:#E8A0CC}.vr{color:#907080}.vp{color:var(--gold)}
+
+.no-data{background:rgba(255,255,255,.03);border-radius:14px;padding:20px;text-align:center;color:var(--dim);font-size:13px;grid-column:1/-1;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<!-- Loading -->
+<div id="loading" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;gap:14px">
+  <div style="width:36px;height:36px;border-radius:50%;border:3px solid rgba(196,95,160,.2);border-top-color:var(--a);animation:spin 1s linear infinite"></div>
+  <div style="font-size:13px;color:var(--dim)">กำลังโหลดปฏิทิน...</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- Error -->
+<div id="errBox" style="display:none;position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:50;padding:24px;text-align:center">
+  <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+  <div id="errMsg" style="color:var(--red);font-size:14px;margin-bottom:16px"></div>
+  <button onclick="location.reload()" style="background:var(--a);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:'Prompt',sans-serif;font-size:14px;cursor:pointer">ลองใหม่</button>
+</div>
+
+<div id="mainApp" style="display:none">
+<div class="scroll-area">
+
+  <div class="header">
+    <h1>🗓 ปฏิทิน 78 ปี</h1>
+    <p>พ.ศ. 2466–2554 · จันทรคติไทย</p>
+  </div>
+
+  <div class="sel-row">
+    <select class="sel" id="selM">
+      <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+      <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+      <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+      <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+      <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+      <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+    </select>
+    <select class="sel" id="selY" style="max-width:120px"></select>
+    <button class="btn-go" onclick="jump()">ไป</button>
+  </div>
+
+  <div class="cal-nav">
+    <button class="nav-btn" onclick="prev()">‹</button>
+    <div class="cal-title">
+      <div class="cal-month" id="cMonth"></div>
+      <div class="cal-year" id="cYear"></div>
+    </div>
+    <button class="nav-btn" onclick="next()">›</button>
+  </div>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-box" style="background:rgba(224,138,192,.15);color:#E8A0CC">ขึ้น</div>ข้างขึ้น</div>
+    <div class="leg"><div class="leg-box" style="background:rgba(40,15,35,.7);color:#907080">แรม</div>ข้างแรม</div>
+    <div class="leg"><span style="font-size:14px">🙏</span>วันพระ</div>
+    <div class="leg"><div class="leg-box" style="background:rgba(196,95,160,.22);color:var(--al)">วัน</div>วันนี้</div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="cal-wrap">
+    <div class="day-hdrs">
+      <div class="dh hs">อา</div><div class="dh">จ</div><div class="dh">อ</div>
+      <div class="dh">พ</div><div class="dh">พฤ</div><div class="dh">ศ</div>
+      <div class="dh hst">ส</div>
+    </div>
+    <div class="days-grid" id="grid"></div>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="dt-title" id="dtTitle"></div>
+    <div class="dg" id="dtGrid"></div>
+  </div>
+
+  <div style="height:24px"></div>
+</div>
+
+</div><!-- /mainApp -->
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="location.href='home.html'">
+    <div class="nav-icon">🏠</div><div class="nav-label">หน้าแรก</div>
+  </button>
+  <button class="nav-item on">
+    <div class="nav-icon">🗓</div><div class="nav-label">ปฏิทิน</div>
+  </button>
+  <button class="nav-item" onclick="location.href='index_sheets.html'">
+    <div class="nav-icon">🔮</div><div class="nav-label">ดูดวง ✦</div>
+  </button>
+</nav>
+
+<script>
+<script>
+const GS_URL = 'https://script.google.com/macros/s/AKfycbxwFEftqDR8_xLSygOCKkqH5qHkw5xCmNWauxyYhUNTmnk_4WikwEQcSmCNj9DrS3LbYQ/exec';
+const CACHE_KEY = 'cal_data_v2';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 วัน
+
+let CAL = {};
+
+async function loadCalendar() {
+  // ลอง cache ก่อน
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const obj = JSON.parse(cached);
+      if (Date.now() - obj.ts < CACHE_TTL && obj.data && Object.keys(obj.data).length > 100) {
+        CAL = obj.data;
+        initApp();
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // ดึงจาก Google Sheets
+  try {
+    const res = await fetch(GS_URL + '?action=get_calendar');
+    const json = await res.json();
+    if (json.ok && json.data) {
+      CAL = json.data;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ts: Date.now(), data: CAL})); } catch(e) {}
+      initApp();
+    } else {
+      showError('ไม่สามารถโหลดข้อมูลปฏิทินได้');
+    }
+  } catch(e) {
+    showError('ไม่สามารถเชื่อมต่อ Google Sheets ได้');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('errMsg').textContent = msg;
+  document.getElementById('errBox').style.display = 'block';
+}
+
+function initApp() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  const sy = document.getElementById('selY');
+  for(let y=2554;y>=2466;y--){const o=document.createElement('option');o.value=y;o.textContent='พ.ศ. '+y;sy.appendChild(o);}
+  render();
+}
+
+const MN=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const DF=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const todayBE=new Date().getFullYear()+543,todayM=new Date().getMonth()+1,todayD=new Date().getDate();
+let cY=2523,cM=1,selD=null;
+if(todayBE>=2466&&todayBE<=2554){cY=todayBE;cM=todayM;}
+
+function gk(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function dim(y,m){return new Date(y-543,m,0).getDate();}
+function d2c(dow){return dow===1?0:dow-1;}
+
+function lunarDay(y,m,d){
+  const k=gk(y,m,d);if(!CAL[k])return null;
+  const wan=CAL[k][1];
+  let cnt=1,pd=d-1,pm=m,py=y;
+  while(pd>=1){const pk=gk(py,pm,pd);if(!CAL[pk]||CAL[pk][1]!==wan)break;cnt++;pd--;}
+  if(pd<1){
+    let pm2=pm-1,py2=py;if(pm2<1){pm2=12;py2--;}
+    let cd=dim(py2,pm2);
+    while(cd>=1){const ck=gk(py2,pm2,cd);if(!CAL[ck]||CAL[ck][1]!==wan)break;cnt++;cd--;}
+  }
+  return cnt;
+}
+function isPhra(ld){return[8,15,23,29,30].includes(ld);}
+
+function startCol(){
+  for(let d=1;d<=7;d++){const k=gk(cY,cM,d);if(CAL[k]){const diff=d-1;let c=d2c(CAL[k][0])-diff;while(c<0)c+=7;return c%7;}}
+  return 0;
+}
+
+function render(){
+  const total=dim(cY,cM);
+  const hasData=Object.keys(CAL).some(k=>k.startsWith(cY+'-'+String(cM).padStart(2,'0')+'-'));
+  document.getElementById('cMonth').textContent=MN[cM];
+  document.getElementById('cYear').innerHTML='พ.ศ. <b>'+cY+'</b> · ค.ศ. '+(cY-543);
+  document.getElementById('selM').value=cM;
+  document.getElementById('selY').value=cY;
+
+  if(hasData){
+    const kc=Object.keys(CAL).filter(k=>k.startsWith(cY+'-'+String(cM).padStart(2,'0')+'-')&&CAL[k][1]===1).length;
+    const rc=Object.keys(CAL).filter(k=>k.startsWith(cY+'-'+String(cM).padStart(2,'0')+'-')&&CAL[k][1]===0).length;
+    document.getElementById('chips').innerHTML=
+      '<div class="chip">ข้างขึ้น <b>'+kc+' วัน</b></div>'+
+      '<div class="chip">ข้างแรม <b>'+rc+' วัน</b></div>'+
+      '<div class="chip">รวม <b>'+total+' วัน</b></div>';
+  } else {
+    document.getElementById('chips').innerHTML='<div class="chip">⚠️ ไม่มีข้อมูลเดือนนี้</div>';
+  }
+
+  const sc=startCol();
+  let html='';
+  for(let i=0;i<sc;i++) html+='<div class="dc de"></div>';
+
+  for(let d=1;d<=total;d++){
+    const k=gk(cY,cM,d);
+    const data=CAL[k];
+    const isToday=d===todayD&&cM===todayM&&cY===todayBE;
+    const isSel=d===selD;
+
+    if(!data){
+      const col=(sc+d-1)%7;
+      const nc=col===0?'ns':col===6?'nst':'';
+      html+='<div class="dc dn'+(isToday?' dt':'')+(isSel?' ds':'')+'">'+
+        '<div class="dc-num '+nc+' nnd">'+d+'</div></div>';
+      continue;
+    }
+
+    const[dow,wan]=data;
+    const col=d2c(dow);
+    const nc=dow===1?'ns':dow===7?'nst':'';
+    const ld=lunarDay(cY,cM,d);
+    const phra=ld?isPhra(ld):false;
+    const ltxt=wan===1?'ขึ้น '+(ld||''):'แรม '+(ld||'');
+    const lcls=wan===1?'dlk':'dlr';
+    const bgcls=wan===1?'dk':'dr';
+
+    html+='<div class="dc '+bgcls+(isToday?' dt':'')+(isSel?' ds':'')+'" onclick="sel('+d+')">'+
+      (phra?'<div class="phra-mark">🙏</div>':'')+
+      '<div class="dc-num '+nc+'">'+d+'</div>'+
+      '<div class="dl '+lcls+'">'+ltxt+'</div>'+
+      (isToday?'<div class="today-dot"></div>':'')+
+      '</div>';
+  }
+  document.getElementById('grid').innerHTML=html;
+  document.getElementById('detail').classList.remove('on');
+}
+
+function sel(d){
+  selD=d;
+  // update selected cell
+  document.querySelectorAll('.dc').forEach(el=>el.classList.remove('ds'));
+  const cells=document.querySelectorAll('.dc:not(.de)');
+  const sc=startCol();
+  const total=dim(cY,cM);
+  // re-render เร็วๆ
+  render();
+  selD=d;
+  // re-apply selection
+  const allCells=document.querySelectorAll('.dc:not(.de)');
+  // find cell index = sc empty + (d-1) real
+  // just re-render with selD set
+  render2();
+
+  const k=gk(cY,cM,d);const data=CAL[k];
+  const detail=document.getElementById('detail');
+  if(!data){
+    detail.innerHTML='<div style="color:var(--dim);font-size:13px;text-align:center;padding:12px">ไม่มีข้อมูลวันที่ '+d+' '+MN[cM]+' '+cY+'</div>';
+    detail.classList.add('on');detail.scrollIntoView({behavior:'smooth',block:'nearest'});return;
+  }
+  const[dow,wan]=data;const col=d2c(dow);
+  const ld=lunarDay(cY,cM,d);const phra=ld?isPhra(ld):false;
+  document.getElementById('dtTitle').textContent=d+' '+MN[cM]+' พ.ศ.'+cY;
+  document.getElementById('dtGrid').innerHTML=
+    '<div class="db"><div class="db-lb">วันในสัปดาห์</div><div class="db-val" style="color:'+(dow===1?'var(--red)':dow===7?'var(--blue)':'var(--c)')+'">'+DF[col]+'</div></div>'+
+    '<div class="db"><div class="db-lb">ข้างขึ้น-แรม</div><div class="db-val '+(wan===1?'vk':'vr')+'">'+(wan===1?'🌕 ข้างขึ้น':'🌑 ข้างแรม')+'</div></div>'+
+    '<div class="db"><div class="db-lb">ลำดับค่ำ</div><div class="db-val '+(wan===1?'vk':'vr')+'">'+(wan===1?'ขึ้น':'แรม')+' '+(ld||'-')+' ค่ำ</div></div>'+
+    '<div class="db"><div class="db-lb">วันพระ</div><div class="db-val '+(phra?'vp':'')+'">'+( phra?'🙏 วันพระ':'ไม่ใช่วันพระ')+'</div></div>'+
+    '<div class="db"><div class="db-lb">ปีนักษัตร</div><div class="db-val">'+zodiac(cY)+'</div></div>'+
+    '<div class="db"><div class="db-lb">ค.ศ.</div><div class="db-val" style="color:var(--dim)">'+d+'/'+cM+'/'+(cY-543)+'</div></div>';
+  detail.classList.add('on');detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function render2(){
+  const total=dim(cY,cM);const sc=startCol();
+  const hasData=Object.keys(CAL).some(k=>k.startsWith(cY+'-'+String(cM).padStart(2,'0')+'-'));
+  let html='';
+  for(let i=0;i<sc;i++) html+='<div class="dc de"></div>';
+  for(let d=1;d<=total;d++){
+    const k=gk(cY,cM,d);const data=CAL[k];
+    const isToday=d===todayD&&cM===todayM&&cY===todayBE;
+    const isSel=d===selD;
+    if(!data){
+      const col=(sc+d-1)%7;const nc=col===0?'ns':col===6?'nst':'';
+      html+='<div class="dc dn'+(isToday?' dt':'')+(isSel?' ds':'')+'"><div class="dc-num '+nc+' nnd">'+d+'</div></div>';
+      continue;
+    }
+    const[dow,wan]=data;const nc=dow===1?'ns':dow===7?'nst':'';
+    const ld=lunarDay(cY,cM,d);const phra=ld?isPhra(ld):false;
+    const ltxt=wan===1?'ขึ้น '+(ld||''):'แรม '+(ld||'');
+    const lcls=wan===1?'dlk':'dlr';const bgcls=wan===1?'dk':'dr';
+    html+='<div class="dc '+bgcls+(isToday?' dt':'')+(isSel?' ds':'')+'" onclick="sel('+d+')">'+
+      (phra?'<div class="phra-mark">🙏</div>':'')+
+      '<div class="dc-num '+nc+'">'+d+'</div>'+
+      '<div class="dl '+lcls+'">'+ltxt+'</div>'+
+      (isToday?'<div class="today-dot"></div>':'')+
+      '</div>';
+  }
+  document.getElementById('grid').innerHTML=html;
+}
+
+function zodiac(y){
+  const n=['','ชวด','ฉลู','ขาล','เถาะ','มะโรง','มะเส็ง','มะเมีย','มะแม','วอก','ระกา','จอ','กุน'];
+  const a=['','🐭','🐂','🐯','🐰','🐲','🐍','🐴','🐐','🐒','🐓','🐕','🐷'];
+  const i=[1,2,3,4,5,6,7,8,9,10,11,12][((y-543-2020)%12+12)%12];
+  return a[i]+' '+n[i];
+}
+
+function prev(){cM--;if(cM<1){cM=12;cY--;}if(cY<2466){cY=2466;cM=4;}render();}
+function next(){cM++;if(cM>12){cM=1;cY++;}if(cY>2554){cY=2554;cM=12;}render();}
+function jump(){cM=parseInt(document.getElementById('selM').value);cY=parseInt(document.getElementById('selY').value);render();}
+
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<30;i++){const s=document.createElement('div');s.className='star';
+  const sz=Math.random()*1.5+.5;
+  s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+Math.random()*4+'s';
+  c.appendChild(s);}
+})();
+
+loadCalendar();
+
+// Log traffic
+(function(){
+  try {
+    fetch('https://script.google.com/macros/s/AKfycbxwFEftqDR8_xLSygOCKkqH5qHkw5xCmNWauxyYhUNTmnk_4WikwEQcSmCNj9DrS3LbYQ/exec', { method: 'POST', body: JSON.stringify({ action: 'log_traffic', page: 'calendar', detail: document.referrer || 'direct' }) });
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
