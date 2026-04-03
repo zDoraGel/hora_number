@@ -178,10 +178,10 @@ function useCalendarFallback() {
 function lookupCalendar(day, month, yearBE) {
   const key = `${yearBE}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const e = CALENDAR_DATA[key];
-  if (!e) return null;
-  // e = [dow, isWaning, zodiac?] — zodiac อาจไม่มีในข้อมูลเก่า
-  const zodiac = e.length >= 3 ? e[2] : getZodiac(yearBE);
-  return { dow: e[0], isWaning: e[1] === 1, zodiac };
+  if (!e) return null; // ไม่มีข้อมูล → บล็อก
+  // zodiac ใช้จาก sheet เสมอ (ไม่ประมาณการ)
+  const zodiac = e.length >= 3 && e[2] ? e[2] : null;
+  return { dow: e[0], isWaning: e[1] === 1, zodiac, exact: true };
 }
 const DAY_NAMES = ["", "\u0E2D\u0E32\u0E17\u0E34\u0E15\u0E22\u0E4C", "\u0E08\u0E31\u0E19\u0E17\u0E23\u0E4C", "\u0E2D\u0E31\u0E07\u0E04\u0E32\u0E23", "\u0E1E\u0E38\u0E18", "\u0E1E\u0E24\u0E2B\u0E31\u0E2A\u0E1A\u0E14\u0E35", "\u0E28\u0E38\u0E01\u0E23\u0E4C", "\u0E40\u0E2A\u0E32\u0E23\u0E4C"];
 const MONTH_NAMES = [
@@ -426,22 +426,18 @@ function NumerologyApp() {
     const day = parseInt(form.day), month = parseInt(form.month), yearBE = parseInt(form.yearBE);
     if (!day || !month || !yearBE) return;
     const calEntry = lookupCalendar(day, month, yearBE);
-    // zodiac: ดึงจากปฏิทิน GS ถ้ามี (แม่นยำกว่า formula)
-    const zodiacNum = (calEntry && calEntry.zodiac) ? calEntry.zodiac : getZodiac(yearBE);
+    // ถ้าไม่มีข้อมูลปฏิทิน → บล็อกไม่ให้ดูดวง
+    if (!calEntry) {
+      setResult({ blocked: true, blockedYear: yearBE });
+      return;
+    }
+    const zodiacNum = calEntry.zodiac || getZodiac(yearBE);
+    const dowReal = calEntry.dow;
+    const isWaning = calEntry.isWaning;
     const age = calcAge(day, month, yearBE);
     const ageFirst = parseInt(String(age)[0]);
     const ageLast = parseInt(String(age).slice(-1));
     const ageSum = digitSum(age);
-    let dowReal, isWaning;
-    if (calEntry) {
-      dowReal = calEntry.dow;
-      isWaning = calEntry.isWaning;
-    } else {
-      const ce = new Date(yearBE - 543, month - 1, day);
-      dowReal = ce.getDay() === 0 ? 7 : ce.getDay();
-      const ld = Math.abs(Math.floor((ce - new Date(2e3, 0, 6)) / 864e5 % 29.53));
-      isWaning = ld >= 15;
-    }
     const ageDigits = String(age).split("").map(Number).reduce((a, b) => a + b, 0);
     const total = dowReal + month + zodiacNum + ageDigits;
     const code = reduceMax7(total);
@@ -721,7 +717,12 @@ function NumerologyApp() {
       value: form.yearBE,
       onChange: (e) => setForm((f) => ({ ...f, yearBE: e.target.value }))
     }
-  ))), /* @__PURE__ */ React.createElement("button", { className: "btn-calc", style: { marginTop: 24 }, onClick: calculate }, "\u2726 \u0E40\u0E1B\u0E34\u0E14\u0E14\u0E39\u0E14\u0E27\u0E07\u0E0A\u0E30\u0E15\u0E32 \u2726"), /* @__PURE__ */ React.createElement("p", { style: { ...txMuted, textAlign: "center", marginTop: 14, fontSize: 12, letterSpacing: 0.5 } }, "\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1B\u0E0F\u0E34\u0E17\u0E34\u0E19 100 \u0E1B\u0E35 \xB7 \u0E1E.\u0E28. 2466\u20132500, 2521\u20132522")), result && /* @__PURE__ */ React.createElement("div", { className: "fade-in" }, /* @__PURE__ */ React.createElement("div", { className: "card", style: { padding: 20, marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: {
+  ))), /* @__PURE__ */ React.createElement("button", { className: "btn-calc", style: { marginTop: 24 }, onClick: calculate }, "\u2726 \u0E40\u0E1B\u0E34\u0E14\u0E14\u0E39\u0E14\u0E27\u0E07\u0E0A\u0E30\u0E15\u0E32 \u2726"), /* @__PURE__ */ React.createElement("p", { style: { ...txMuted, textAlign: "center", marginTop: 14, fontSize: 12, letterSpacing: 0.5 } }, "\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1B\u0E0F\u0E34\u0E17\u0E34\u0E19 100 \u0E1B\u0E35 \xB7 \u0E1E.\u0E28. 2466\u20132500, 2521\u20132522")), result && result.blocked ? /* @__PURE__ */ React.createElement("div", { className: "card fade-in", style: { padding: 30, textAlign: "center" } },
+  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 32, marginBottom: 12 } }, "⚠️"),
+  /* @__PURE__ */ React.createElement("div", { style: { color: "#f59e0b", fontSize: 16, fontWeight: 600, marginBottom: 8 } }, "ไม่มีข้อมูลปฏิทินปี " + result.blockedYear),
+  /* @__PURE__ */ React.createElement("div", { style: { color: "#A07890", fontSize: 13 } }, "ไม่สามารถคำนวณดวงชะตาได้อย่างแม่นยำค่ะ กรุณาติดต่ออาจารย์"),
+  /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { marginTop: 16 }, onClick: () => setResult(null) }, "← กลับ")
+) : result && /* @__PURE__ */ React.createElement("div", { className: "fade-in" }, /* @__PURE__ */ React.createElement("div", { className: "card", style: { padding: 20, marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: {
     fontFamily: "'Cormorant Garamond',serif",
     fontSize: 20,
     fontWeight: 600,
