@@ -392,6 +392,12 @@ tr:hover td{background:rgba(107,45,94,.08)}
         <p style="color:var(--m);font-size:13px;margin-bottom:16px">
           นำเข้าข้อมูลปฏิทินจาก Excel ปีนักษัตร 100 ปี — ระบบอ่านโครงสร้างอัตโนมัติ
         </p>
+        <!-- สรุปปีที่มีข้อมูลแล้ว -->
+        <div id="calYearSummary" style="background:rgba(0,0,0,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="color:var(--m);font-size:12px;margin-bottom:8px">📊 ปีที่มีข้อมูลในระบบแล้ว</div>
+          <div id="calYearList" style="color:var(--dim);font-size:12px">⏳ กำลังโหลด...</div>
+        </div>
+
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:16px;margin-bottom:16px">
           <div style="margin-bottom:12px">
             <label style="color:var(--m);font-size:13px;display:block;margin-bottom:6px">📁 ไฟล์ Excel (.xlsx) — เลือกไฟล์ปีที่ต้องการ import เช่น 2523.xlsx</label>
@@ -779,6 +785,7 @@ function switchTab(name, btn) {
   if(name==='revenue')  loadRevenue();
   if(name==='packages') loadPackages();
   if(name==='meanings') loadMeanings();
+  if(name==='calendar') loadCalendarYears();
 }
 
 function toast(m) {
@@ -1851,28 +1858,54 @@ async function deleteBackup(filename) {
       btn.disabled = true;
       btn.textContent = '⏳ กำลังบันทึก...';
       try {
-        // ส่งเป็น batch เพราะ GS มี limit URL length
         var entries = Object.entries(_calData);
-        var batchSize = 500;
+        var batchSize = 200;
         var totalSaved = 0;
         for (var i = 0; i < entries.length; i += batchSize) {
-          var batch = {};
-          entries.slice(i, i + batchSize).forEach(function(kv){ batch[kv[0]] = kv[1]; });
-          btn.textContent = '⏳ กำลังบันทึก ' + Math.min(i+batchSize, entries.length) + '/' + entries.length + '...';
-          var batchRows = Object.entries(batch).map(function(kv){
-              return [kv[0], kv[1][0], kv[1][1], kv[1][2]];
-            });
-          var data = await gsCall({ action: 'save_calendar', rows: batchRows });
+          btn.textContent = '⏳ ' + Math.min(i+batchSize, entries.length) + '/' + entries.length + '...';
+          var batchRows = entries.slice(i, i+batchSize).map(function(kv){
+            return [kv[0], kv[1][0], kv[1][1], kv[1][2]];
+          });
+          // ใช้ POST สำหรับ save_calendar เพราะข้อมูลเยอะ
+          var res = await fetch(GS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'save_calendar', rows: batchRows })
+          });
+          var text = await res.text();
+          var data;
+          try { data = JSON.parse(text); } catch(e) { data = {ok:false, error: text.substring(0,100)}; }
           if (!data.ok) { showCalMsg('❌ batch error: ' + (data.error||'unknown'), false); break; }
-          totalSaved += Object.keys(batch).length;
+          totalSaved += batchRows.length;
         }
-        toast('✅ บันทึกลง Google Sheets สำเร็จ ' + totalSaved + ' รายการ');
-        showCalMsg('✅ บันทึกสำเร็จค่ะ ' + totalSaved + ' รายการ', true);
+        if (totalSaved > 0) {
+          toast('✅ บันทึกลง Google Sheets สำเร็จ ' + totalSaved + ' รายการ');
+          showCalMsg('✅ บันทึกสำเร็จค่ะ ' + totalSaved + ' รายการ', true);
+          loadCalendarYears(); // refresh สรุปปี
+        }
       } catch(e) {
         showCalMsg('❌ เชื่อมต่อล้มเหลว: ' + e.message, false);
       }
       btn.disabled = false;
       btn.textContent = '☁️ บันทึกลง Google Sheets';
+    }
+
+    // โหลดสรุปปีที่มีข้อมูลใน sheet calendar
+    async function loadCalendarYears() {
+      var el = document.getElementById('calYearList');
+      if (!el) return;
+      try {
+        var data = await gsCall({ action: 'get_calendar_years' });
+        if (data.ok && data.data && data.data.length) {
+          var years = data.data.sort(function(a,b){return a-b;});
+          el.innerHTML = years.map(function(y){
+            return '<span style="display:inline-block;background:rgba(107,45,94,.3);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 10px;margin:2px;color:var(--r);font-size:12px">พ.ศ. ' + y + '</span>';
+          }).join('');
+        } else {
+          el.textContent = '— ยังไม่มีข้อมูลปฏิทินค่ะ —';
+        }
+      } catch(e) {
+        el.textContent = '— โหลดไม่ได้ —';
+      }
     }
 
     function exportCalJSON() {

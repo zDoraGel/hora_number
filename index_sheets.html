@@ -729,10 +729,19 @@ function NumerologyApp() {
     fontStyle: "italic",
     color: C.rose,
     marginBottom: 4
-  } }, result.input.day, " ", MONTH_NAMES[result.input.month], " ", result.input.yearBE), /* @__PURE__ */ React.createElement("div", { style: txMuted }, "\u0E27\u0E31\u0E19", DAY_NAMES[result.input.dowReal], " \xA0\xB7\xA0 \u0E1B\u0E35", ZODIAC_NAMES[result.input.zodiacNum], " \xA0\xB7\xA0", result.input.isWaning ? "\u{1F312} \u0E02\u0E49\u0E32\u0E07\u0E41\u0E23\u0E21" : "\u{1F315} \u0E02\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19", " \xA0\xB7\xA0 \u0E2D\u0E32\u0E22\u0E38 ", result.input.age, " \u0E1B\u0E35"), !result.calFound && /* @__PURE__ */ React.createElement("div", { style: { color: "#f59e0b", fontSize: 11, marginTop: 4 } }, "\u26A0 \u0E1B\u0E35\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E43\u0E19\u0E1B\u0E0F\u0E34\u0E17\u0E34\u0E19 100 \u0E1B\u0E35 (\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13\u0E01\u0E32\u0E23)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, fontSize: 11, marginBottom: 5 } }, "\u0E40\u0E25\u0E02\u0E23\u0E2B\u0E31\u0E2A"), /* @__PURE__ */ React.createElement("div", { className: "badge-code" }, result.code)), /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: () => {
-    setResult(null);
-    setForm({ day: "", month: "", yearBE: "" });
-  } }, "\u2190 \u0E43\u0E2B\u0E21\u0E48"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" } }, [
+  } }, result.input.day, " ", MONTH_NAMES[result.input.month], " ", result.input.yearBE), /* @__PURE__ */ React.createElement("div", { style: txMuted }, "\u0E27\u0E31\u0E19", DAY_NAMES[result.input.dowReal], " \xA0\xB7\xA0 \u0E1B\u0E35", ZODIAC_NAMES[result.input.zodiacNum], " \xA0\xB7\xA0", result.input.isWaning ? "\u{1F312} \u0E02\u0E49\u0E32\u0E07\u0E41\u0E23\u0E21" : "\u{1F315} \u0E02\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19", " \xA0\xB7\xA0 \u0E2D\u0E32\u0E22\u0E38 ", result.input.age, " \u0E1B\u0E35"), !result.calFound && /* @__PURE__ */ React.createElement("div", { style: { color: "#f59e0b", fontSize: 11, marginTop: 4 } }, "\u26A0 \u0E1B\u0E35\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E43\u0E19\u0E1B\u0E0F\u0E34\u0E17\u0E34\u0E19 100 \u0E1B\u0E35 (\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13\u0E01\u0E32\u0E23)")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, fontSize: 11, marginBottom: 5 } }, "\u0E40\u0E25\u0E02\u0E23\u0E2B\u0E31\u0E2A"), /* @__PURE__ */ React.createElement("div", { className: "badge-code" }, result.code)), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8 } },
+    /* @__PURE__ */ React.createElement("button", { className: "btn-back", onClick: () => {
+      setResult(null);
+      setForm({ day: "", month: "", yearBE: "" });
+    } }, "\u2190 \u0E43\u0E2B\u0E21\u0E48"),
+    /* @__PURE__ */ React.createElement("button", { className: "btn-back", style: { background: "rgba(80,30,70,.4)" }, onClick: () => {
+      if (confirm("ออกจากระบบและล้างโค้ดใช่ไหมค่ะ?")) {
+        localStorage.removeItem("hora_session");
+        localStorage.removeItem("hora_code");
+        location.reload();
+      }
+    } }, "\u23CF Exit")
+  ))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" } }, [
     { l: "\u0E27\u0E31\u0E19", v: result.input.dowReal },
     { l: "\u0E40\u0E14\u0E37\u0E2D\u0E19", v: result.input.month },
     { l: "\u0E1B\u0E35\u0E19\u0E31\u0E01\u0E29\u0E31\u0E15\u0E23", v: result.input.zodiacNum },
