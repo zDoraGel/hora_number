@@ -1118,7 +1118,10 @@ async function loadMeanings() {
           </tr></thead>
           <tbody>${rows.map(r => `
             <tr id="mrow-${r.pair_key}"
-              onclick="selectMeaning('${r.pair_key}',${JSON.stringify(r.meaning_th||'')},${JSON.stringify(r.meaning_note||'')})"
+              data-key="${r.pair_key}"
+              data-th="${(r.meaning_th||'').replace(/"/g,'&quot;')}"
+              data-note="${(r.meaning_note||'').replace(/"/g,'&quot;')}"
+              onclick="selectMeaning(this.dataset.key, this.dataset.th, this.dataset.note)"
               style="cursor:pointer">
               <td>
                 <span class="chip" style="font-size:11px">${r.pair_key||'-'}</span>
