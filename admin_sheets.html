@@ -478,15 +478,17 @@ const GS_URL = 'https://script.google.com/macros/s/AKfycbxwFEftqDR8_xLSygOCKkqH5
 // ── GAS call via JSONP (หลีก CORS ทุกกรณี) ──────────────────
 async function gsCall(payload) {
   var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(payload));
+  console.log('gsCall ->', payload.action, url.substring(0,80)+'...');
   try {
     var res = await fetch(url);
+    console.log('gsCall status:', res.status, res.type, res.url.substring(0,80));
     var text = await res.text();
-    // GAS อาจ redirect แล้วส่ง HTML มา — ลอง parse JSON
+    console.log('gsCall response text:', text.substring(0, 300));
     try {
       return JSON.parse(text);
     } catch(e) {
-      console.error('gsCall: GAS returned non-JSON:', text.substring(0, 200));
-      return { ok: false, error: 'GAS response not JSON' };
+      console.error('gsCall: GAS returned non-JSON:', text.substring(0, 300));
+      return { ok: false, error: 'GAS response not JSON: ' + text.substring(0,100) };
     }
   } catch(e) {
     console.error('gsCall fetch error:', e.message);
