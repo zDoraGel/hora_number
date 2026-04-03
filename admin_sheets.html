@@ -1712,10 +1712,9 @@ async function deleteBackup(filename) {
       'ธันวาคม':12,'มกราคม':1,'กุมภาพันธ์':2,'กมุ':2,'มีนาคม':3,'มนี':3,'มีน':3
     };
 
-    // คำนวณปีนักษัตรจากปี BE — แม่นทุกปี
+    // คำนวณปีนักษัตรจากปี BE — สูตร (yearBE + 5) % 12 + 1
     function getZodiac(yearBE) {
-      var z = [0,5,6,7,8,9,10,11,12,1,2,3,4];
-      return z[yearBE % 12];
+      return (yearBE + 5) % 12 + 1;
     }
 
     function parseWaning(val) {
