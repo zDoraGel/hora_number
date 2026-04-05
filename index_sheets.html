@@ -473,6 +473,8 @@ function NumerologyApp() {
       monthly
     });
     setTab("yearly");
+    // DEBUG: expose result for console inspection
+    setTimeout(() => { window._dbg = { table2, table3, monthly, code, d7, m7, y7 }; console.log('🔍 DBG table2:', table2, 'table3:', table3, 'monthly[0]:', monthly[0]); }, 100);
   }, [form]);
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
