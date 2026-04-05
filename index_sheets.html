@@ -387,6 +387,7 @@ function NumerologyApp() {
   const [tab, setTab] = useState("yearly");
   const [orbs, setOrbs] = useState([]);
   const [sparkles, setSparkles] = useState([]);
+  const [calLoaded, setCalLoaded] = useState(false);
   useEffect(() => {
     setOrbs(Array.from({ length: 5 }, (_, i) => ({
       id: i,
@@ -404,6 +405,8 @@ function NumerologyApp() {
       d: Math.random() * 7 + 4,
       dl: Math.random() * 10
     })));
+    // โหลด calendar data
+    loadCalendarFromGS().then(() => setCalLoaded(true));
   }, []);
   const calculate = useCallback(() => {
     const day = parseInt(form.day), month = parseInt(form.month), yearBE = parseInt(form.yearBE);
