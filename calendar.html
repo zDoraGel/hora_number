@@ -199,7 +199,7 @@ body{font-family:'Prompt',sans-serif;color:var(--c);font-weight:400}
 
 <script>
 <script>
-const GS_URL = 'https://script.google.com/macros/s/AKfycbxwFEftqDR8_xLSygOCKkqH5qHkw5xCmNWauxyYhUNTmnk_4WikwEQcSmCNj9DrS3LbYQ/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbxA4rjW8ORXydtnv0uF1ON0xm-NAKGn2jejyfuecnpvOnSa7u3_RlMYXH4zCJJGimEl/exec';
 const CACHE_KEY = 'cal_data_v2';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 วัน
 
@@ -422,7 +422,7 @@ loadCalendar();
 // Log traffic
 (function(){
   try {
-    fetch('https://script.google.com/macros/s/AKfycbxwFEftqDR8_xLSygOCKkqH5qHkw5xCmNWauxyYhUNTmnk_4WikwEQcSmCNj9DrS3LbYQ/exec', { method: 'POST', body: JSON.stringify({ action: 'log_traffic', page: 'calendar', detail: document.referrer || 'direct' }) });
+    fetch('https://script.google.com/macros/s/AKfycbxA4rjW8ORXydtnv0uF1ON0xm-NAKGn2jejyfuecnpvOnSa7u3_RlMYXH4zCJJGimEl/exec', { method: 'POST', body: JSON.stringify({ action: 'log_traffic', page: 'calendar', detail: document.referrer || 'direct' }) });
   } catch(e) {}
 })();
 </script>
