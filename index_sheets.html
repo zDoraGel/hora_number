@@ -143,13 +143,10 @@ async function loadCalendarFromGS() {
       return;
     }
     // โหลดจาก GS
-    const res = await fetch(GS_URL, {
-      method:'POST',
-      body: JSON.stringify({ action:'get_calendar' })
-    });
+    const res = await fetch(GS_URL + '?d=' + encodeURIComponent(JSON.stringify({ action:'get_calendar' })));
     const data = await res.json();
-    if (data.ok && data.calendar && Object.keys(data.calendar).length > 0) {
-      CALENDAR_DATA = data.calendar;
+    if (data.ok && data.data && Object.keys(data.data).length > 0) {
+      CALENDAR_DATA = data.data;
       localStorage.setItem('cal_data_v3', JSON.stringify(CALENDAR_DATA));
       localStorage.setItem('cal_data_time', Date.now().toString());
       console.log('✅ Calendar from GS:', Object.keys(CALENDAR_DATA).length);
