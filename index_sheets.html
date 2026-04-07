@@ -70,11 +70,15 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
     // 🔮 TEST USER: TEST1234 (hardcode ไม่ต้องผ่าน DB)
     if (input === "TEST1234") {
       setVerifiedCode(input);
-      // Auto-set test user data
+      // Auto-set test user data + วันเกิด
       sessionStorage.setItem("cust_name", "Test User");
       sessionStorage.setItem("cust_phone", "081-234-5678");
       sessionStorage.setItem("cust_line", "testuser_line");
       sessionStorage.setItem("cust_code", input);
+      // วันเกิด: 2 สิงหาคม 2523 (46 ปี) - เพื่อให้มีข้อมูลสำหรับดูดวง
+      sessionStorage.setItem("birth_day", "2");
+      sessionStorage.setItem("birth_month", "8");
+      sessionStorage.setItem("birth_year_be", "2523");
       setLoading(false);
       onUnlock();
       return;
@@ -413,6 +417,14 @@ function NumerologyApp() {
   const [sparkles, setSparkles] = useState([]);
   const [calLoaded, setCalLoaded] = useState(false);
   useEffect(() => {
+    // 🔮 TEST USER: auto-load birth date จาก sessionStorage
+    const birthDay = sessionStorage.getItem("birth_day");
+    const birthMonth = sessionStorage.getItem("birth_month");
+    const birthYearBE = sessionStorage.getItem("birth_year_be");
+    if (birthDay && birthMonth && birthYearBE) {
+      setForm({ day: birthDay, month: birthMonth, yearBE: birthYearBE });
+    }
+    
     setOrbs(Array.from({ length: 5 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -432,6 +444,14 @@ function NumerologyApp() {
     // โหลด calendar data
     loadCalendarFromGS().then(() => setCalLoaded(true));
   }, []);
+  
+  // 🔮 TEST USER: auto-calculate เมื่อ form + calLoaded เปลี่ยน
+  useEffect(() => {
+    if (form.day && form.month && form.yearBE && calLoaded) {
+      setTimeout(() => calculate(), 100);
+    }
+  }, [form, calLoaded]);
+  
   const calculate = useCallback(() => {
     const day = parseInt(form.day), month = parseInt(form.month), yearBE = parseInt(form.yearBE);
     if (!day || !month || !yearBE) return;
