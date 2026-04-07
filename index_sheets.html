@@ -66,6 +66,20 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
   async function verify() {
     const input = code.trim().toUpperCase(); if (!input) return;
     setLoading(true); setErr("");
+    
+    // 🔮 TEST USER: TEST1234 (hardcode ไม่ต้องผ่าน DB)
+    if (input === "TEST1234") {
+      setVerifiedCode(input);
+      // Auto-set test user data
+      sessionStorage.setItem("cust_name", "Test User");
+      sessionStorage.setItem("cust_phone", "081-234-5678");
+      sessionStorage.setItem("cust_line", "testuser_line");
+      sessionStorage.setItem("cust_code", input);
+      setLoading(false);
+      onUnlock();
+      return;
+    }
+    
     try {
       const d = await callApi({ action: "verify_code", code: input });
       if (d.ok) { setVerifiedCode(input); setStep(2); }
@@ -76,19 +90,26 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
   async function submit() {
     if (!custName.trim()) { setErr("กรุณากรอกชื่อค่ะ"); return; }
     setLoading(true); setErr("");
+    
+    // 🔮 TEST USER: ถ้าเป็น TEST1234 ให้ set default ข้อมูล
+    const finalName = verifiedCode === "TEST1234" ? "Test User" : custName.trim();
+    const finalPhone = verifiedCode === "TEST1234" ? "081-234-5678" : custPhone.trim();
+    const finalLine = verifiedCode === "TEST1234" ? "testuser_line" : custLine.trim();
+    
     try {
       await callApi({
         action: "save_reading",
         code: verifiedCode,
-        name: custName.trim(),
-        phone: custPhone.trim(),
-        line_id: custLine.trim(),
+        name: finalName,
+        phone: finalPhone,
+        line_id: finalLine,
         day: "", month: "", year_be: ""
       });
     } catch(e) {}
-    sessionStorage.setItem("cust_name",  custName.trim());
-    sessionStorage.setItem("cust_phone", custPhone.trim());
-    sessionStorage.setItem("cust_line",  custLine.trim());
+    
+    sessionStorage.setItem("cust_name",  finalName);
+    sessionStorage.setItem("cust_phone", finalPhone);
+    sessionStorage.setItem("cust_line",  finalLine);
     sessionStorage.setItem("cust_code",  verifiedCode);
     setLoading(false); onUnlock();
   }
@@ -801,9 +822,13 @@ function NumerologyApp() {
             /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
               result.table3.map((row, ri) =>
                 /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
-                  /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 60, fontSize: 11 } }, ""),
+                  /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 60, fontSize: 11 } }, ri === 0 ? "ตาราง 3" : ""),
                   row.map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v))
                 )
+              ),
+              /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center", marginTop: 6 } },
+                /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 60, fontSize: 9 } }, "เดือน"),
+                Array.from({ length: 12 }, (_, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { width: 36, height: 16, fontSize: 8, textAlign: "center", color: "#D4A84B", fontWeight: 600, lineHeight: "16px" } }, i + 1))
               )
             )
           ), result.monthly.map(({ month: m, cmd1, cmd2, cmd3 }) => {
