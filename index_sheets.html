@@ -483,9 +483,16 @@ function NumerologyApp() {
     const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const ci = isWaning ? 6 - (m - 1) % 7 : (m - 1) % 7;
-      const safe = (ci % 7 + 7) % 7;
+      // 🔧 DEBUG: ลอง compute ci ด้วยวิธีต่างๆ
+      const mMinus1 = m - 1;
+      const mod7 = mMinus1 % 7;
+      const ci_v1 = isWaning ? 6 - mod7 : mod7; // ⚠️ ปัญหา: 6 - negative ได้ลบ?
+      const ci_v2 = isWaning ? ((6 - mMinus1) % 7 + 7) % 7 : (mMinus1 % 7); // safe modulo
+      const ci = ci_v2; // ใช้ v2 (safe)
+      const safe = ci; // ci เองคือ 0-6 แล้ว (safe modulo)
       const mCode = table3[0][safe];
+      if (i === 0) console.log('🔍 monthly[0]: m=', m, 'mMinus1=', mMinus1, 'mod7=', mod7, 'ci=', ci, 'safe=', safe, 'table3[0]=', table3[0], 'mCode=', mCode);
+      
       // ข้างขึ้น: อ่านจากซ้าย → cmd1=ช่องแรก(หัว), cmd2=ช่องสุดท้าย(ท้าย)
       // ข้างแรม: อ่านจากขวา → cmd1=ช่องสุดท้าย(ท้าย), cmd2=ช่องแรก(หัว) (สลับกัน)
       const leftVal  = table3[0][0]; // ช่องแรก (หัวแถว = ฝั่งข้างขึ้น)
