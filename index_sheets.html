@@ -644,7 +644,7 @@ function NumerologyApp() {
     fontFamily: "'Sarabun',sans-serif",
     color: C.cream,
     position: "relative",
-    overflow: "hidden"
+    overflow: "visible"
   } }, /* @__PURE__ */ React.createElement("style", null, css), orbs.map((o) => /* @__PURE__ */ React.createElement("div", { key: o.id, style: {
     position: "fixed",
     left: `${o.x}%`,
@@ -656,7 +656,7 @@ function NumerologyApp() {
     transform: "translate(-50%,-50%)",
     animation: `orbFloat ${o.d}s ${o.dl}s ease-in-out infinite`,
     pointerEvents: "none",
-    zIndex: 0
+    zIndex: -1
   } })), sparkles.map((s) => /* @__PURE__ */ React.createElement("div", { key: s.id, style: {
     position: "fixed",
     left: `${s.x}%`,
@@ -668,7 +668,7 @@ function NumerologyApp() {
     opacity: 0.4,
     animation: `sparkle ${s.d}s ${s.dl}s infinite`,
     pointerEvents: "none",
-    zIndex: 0
+    zIndex: -1
   } })), /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 760, margin: "0 auto", padding: "20px 16px", position: "relative", zIndex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", padding: "32px 0 24px" }, className: "fade-in" }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 52, animation: "floatIcon 4s ease-in-out infinite", display: "block", marginBottom: 12 } }, "\u{1F52E}"), /* @__PURE__ */ React.createElement("h1", { style: {
     fontFamily: "'Cormorant Garamond',serif",
     fontSize: 30,
