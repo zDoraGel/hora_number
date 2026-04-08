@@ -11,15 +11,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
-function CodeGate({ onUnlock }) {
-  const [step, setStep] = React.useState(1);
-  const [code, setCode] = React.useState("");
-  const [err, setErr]   = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [verifiedCode, setVerifiedCode] = React.useState("");
-  const [custName, setCustName]   = React.useState("");
-  const [custPhone, setCustPhone] = React.useState("");
-  const [custLine, setCustLine]   = React.useState("");
 // ════════════════════════════════════════
 //  DUAL MODE: GitHub Pages = Mock, cPanel = api.php
 // ════════════════════════════════════════
@@ -66,6 +57,16 @@ async function callApi(body) {
   // Fallback mock สำหรับทุก environment
   return mockApi(body);
 }
+
+function CodeGate({ onUnlock }) {
+  const [step, setStep] = React.useState(1);
+  const [code, setCode] = React.useState("");
+  const [err, setErr]   = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [verifiedCode, setVerifiedCode] = React.useState("");
+  const [custName, setCustName]   = React.useState("");
+  const [custPhone, setCustPhone] = React.useState("");
+  const [custLine, setCustLine]   = React.useState("");
 
 const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
   const S = {
