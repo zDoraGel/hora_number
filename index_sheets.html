@@ -23,12 +23,18 @@ function CodeGate({ onUnlock }) {
 // ════════════════════════════════════════
 //  DUAL MODE: GitHub Pages = Mock, cPanel = api.php
 // ════════════════════════════════════════
+// GAS URL (ต้องประกาศก่อน IS_MOCK และ callApi)
+const GS_URL = 'https://script.google.com/macros/s/AKfycbxA4rjW8ORXydtnv0uF1ON0xm-NAKGn2jejyfuecnpvOnSa7u3_RlMYXH4zCJJGimEl/exec';
+
 const IS_MOCK = window.location.hostname.includes('github.io')
+             || window.location.hostname.includes('github.com')
              || window.location.hostname === 'localhost'
              || window.location.hostname === '127.0.0.1'
-             || window.location.protocol === 'file:';
+             || window.location.protocol === 'file:'
+             || window.location.hostname === ''
+             || !window.location.hostname;
 
-const API_URL = 'api.php';   // ← เปลี่ยน path ถ้าไฟล์อยู่ต่างโฟลเดอร์
+const API_URL = 'api.php';
 
 // Mock codes สำหรับทดสอบ
 const MOCK_CODES = ['TESTCODE','AAAABBBB','DEMO1234','TEST1234'];
@@ -45,17 +51,20 @@ function mockApi(body) {
 }
 
 async function callApi(body) {
+  // Mock mode: รันแบบ file:// หรือ localhost หรือ github.io
   if (IS_MOCK) return mockApi(body);
-  var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(body));
+  // Production: ลอง GAS ก่อน ถ้าล้มเหลว fallback mock
   try {
-    var res = await fetch(url);
+    var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(body));
+    var res = await fetch(url, { mode: 'cors' });
     var text = await res.text();
-    try { return JSON.parse(text); }
-    catch(e) { return {ok:false, msg:'server error'}; }
-  } catch(e) {
-    if (body.action === 'verify_code') return mockApi(body);
-    return {ok:false, msg:'เชื่อมต่อ server ไม่ได้ค่ะ'};
-  }
+    try {
+      var parsed = JSON.parse(text);
+      return parsed;
+    } catch(e) { /* JSON parse fail → fallback */ }
+  } catch(e) { /* network error → fallback */ }
+  // Fallback mock สำหรับทุก environment
+  return mockApi(body);
 }
 
 const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
@@ -309,26 +318,26 @@ function findCols(rows, num) {
   });
 }
 // MEANINGS โหลดจาก Google Sheets (GitHub) หรือ api.php (cPanel)
-const GS_URL = 'https://script.google.com/macros/s/AKfycbxA4rjW8ORXydtnv0uF1ON0xm-NAKGn2jejyfuecnpvOnSa7u3_RlMYXH4zCJJGimEl/exec';
 let MEANINGS = {};
 (async function loadMeanings() {
-  // ดึงจาก Google Sheets โดยตรง
+  // โหลด legacy ก่อนเสมอ เพื่อให้มีข้อมูล fallback ทันที
+  Object.assign(MEANINGS, _MEANINGS_LEGACY);
+  // ดึงจาก localStorage (admin panel edits)
   try {
-      const res  = await fetch(GS_URL + '?d=' + encodeURIComponent(JSON.stringify({ action:'get_meanings' })));
-      const data = await res.json();
-      if (data.ok && data.data) {
-        Object.assign(MEANINGS, data.data);
-        // merge กับ localStorage ถ้าอาจารย์แก้ไขเพิ่มเติมใน Admin Panel
-        const local = localStorage.getItem('gs_meanings');
-        if (local) Object.assign(MEANINGS, JSON.parse(local));
-        console.log('✅ Loaded', Object.keys(MEANINGS).length, 'meanings from Google Sheets');
-      }
-    } catch(e) {
-      // GS fail → ใช้ localStorage
-      const local = localStorage.getItem('gs_meanings');
-      if (local) Object.assign(MEANINGS, JSON.parse(local));
-      console.warn('⚠️ GS โหลดไม่ได้ ใช้ localStorage แทน');
+    const local = localStorage.getItem('gs_meanings');
+    if (local) Object.assign(MEANINGS, JSON.parse(local));
+  } catch(e) {}
+  // ดึงจาก GS (ผ่าน callApi ซึ่งมี mock fallback)
+  try {
+    const data = await callApi({ action: 'get_meanings' });
+    if (data.ok && data.data) {
+      Object.assign(MEANINGS, data.data);
+      console.log('✅ Loaded', Object.keys(MEANINGS).length, 'meanings from GS');
     }
+  } catch(e) {
+    console.warn('⚠️ Meanings จาก GS โหลดไม่ได้ ใช้ legacy แทน');
+  }
+  console.log('📚 Total meanings:', Object.keys(MEANINGS).length);
 })();
 const _MEANINGS_LEGACY = {
   "1-1": "\u0E08\u0E30\u0E21\u0E35\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E25\u0E31\u0E07\u0E40\u0E25 \u0E44\u0E21\u0E48\u0E01\u0E25\u0E49\u0E32\u0E15\u0E31\u0E14\u0E2A\u0E34\u0E19\u0E43\u0E08\u0E1A\u0E32\u0E07\u0E2A\u0E34\u0E48\u0E07 \u0E1A\u0E32\u0E07\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E41\u0E19\u0E48\u0E19\u0E2D\u0E19\u0E25\u0E07\u0E44\u0E1B\u0E43\u0E19\u0E17\u0E31\u0E19\u0E17\u0E35 \u0E08\u0E30\u0E25\u0E31\u0E07\u0E40\u0E25\u0E40\u0E01\u0E49\u0E01\u0E31\u0E07\u0E19\u0E31\u0E48\u0E07\u0E2A\u0E07\u0E2A\u0E31\u0E22\u0E43\u0E2B\u0E49\u0E1C\u0E48\u0E32\u0E19\u0E0A\u0E48\u0E27\u0E07\u0E19\u0E35\u0E49\u0E44\u0E1B\u0E40\u0E2A\u0E35\u0E22\u0E01\u0E48\u0E2D\u0E19 \u0E04\u0E48\u0E2D\u0E22\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E40\u0E02\u0E49\u0E32\u0E21\u0E32\u0E2B\u0E32\u0E08\u0E38\u0E14\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19 \u0E40\u0E15\u0E34\u0E21\u0E04\u0E27\u0E32\u0E21\u0E21\u0E31\u0E48\u0E19\u0E43\u0E08\u0E43\u0E2B\u0E49\u0E21\u0E32\u0E01\u0E40\u0E02\u0E49\u0E32\u0E44\u0E27\u0E49 \u0E08\u0E30\u0E44\u0E14\u0E49\u0E44\u0E21\u0E48\u0E40\u0E09\u0E37\u0E48\u0E2D\u0E22\u0E0A\u0E32 \u0E2D\u0E22\u0E48\u0E32\u0E21\u0E31\u0E27\u0E40\u0E2A\u0E35\u0E22\u0E40\u0E27\u0E25\u0E32\u0E01\u0E31\u0E1A\u0E04\u0E27\u0E32\u0E21\u0E44\u0E21\u0E48\u0E41\u0E19\u0E48\u0E19\u0E2D\u0E19 \u0E40\u0E15\u0E34\u0E21\u0E04\u0E27\u0E32\u0E21\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E31\u0E48\u0E19\u0E02\u0E22\u0E31\u0E19\u0E2B\u0E21\u0E31\u0E48\u0E19\u0E40\u0E1E\u0E35\u0E22\u0E23 \u0E40\u0E23\u0E35\u0E22\u0E19\u0E23\u0E39\u0E49\u0E2D\u0E22\u0E39\u0E48\u0E01\u0E31\u0E1A\u0E04\u0E27\u0E32\u0E21\u0E08\u0E23\u0E34\u0E07 \u0E08\u0E30\u0E44\u0E14\u0E49\u0E2A\u0E34\u0E48\u0E07\u0E17\u0E35\u0E48\u0E2B\u0E27\u0E31\u0E07\u0E41\u0E25\u0E30\u0E15\u0E31\u0E49\u0E07\u0E43\u0E08",
@@ -455,7 +464,7 @@ function NumerologyApp() {
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
       // ✅ โค้ดเก่า ลบออกแล้ว (ไม่ใช้ ci, safe, mCode, leftVal, rightVal, c1, c2)
-      const row4_val = table2[3][i - 1]; // ✅ ใช้ table2 row4 ตำแหน่ง i-1 (เดือน 1-12)
+      const row4_val = table2[3][i]; // table2 row4 ตำแหน่ง i (index 0-11 = เดือน 1-12)
       const af_red = ageFirst > 7 ? ageFirst % 7 || 7 : ageFirst;
       const al_red = ageLast > 7 ? ageLast % 7 || 7 : ageLast;
       return { month: m, cmd1: [row4_val, af_red], cmd2: [row4_val, al_red], cmd3: [row4_val, ageSum] };
