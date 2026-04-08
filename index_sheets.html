@@ -153,6 +153,8 @@ const { useState, useEffect, useCallback } = React;
 let CALENDAR_DATA = {};
 
 async function loadCalendarFromGS() {
+  // Mock mode: ใช้ fallback ทันที ไม่ fetch GS
+  if (IS_MOCK) { useCalendarFallback(); return; }
   try {
     // ลอง localStorage ก่อน (cache)
     const cached = localStorage.getItem('cal_data_v3');
@@ -463,11 +465,23 @@ function NumerologyApp() {
     const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      // ✅ โค้ดเก่า ลบออกแล้ว (ไม่ใช้ ci, safe, mCode, leftVal, rightVal, c1, c2)
-      const row4_val = table2[3][i]; // table2 row4 ตำแหน่ง i (index 0-11 = เดือน 1-12)
-      const af_red = ageFirst > 7 ? ageFirst % 7 || 7 : ageFirst;
-      const al_red = ageLast > 7 ? ageLast % 7 || 7 : ageLast;
-      return { month: m, cmd1: [row4_val, af_red], cmd2: [row4_val, al_red], cmd3: [row4_val, ageSum] };
+      // Logic ตามเอกสาร ตาราง 3:
+      // นับเว้นช่อง ชุดละ 7 วน → หา column ของเดือนนั้นใน table3
+      // ข้างขึ้น = อ่านซ้ายมือ (col = i%7)
+      // ข้างแรม = อ่านขวามือ (col = 6 - i%7)
+      const col = isWaning ? (6 - (i % 7)) : (i % 7);
+      // ค่าเดือนปัจจุบัน = table3 แถว 1 (รหัส) ตรงตำแหน่ง col
+      const monthVal = table3[0][col];
+      // leftVal = table3[0][0] = ช่องที่ 1 ฝั่งซ้ายสุด (หัวแถว)
+      const leftVal  = table3[0][0];
+      // rightVal = table3[0][6] = ช่องที่ 1 ฝั่งขวาสุด (ท้ายแถว)
+      const rightVal = table3[0][6];
+      return {
+        month: m,
+        cmd1: [monthVal, leftVal],   // เดือน + หัวแถว (ซ้าย)
+        cmd2: [monthVal, rightVal],  // เดือน + ท้ายแถว (ขวา)
+        cmd3: [monthVal, ageSum]     // เดือน + ageSum
+      };
     });
     setResult({
       input: { day, month, yearBE, dowReal, zodiacNum, isWaning, age, ageFirst, ageLast, ageSum },
