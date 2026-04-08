@@ -308,7 +308,7 @@ function calcRow4_table1(col) {
 // แถว 1-3: เลขไม่เกิน 7, แถว 4: บวกทั้ง 3 แถว ไม่ต้องลบ (ตามเอกสาร)
 function buildTable2(d7, m7, y7) {
   const r1 = buildRow(d7), r2 = buildRow(m7), r3 = buildRow(y7);
-  // แถว 4: บวกแต่ละคอลัมน์ ไม่ต้องลบ 7 (ใช้ค่าจริงๆ ไม่ใช่ reduceMax7)
+  // แถว 4: บวกแต่ละคอลัมน์แล้วจบ (ใช้ค่าจริง ไม่วนไม่ลด)
   const r4 = r1.map((_, i) => r1[i] + r2[i] + r3[i]);
   return [r1, r2, r3, r4];
 }
