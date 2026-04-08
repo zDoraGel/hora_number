@@ -885,7 +885,7 @@ function NumerologyApp() {
           result.monthly.map(({ month: m, cmd1, cmd2, cmd3 }) => {
     const uCmds = [cmd1, cmd2, cmd3].filter((c, i, a) => i === 0 || JSON.stringify(c) !== JSON.stringify(a[i - 1]));
     return /* @__PURE__ */ React.createElement("div", { key: m, style: { marginBottom: 22 } }, /* @__PURE__ */ React.createElement("div", { className: "month-hd" }, MONTH_NAMES[m]), uCmds.map((cmd, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 4, fontSize: 12 } }, /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " \u2013 ", cmd[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1])))));
-  }))), /* @__PURE__ */ React.createElement("div", { style: {
+  }), /* @__PURE__ */ React.createElement("div", { style: {
     textAlign: "center",
     padding: "24px 0 8px",
     fontFamily: "'Cormorant Garamond',serif",
