@@ -483,23 +483,22 @@ function NumerologyApp() {
     const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      // 🔧 DEBUG: ลอง compute ci ด้วยวิธีต่างๆ
-      const mMinus1 = m - 1;
-      const mod7 = mMinus1 % 7;
-      const ci_v1 = isWaning ? 6 - mod7 : mod7; // ⚠️ ปัญหา: 6 - negative ได้ลบ?
-      const ci_v2 = isWaning ? ((6 - mMinus1) % 7 + 7) % 7 : (mMinus1 % 7); // safe modulo
-      const ci = ci_v2; // ใช้ v2 (safe)
-      const safe = ci; // ci เองคือ 0-6 แล้ว (safe modulo)
-      const mCode = table3[0][safe];
-      if (i === 0) console.log('🔍 monthly[0]: m=', m, 'mMinus1=', mMinus1, 'mod7=', mod7, 'ci=', ci, 'safe=', safe, 'table3[0]=', table3[0], 'mCode=', mCode);
+      // ดึงค่าจาก table2 แถวที่ 4 (index 3) ตำแหน่ง i
+      const row4_val = table2[3][i]; // table2[3] คือแถว 4
       
-      // ข้างขึ้น: อ่านจากซ้าย → cmd1=ช่องแรก(หัว), cmd2=ช่องสุดท้าย(ท้าย)
-      // ข้างแรม: อ่านจากขวา → cmd1=ช่องสุดท้าย(ท้าย), cmd2=ช่องแรก(หัว) (สลับกัน)
-      const leftVal  = table3[0][0]; // ช่องแรก (หัวแถว = ฝั่งข้างขึ้น)
-      const rightVal = table3[0][6]; // ช่องสุดท้าย (ท้ายแถว = ฝั่งข้างแรม)
-      const c1 = isWaning ? rightVal : leftVal;  // cmd1 หัวแถวฝั่งที่อ่าน
-      const c2 = isWaning ? leftVal  : rightVal; // cmd2 ท้ายแถวฝั่งที่อ่าน
-      return { month: m, cmd1: [mCode, c1], cmd2: [mCode, c2], cmd3: [mCode, ageSum] };
+      // ลด ageFirst, ageLast ให้ ≤ 7 (ใช้ digitSum แล้ว reduceMax7)
+      const af_reduced = reduceMax7(ageFirst);
+      const al_reduced = reduceMax7(ageLast);
+      const as_reduced = reduceMax7(ageSum);
+      
+      if (i === 0) console.log('🔍 monthly[0]: m=', m, 'row4_val=', row4_val, 'ageFirst_reduced=', af_reduced, 'ageLast_reduced=', al_reduced, 'ageSum_reduced=', as_reduced);
+      
+      return { 
+        month: m, 
+        cmd1: [row4_val, af_reduced], 
+        cmd2: [row4_val, al_reduced], 
+        cmd3: [row4_val, as_reduced] 
+      };
     });
     setResult({
       input: { day, month, yearBE, dowReal, zodiacNum, isWaning, age, ageFirst, ageLast, ageSum },
