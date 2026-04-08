@@ -439,21 +439,14 @@ function NumerologyApp() {
     // แต่ค่าที่ได้ต้องมาจาก row4 ของ table2 ตรงตำแหน่งนั้น
     const agePos7 = getAgeRow7(age); // ตำแหน่งอายุในตารางนับ 7 (1-7)
     const devaHoriz = table2[3][agePos7 - 1]; // ดึงค่าจาก row4 ตรงตำแหน่งอายุ
-    // ✅ ลด ageFirst, ageLast ให้ ≤7 ก่อนส่ง buildTable3
-    const ageFirst_reduced = ageFirst > 7 ? ageFirst % 7 === 0 ? 7 : ageFirst % 7 : ageFirst;
-    const ageLast_reduced = ageLast > 7 ? ageLast % 7 === 0 ? 7 : ageLast % 7 : ageLast;
-    const table3 = buildTable3(code, ageFirst_reduced, ageLast_reduced);
+    const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      // ✅ ใช้ table2 row4 เป็น mCode
-      const row4_val = table2[3][i]; // table2 row4 ตำแหน่งเดือน i
-      
-      return { 
-        month: m, 
-        cmd1: [row4_val, ageFirst_reduced], 
-        cmd2: [row4_val, ageLast_reduced], 
-        cmd3: [row4_val, ageSum] 
-      };
+      // ✅ โค้ดเก่า ลบออกแล้ว (ไม่ใช้ ci, safe, mCode, leftVal, rightVal, c1, c2)
+      const row4_val = table2[3][i - 1]; // ✅ ใช้ table2 row4 ตำแหน่ง i-1 (เดือน 1-12)
+      const af_red = ageFirst > 7 ? ageFirst % 7 || 7 : ageFirst;
+      const al_red = ageLast > 7 ? ageLast % 7 || 7 : ageLast;
+      return { month: m, cmd1: [row4_val, af_red], cmd2: [row4_val, al_red], cmd3: [row4_val, ageSum] };
     });
     setResult({
       input: { day, month, yearBE, dowReal, zodiacNum, isWaning, age, ageFirst, ageLast, ageSum },
