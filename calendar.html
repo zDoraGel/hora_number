@@ -198,7 +198,6 @@ body{font-family:'Prompt',sans-serif;color:var(--c);font-weight:400}
 </nav>
 
 <script>
-<script>
 const GS_URL = 'https://script.google.com/macros/s/AKfycbxA4rjW8ORXydtnv0uF1ON0xm-NAKGn2jejyfuecnpvOnSa7u3_RlMYXH4zCJJGimEl/exec';
 const CACHE_KEY = 'cal_data_v2';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 วัน
@@ -259,18 +258,26 @@ function gk(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart
 function dim(y,m){return new Date(y-543,m,0).getDate();}
 function d2c(dow){return dow===1?0:dow-1;}
 
-function lunarDay(y,m,d){
-  const k=gk(y,m,d);if(!CAL[k])return null;
-  const wan=CAL[k][1];
-  let cnt=1,pd=d-1,pm=m,py=y;
-  while(pd>=1){const pk=gk(py,pm,pd);if(!CAL[pk]||CAL[pk][1]!==wan)break;cnt++;pd--;}
-  if(pd<1){
-    let pm2=pm-1,py2=py;if(pm2<1){pm2=12;py2--;}
-    let cd=dim(py2,pm2);
-    while(cd>=1){const ck=gk(py2,pm2,cd);if(!CAL[ck]||CAL[ck][1]!==wan)break;cnt++;cd--;}
+// Cache lunar days for current month
+let _lunarCache = {};
+function buildLunarCache(y, m) {
+  _lunarCache = {};
+  const total = dim(y, m);
+  for (let d = 1; d <= total; d++) {
+    const k = gk(y, m, d);
+    if (!CAL[k]) continue;
+    const wan = CAL[k][1];
+    let cnt = 1, pd = d - 1, pm = m, py = y;
+    while (pd >= 1) { const pk = gk(py, pm, pd); if (!CAL[pk] || CAL[pk][1] !== wan) break; cnt++; pd--; }
+    if (pd < 1) {
+      let pm2 = pm - 1, py2 = py; if (pm2 < 1) { pm2 = 12; py2--; }
+      let cd = dim(py2, pm2);
+      while (cd >= 1) { const ck = gk(py2, pm2, cd); if (!CAL[ck] || CAL[ck][1] !== wan) break; cnt++; cd--; }
+    }
+    _lunarCache[d] = cnt;
   }
-  return cnt;
 }
+function lunarDay(y, m, d) { return _lunarCache[d] || null; }
 function isPhra(ld){return[8,15,23,29,30].includes(ld);}
 
 function startCol(){
@@ -280,7 +287,9 @@ function startCol(){
 
 function render(){
   const total=dim(cY,cM);
-  const hasData=Object.keys(CAL).some(k=>k.startsWith(cY+'-'+String(cM).padStart(2,'0')+'-'));
+  buildLunarCache(cY, cM);
+  let hasData=false;
+  for(let d=1;d<=total;d++){if(CAL[gk(cY,cM,d)]){hasData=true;break;}}
   document.getElementById('cMonth').textContent=MN[cM];
   document.getElementById('cYear').innerHTML='พ.ศ. <b>'+cY+'</b> · ค.ศ. '+(cY-543);
   document.getElementById('selM').value=cM;
@@ -338,17 +347,6 @@ function render(){
 function sel(d){
   selD=d;
   // update selected cell
-  document.querySelectorAll('.dc').forEach(el=>el.classList.remove('ds'));
-  const cells=document.querySelectorAll('.dc:not(.de)');
-  const sc=startCol();
-  const total=dim(cY,cM);
-  // re-render เร็วๆ
-  render();
-  selD=d;
-  // re-apply selection
-  const allCells=document.querySelectorAll('.dc:not(.de)');
-  // find cell index = sc empty + (d-1) real
-  // just re-render with selD set
   render2();
 
   const k=gk(cY,cM,d);const data=CAL[k];
@@ -371,8 +369,10 @@ function sel(d){
 }
 
 function render2(){
-  const total=dim(cY,cM);const sc=startCol();
-  const hasData=Object.keys(CAL).some(k=>k.startsWith(cY+'-'+String(cM).padStart(2,'0')+'-'));
+  const total=dim(cY,cM);
+  buildLunarCache(cY, cM);const sc=startCol();
+  let hasData=false;
+  for(let d=1;d<=total;d++){if(CAL[gk(cY,cM,d)]){hasData=true;break;}}
   let html='';
   for(let i=0;i<sc;i++) html+='<div class="dc de"></div>';
   for(let d=1;d<=total;d++){
