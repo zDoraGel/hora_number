@@ -888,9 +888,7 @@ function NumerologyApp() {
 
       // คำสั่งรายปี 21 ตัว (3 คำสั่ง)
       React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 10 } }, "เหตุการณ์รายปี 21 ตัว"),
-      React.createElement("div", { style: { ...txMuted, fontSize: 12, marginBottom: 12 } },
-        "t1val = ", result.t1val, "  ·  หัวแถว = ", result.t2head, "  ·  ท้ายแถว = ", result.t2tail, "  ·  อายุรวม = ", result.input.ageSum
-      ),
+
       [
         [result.t1val, result.t2head],
         [result.t1val, result.t2tail],
@@ -1049,6 +1047,62 @@ function exportText(result, form) {
     });
     txt += "\n";
   });
+  // ══════ tab 2: เหตุการณ์รายปี 21 ตัว ══════
+  txt += "══════ เหตุการณ์รายปี 21 ตัว ══════\n\n";
+  txt += "องค์เทวดา: " + result.devaHoriz + " · อายุรวม: " + result.input.ageSum + "\n";
+  const devaMeaning = getMeaning(result.devaHoriz, result.input.ageSum);
+  if(devaMeaning && !devaMeaning.includes("ยังไม่มีข้อมูล")) txt += "  → " + devaMeaning.substring(0,80) + (devaMeaning.length>80?"...":"") + "\n";
+  txt += "\n";
+  txt += "คำสั่งรายปี\n";
+  [[result.t1val, result.t2head],[result.t1val, result.t2tail],[result.t1val, result.input.ageSum]].forEach(([a,b],i) => {
+    const m2 = getMeaning(a,b);
+    txt += "  คำสั่งที่ " + (i+1) + " (" + a + "-" + b + "): ";
+    if(m2 && !m2.includes("ยังไม่มีข้อมูล")) txt += m2.substring(0,80) + (m2.length>80?"...":"");
+    txt += "\n";
+  });
+  txt += "\n";
+  const SNAMES2 = ["เกี่ยวข้องกับตัวเรา","มันสมอง ความคิด","โชคลาภ มิตรผู้เกี่ยวข้อง","ปาก ลมหายใจ","บิดา ผู้ใหญ่ สติอารมณ์","วิสัยทัศน์ แรงบันดาลใจ","มิตรทางไกล"];
+  txt += "เส้นชีวิต 7 ช่อง\n";
+  SNAMES2.forEach((sname, si) => {
+    const num = si + 1;
+    const pairs2 = [0,1,2].map(ri => {
+      const col = result.table2[ri].indexOf(num);
+      return col >= 0 ? [num, result.table2[ri][col]] : null;
+    }).filter(Boolean);
+    const uPairs2 = pairs2.filter((p,i,a) => i === a.findIndex(x => x[0]===p[0]&&x[1]===p[1]));
+    if(uPairs2.length === 0) return;
+    txt += "(" + num + ") " + sname + "\n";
+    uPairs2.forEach(([a,b]) => {
+      const m3 = getMeaning(a,b);
+      if(m3 && !m3.includes("ยังไม่มีข้อมูล")) txt += "  → " + m3.substring(0,80) + (m3.length>80?"...":"") + "\n";
+    });
+    txt += "\n";
+  });
+
+  // ══════ tab 3: เหตุการณ์รายเดือน ══════
+  txt += "══════ เหตุการณ์รายเดือน ══════\n\n";
+  txt += (result.input.isWaning ? "🌒 ข้างแรม" : "🌕 ข้างขึ้น") + "\n\n";
+  const MN2 = ["","มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+  result.monthly.forEach(item => {
+    txt += "[ " + MN2[item.month] + " ]\n";
+    const cmds = [
+      {label:"คำสั่งที่ 1", cmd: item.cmd1},
+      {label:"คำสั่งที่ 2", cmd: item.cmd2},
+      {label:"คำสั่งที่ 3", cmd: item.cmd3}
+    ];
+    const seen = new Set();
+    cmds.forEach(({label, cmd}) => {
+      const key = cmd[0]+"-"+cmd[1];
+      if(seen.has(key)) return;
+      seen.add(key);
+      const m4 = getMeaning(cmd[0], cmd[1]);
+      txt += "  " + label + " (" + cmd[0] + "-" + cmd[1] + "): ";
+      if(m4 && !m4.includes("ยังไม่มีข้อมูล")) txt += m4.substring(0,80) + (m4.length>80?"...":"");
+      txt += "\n";
+    });
+    txt += "\n";
+  });
+
   txt += "══════════════════════════════\n";
   txt += "🔮 วิเคราะห์โดย จักรวาลแห่งตัวเลข\n";
   txt += "📅 " + new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"}) + "\n";
