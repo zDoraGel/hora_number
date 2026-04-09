@@ -1804,10 +1804,17 @@ async function deleteBackup(filename) {
             if (waning === null) waning = prevWaning;
             else prevWaning = waning;
 
+            // lunar_month = col+2 (ด column)
+            var lunarMonth = 0;
+            if (row[m.col + 2] != null) {
+              var lm = parseInt(row[m.col + 2]);
+              if (!isNaN(lm) && lm > 0) lunarMonth = lm;
+            }
+
             var key = m.year + '-' +
               String(m.month).padStart(2,'0') + '-' +
               String(day).padStart(2,'0');
-            _calData[key] = [dow, waning, zodiacNum];
+            _calData[key] = [dow, waning, zodiacNum, lunarMonth];
           }
         }
 
@@ -1822,7 +1829,8 @@ async function deleteBackup(filename) {
           tr.innerHTML = '<td>' + k + '</td>' +
             '<td>' + (_dayNames[v[0]]||v[0]) + '</td>' +
             '<td>' + (v[1] ? '🌕 ข้างขึ้น' : '🌑 ข้างแรม') + '</td>' +
-            '<td>' + (_zodiacNames[v[2]]||v[2]) + '</td>';
+            '<td>' + (_zodiacNames[v[2]]||v[2]) + '</td>' +
+            '<td>' + (v[3]||'-') + '</td>';
           tbody.appendChild(tr);
         });
 
@@ -1864,7 +1872,7 @@ async function deleteBackup(filename) {
         for (var i = 0; i < entries.length; i += batchSize) {
           btn.textContent = '⏳ ' + Math.min(i+batchSize, entries.length) + '/' + entries.length + '...';
           var batchRows = entries.slice(i, i+batchSize).map(function(kv){
-            return [kv[0], kv[1][0], kv[1][1], kv[1][2]];
+            return [kv[0], kv[1][0], kv[1][1], kv[1][2], kv[1][3]||0];
           });
           // ใช้ POST สำหรับ save_calendar เพราะข้อมูลเยอะ
           var res = await fetch(GS_URL, {

@@ -202,7 +202,8 @@ function lookupCalendar(day, month, yearBE) {
   if (!e) return null; // ไม่มีข้อมูล → บล็อก
   // zodiac ใช้จาก sheet เสมอ (ไม่ประมาณการ)
   const zodiac = e.length >= 3 && e[2] ? e[2] : null;
-  return { dow: e[0], isWaning: e[1] === 1, zodiac, exact: true };
+  const lunarMonth = e.length >= 4 && e[3] ? e[3] : null; // เดือนจากปฏิทิน 100 ปี
+  return { dow: e[0], isWaning: e[1] === 1, zodiac, lunarMonth, exact: true };
 }
 const DAY_NAMES = ["", "\u0E2D\u0E32\u0E17\u0E34\u0E15\u0E22\u0E4C", "\u0E08\u0E31\u0E19\u0E17\u0E23\u0E4C", "\u0E2D\u0E31\u0E07\u0E04\u0E32\u0E23", "\u0E1E\u0E38\u0E18", "\u0E1E\u0E24\u0E2B\u0E31\u0E2A\u0E1A\u0E14\u0E35", "\u0E28\u0E38\u0E01\u0E23\u0E4C", "\u0E40\u0E2A\u0E32\u0E23\u0E4C"];
 const MONTH_NAMES = [
@@ -447,16 +448,18 @@ function NumerologyApp() {
     const zodiacNum = calEntry.zodiac || getZodiac(yearBE);
     const dowReal = calEntry.dow;
     const isWaning = calEntry.isWaning;
+    // เดือนจากปฏิทิน 100 ปี (ถ้าไม่มีใน calendar data ใช้เดือนสากลแทน)
+    const calMonth = calEntry.lunarMonth || month;
     const age = calcAge(day, month, yearBE);
     const ageFirst = parseInt(String(age)[0]);
     const ageLast = parseInt(String(age).slice(-1));
     const ageSum = digitSum(age);
     const ageDigits = String(age).split("").map(Number).reduce((a, b) => a + b, 0);
-    const total = dowReal + month + zodiacNum + ageDigits;
+    const total = dowReal + calMonth + zodiacNum + ageDigits;
     const code = reduceMax7(total);
-    const table1 = buildTable1(dowReal, month, zodiacNum);
+    const table1 = buildTable1(dowReal, calMonth, zodiacNum);
     const row4_1 = table1[3]; // row4 คำนวณใน buildTable1 แล้ว
-    const d7 = reduceMax7(dowReal), m7 = reduceMax7(month), y7 = reduceMax7(zodiacNum);
+    const d7 = reduceMax7(dowReal), m7 = reduceMax7(calMonth), y7 = reduceMax7(zodiacNum);
     const table2 = buildTable2(d7, m7, y7);
     // องค์เทวดา: ดึงช่องที่ 1 (หัวแถว) ของ row4 เสมอ
     const agePos7 = getAgeRow7(age); // ยังคงไว้สำหรับ highlight ตาราง
@@ -483,7 +486,7 @@ function NumerologyApp() {
       };
     });
     setResult({
-      input: { day, month, yearBE, dowReal, zodiacNum, isWaning, age, ageFirst, ageLast, ageSum },
+      input: { day, month, calMonth, yearBE, dowReal, zodiacNum, isWaning, age, ageFirst, ageLast, ageSum },
       calFound: !!calEntry,
       code,
       table1,
