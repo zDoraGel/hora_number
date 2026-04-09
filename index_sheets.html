@@ -850,55 +850,89 @@ function NumerologyApp() {
       )
     ),
 
+
     // ── Tab: yearly21 (ตาราง 2) ──
     tab === "yearly21" && React.createElement("div", { className: "card fade-in", style: { padding: 22 } },
-      React.createElement("h3", { style: { ...txAccent, fontSize: 15, marginBottom: 18, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "✦ เหตุการณ์รายปี — ตาราง ๒ (๒๑ ตัว)"),
+      React.createElement("h3", { style: { ...txAccent, fontSize: 15, marginBottom: 18, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "✦ เส้นชีวิต — ตาราง ๒ (๒๑ ดวง)"),
+
+      // ตาราง 2 (แสดง 4 แถว)
       React.createElement("div", { style: { overflowX: "auto", marginBottom: 16 } },
         React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
-          ["วัน","เดือน","ปี","รวม"].map((lbl, ri) =>
+          ["วัน","เดือน","ปี"].map((lbl, ri) =>
             React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
               React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl),
-              result.table2[ri].map((v, ci) => React.createElement("div", { key: ci, className: "tcell " + (ci === 0 ? "hi" : "") }, v))
+              result.table2[ri].map((v, ci) => React.createElement("div", { key: ci, className: "tcell" }, v))
+            )
+          ),
+          React.createElement("div", { style: { display: "flex", gap: 4, alignItems: "center" } },
+            React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, "ท้ายแถว"),
+            result.table2[3].map((v, ci) =>
+              React.createElement("div", { key: ci,
+                className: "tcell" + (ci === result.agePos7 - 1 ? " hi" : ""),
+                style: ci === result.agePos7 - 1 ? { background: "rgba(107,45,94,.3)", borderColor: "#8B3D7A" } : {}
+              }, v)
             )
           )
         )
       ),
+
+      // องค์เทวดา
       React.createElement("div", { className: "card-inner", style: { padding: 14, marginBottom: 16 } },
-        React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 10, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "◎ องค์เทวดา"),
+        React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 8, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "◎ องค์เทวดา"),
         React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 } },
-          React.createElement("span", { className: "pair-tag" }, "เทวดา ", result.devaHoriz),
+          React.createElement("span", { className: "pair-tag" }, "องค์เทวดา ", result.devaHoriz),
           React.createElement("span", { className: "pair-tag" }, "อายุรวม ", result.input.ageSum)
         ),
         React.createElement("div", { className: "mcard" },
           React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(result.devaHoriz, result.input.ageSum))
         )
       ),
-      React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 10 } }, "เหตุการณ์รายปี"),
+
+      // คำสั่งรายปี 21 ตัว (3 คำสั่ง)
+      React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 10 } }, "เหตุการณ์รายปี 21 ตัว"),
+      React.createElement("div", { style: { ...txMuted, fontSize: 12, marginBottom: 12 } },
+        "t1val = ", result.t1val, "  ·  หัวแถว = ", result.t2head, "  ·  ท้ายแถว = ", result.t2tail, "  ·  อายุรวม = ", result.input.ageSum
+      ),
       [
-        [result.code, result.t2head],
-        [result.code, result.t2tail],
-        [result.code, result.input.ageSum]
+        [result.t1val, result.t2head],
+        [result.t1val, result.t2tail],
+        [result.t1val, result.input.ageSum]
       ].map((cmd, i) =>
         React.createElement("div", { key: i, className: "mcard" },
           React.createElement("div", { style: { ...txMuted, marginBottom: 6, fontSize: 12 } },
-            "คำสั่งที่ ", i + 1, " ",
+            "คำสั่งที่ ", i + 1, "  ",
+            isBad(cmd[0], cmd[1]) ? React.createElement("span", { style: { color: "#ff6b6b", fontSize: 10 } }, "✦ลางร้าย ") : null,
             React.createElement("span", { className: "pair-tag" }, cmd[0], " – ", cmd[1])
           ),
           React.createElement("div", { style: { fontSize: 14, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1]))
         )
       ),
+
       React.createElement("hr", { className: "divider" }),
+
+      // เส้นชีวิต 7 ช่อง (เลข 1-7 หาตำแหน่งใน 3 แถว)
       React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 14, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "เส้นชีวิต ๗ ช่อง"),
-      SECTION_NAMES.map((name, si) => {
-        const cols = findCols([result.table2[0], result.table2[1], result.table2[2]], si + 1);
-        const pairs = cols.map((col, ri) => {
-          if (!col) return null;
-          const p = result.table2[ri][col - 1];
-          return p ? [si + 1, p] : null;
+      [
+        "เกี่ยวข้องกับตัวเรา",
+        "มันสมอง ความคิด สติปัญญา",
+        "โชคลาภ มิตรผู้เกี่ยวข้อง",
+        "ปาก ลมหายใจ ความคิดความรู้สึก",
+        "บิดา ผู้ใหญ่ สติอารมณ์",
+        "วิสัยทัศน์ แรงบันดาลใจ",
+        "มิตรทางไกล คนเกี่ยวข้อง"
+      ].map((sname, si) => {
+        const num = si + 1;
+        // หาตำแหน่งของ num ในแต่ละแถว (แถว 0,1,2 ของ table2)
+        const pairs = [0, 1, 2].map(ri => {
+          const col = result.table2[ri].indexOf(num);
+          if (col < 0) return null;
+          return [num, result.table2[ri][col]]; // จับคู่ num กับตัวมันเอง
         }).filter(Boolean);
+        // unique pairs
         const uPairs = pairs.filter((p, i, a) => i === a.findIndex(x => x[0] === p[0] && x[1] === p[1]));
+        if (uPairs.length === 0) return null;
         return React.createElement("div", { key: si, style: { marginBottom: 16 } },
-          React.createElement("div", { className: "section-hd" }, "(", si + 1, ") ", name),
+          React.createElement("div", { className: "section-hd" }, "(", num, ") ", sname),
           uPairs.map((pair, pi) =>
             React.createElement("div", { key: pi, className: "mcard", style: { marginBottom: 5 } },
               React.createElement("div", { style: { ...txMuted, marginBottom: 4, fontSize: 12 } },
@@ -914,19 +948,13 @@ function NumerologyApp() {
     // ── Tab: monthly (ตาราง 3) ──
     tab === "monthly" && React.createElement("div", { className: "card fade-in", style: { padding: 22 } },
       React.createElement("h3", { style: { ...txAccent, fontSize: 15, marginBottom: 6, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "◎ เหตุการณ์รายเดือน — ตาราง ๓"),
-      React.createElement("div", { style: { ...txAccent, fontSize: 13, marginBottom: 8 } }, "✦ ตาราง ๒ (21 ตัว)"),
-      React.createElement("div", { style: { overflowX: "auto", marginBottom: 18 } },
-        React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
-          ["วัน","เดือน","ปี","รวม"].map((lbl, ri) =>
-            React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
-              React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl),
-              result.table2[ri].map((v, ci) => React.createElement("div", { key: ci, className: "tcell" }, v))
-            )
-          )
-        )
+
+      // แสดง ข้างขึ้น/แรม
+      React.createElement("div", { style: { ...txMuted, marginBottom: 12, fontSize: 13 } },
+        result.input.isWaning ? "🌒 ข้างแรม — อ่านจากขวามือ" : "🌕 ข้างขึ้น — อ่านจากซ้ายมือ"
       ),
-      React.createElement("div", { style: { ...txAccent, fontSize: 13, marginBottom: 8 } }, "◎ ตาราง ๓"),
-      React.createElement("div", { style: { ...txMuted, marginBottom: 8 } }, result.input.isWaning ? "🌒 ข้างแรม" : "🌕 ข้างขึ้น"),
+
+      // ตาราง 3 (3 แถว 7 ช่อง)
       React.createElement("div", { style: { overflowX: "auto", marginBottom: 18 } },
         React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
           ["รหัส","ต้น","ท้าย"].map((lbl, ri) =>
@@ -937,6 +965,8 @@ function NumerologyApp() {
           )
         )
       ),
+
+      // คำสั่งรายเดือน
       React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 12 } }, "คำสั่งรายเดือน"),
       result.monthly.map(function(item) {
         var allCmds = [
@@ -962,6 +992,7 @@ function NumerologyApp() {
         );
       })
     ),
+
 
     // ── Footer ──
     React.createElement("div", { style: { textAlign: "center", padding: "24px 0 8px", fontFamily: "'Cormorant Garamond',serif", color: C.dimmed, fontSize: 13, letterSpacing: 2, fontStyle: "italic" } },
