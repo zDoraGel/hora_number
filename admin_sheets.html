@@ -819,7 +819,7 @@ async function genCodes() {
 
   try {
     const noteWithPay = note ? `${note} [${payMethod}]` : `[${payMethod}]`;
-    const data = await api({ action:'admin_gen', token:TOKEN, price, qty, note: noteWithPay });
+    const data = await api({ action:'gen_codes', token:TOKEN, price, count:qty, pay_method:payMethod, note: noteWithPay });
     if (!data.ok) { toast('❌ '+data.msg); out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
 
     const payColor = payMethod==='สด'?'#2ecc71':payMethod==='พร้อมเพย์'?'#3498db':'#e67e22';
