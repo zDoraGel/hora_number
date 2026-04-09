@@ -827,72 +827,56 @@ function NumerologyApp() {
     const uPairs = pairs.filter((p, i, a) => i === a.findIndex((x) => x[0] === p[0] && x[1] === p[1]));
     return /* @__PURE__ */ React.createElement("div", { key: si, style: { marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { className: "section-hd" }, "(", si + 1, ") ", name), uPairs.map((pair, pi) => /* @__PURE__ */ React.createElement("div", { key: pi, className: "mcard", style: { marginBottom: 5 } }, /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 4, fontSize: 12 } }, /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, pair[0], " \u2013 ", pair[1])), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, lineHeight: 2, ...tx } }, getMeaning(pair[0], pair[1])))));
   })), tab === "monthly" && /* @__PURE__ */ React.createElement("div", { className: "card fade-in", style: { padding: 22 } },
-  /* h3 title */
-  /* @__PURE__ */ React.createElement("h3", { style: {
-    ...txAccent,
-    fontSize: 15,
-    marginBottom: 6,
-    fontFamily: "'Cormorant Garamond',serif",
-    fontStyle: "italic",
-    letterSpacing: 0.5
-  } }, "\u25CE \u0e40\u0e2b\u0e15\u0e38\u0e01\u0e32\u0e23\u0e13\u0e4c\u0e23\u0e32\u0e22\u0e40\u0e14\u0e37\u0e2d\u0e19 \u00a0\u2014\u00a0 \u0e15\u0e32\u0e23\u0e32\u0e07 \u0e53"),
-  /* Table 2 */
-  /* @__PURE__ */ React.createElement("div", { style: { ...txAccent, fontSize: 13, marginBottom: 8, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "\u2726 \u0e15\u0e32\u0e23\u0e32\u0e07 \u0e52 (21 \u0e15\u0e31\u0e27)"),
+  /* @__PURE__ */ React.createElement("h3", { style: { ...txAccent, fontSize: 15, marginBottom: 6, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic", letterSpacing: 0.5 } }, "\u25CE \u0e40\u0e2b\u0e15\u0e38\u0e01\u0e32\u0e23\u0e13\u0e4c\u0e23\u0e32\u0e22\u0e40\u0e14\u0e37\u0e2d\u0e19 \u00a0\u2014\u00a0 \u0e15\u0e32\u0e23\u0e32\u0e07 \u0e53"),
+  /* @__PURE__ */ React.createElement("div", { style: { ...txAccent, fontSize: 13, marginBottom: 8 } }, "\u2726 \u0e15\u0e32\u0e23\u0e32\u0e07 \u0e52 (21 \u0e15\u0e31\u0e27)"),
   /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 18 } },
     /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
-      ["\u0e27\u0e31\u0e19","\u0e40\u0e14\u0e37\u0e2d\u0e19","\u0e1b\u0e35","\u0e23\u0e27\u0e21"].map((lbl, ri) =>
-        /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
+      ["\u0e27\u0e31\u0e19","\u0e40\u0e14\u0e37\u0e2d\u0e19","\u0e1b\u0e35","\u0e23\u0e27\u0e21"].map(function(lbl, ri) {
+        return /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
           /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl),
-          result.table2[ri].map((v, ci) =>
-            /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v)
-          )
-        )
-      )
+          result.table2[ri].map(function(v, ci) { return /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v); })
+        );
+      })
     )
   ),
-  /* Table 3 header */
-  /* @__PURE__ */ React.createElement("div", { style: { ...txAccent, fontSize: 13, marginBottom: 8, fontFamily: "'Cormorant Garamond',serif", fontStyle: "italic" } }, "\u25ce \u0e15\u0e32\u0e23\u0e32\u0e07 \u0e53 (\u0e23\u0e2b\u0e31\u0e2a / \u0e15\u0e31\u0e27\u0e15\u0e49\u0e19 / \u0e15\u0e31\u0e27\u0e17\u0e49\u0e32\u0e22)"),
-  /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 8 } }, result.input.isWaning ? "\ud83c\udf12 \u0e02\u0e49\u0e32\u0e07\u0e41\u0e23\u0e21 \xb7 \u0e2d\u0e48\u0e32\u0e19\u0e08\u0e32\u0e01\u0e02\u0e27\u0e32\u0e21\u0e37\u0e2d" : "\ud83c\udf15 \u0e02\u0e49\u0e32\u0e07\u0e02\u0e36\u0e49\u0e19 \xb7 \u0e2d\u0e48\u0e32\u0e19\u0e08\u0e32\u0e01\u0e0b\u0e49\u0e32\u0e22\u0e21\u0e37\u0e2d"),
-  /* Table 3 grid */
+  /* @__PURE__ */ React.createElement("div", { style: { ...txAccent, fontSize: 13, marginBottom: 8 } }, "\u25ce \u0e15\u0e32\u0e23\u0e32\u0e07 \u0e53"),
+  /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 8 } }, result.input.isWaning ? "\ud83c\udf12 \u0e02\u0e49\u0e32\u0e07\u0e41\u0e23\u0e21" : "\ud83c\udf15 \u0e02\u0e49\u0e32\u0e07\u0e02\u0e36\u0e49\u0e19"),
   /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto", marginBottom: 18 } },
     /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 4 } },
-      [["\u0e23\u0e2b\u0e31\u0e2a"], ["\u0e15\u0e49\u0e19"], ["\u0e17\u0e49\u0e32\u0e22"]].map(([lbl], ri) =>
-        /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
+      ["\u0e23\u0e2b\u0e31\u0e2a","\u0e15\u0e49\u0e19","\u0e17\u0e49\u0e32\u0e22"].map(function(lbl, ri) {
+        return /* @__PURE__ */ React.createElement("div", { key: ri, style: { display: "flex", gap: 4, alignItems: "center" } },
           /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, width: 46, fontSize: 11 } }, lbl),
-          result.table3[ri].map((v, ci) => /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v))
-        )
-      )
+          result.table3[ri].map(function(v, ci) { return /* @__PURE__ */ React.createElement("div", { key: ci, className: "tcell" }, v); })
+        );
+      })
     )
   ),
-  /* Monthly cards header */
   /* @__PURE__ */ React.createElement("div", { style: { ...txAccent, fontSize: 14, marginBottom: 12 } }, "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e23\u0e32\u0e22\u0e40\u0e14\u0e37\u0e2d\u0e19"),
-  /* Monthly cards */
-  /* @__PURE__ */ React.createElement(React.Fragment, null,
-    ...result.monthly.map(({ month: m, cmd1, cmd2, cmd3 }) => {
-      const allCmds = [
-        { label: "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e35\u0e48 1", cmd: cmd1 },
-        { label: "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e35\u0e48 2", cmd: cmd2 },
-        { label: "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e35\u0e48 3", cmd: cmd3 }
-      ];
-      const uCmds = allCmds.filter((item, idx, arr) =>
-        idx === 0 || JSON.stringify(item.cmd) !== JSON.stringify(arr[idx - 1].cmd)
-      );
-      return /* @__PURE__ */ React.createElement("div", { key: m, style: { marginBottom: 22 } },
-        /* @__PURE__ */ React.createElement("div", { className: "month-hd" }, MONTH_NAMES[m]),
-        uCmds.map(({ label, cmd }, i) =>
-          /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" },
-            /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 4, fontSize: 12 } },
-              label, "  ",
-              isBad(cmd[0], cmd[1]) ? /* @__PURE__ */ React.createElement("span", { style: { color: "#ff6b6b", fontSize: 10 } }, "\u2756\u0e25\u0e32\u0e07\u0e23\u0e49\u0e32\u0e22 ") : null,
-              /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, cmd[0], " \u2013 ", cmd[1])
-            ),
-            /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, lineHeight: 2, ...tx } }, getMeaning(cmd[0], cmd[1]))
-          )
-        )
-      );
-    })
-  )
-), /* @__PURE__ */ React.createElement("div", { style: {
+  result.monthly.map(function(item) {
+    var m = item.month, cmd1 = item.cmd1, cmd2 = item.cmd2, cmd3 = item.cmd3;
+    var allCmds = [
+      { label: "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e35\u0e48 1", cmd: cmd1 },
+      { label: "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e35\u0e48 2", cmd: cmd2 },
+      { label: "\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e35\u0e48 3", cmd: cmd3 }
+    ];
+    var uCmds = allCmds.filter(function(it, i, arr) {
+      return i === 0 || JSON.stringify(it.cmd) !== JSON.stringify(arr[i-1].cmd);
+    });
+    return /* @__PURE__ */ React.createElement("div", { key: m, style: { marginBottom: 22 } },
+      /* @__PURE__ */ React.createElement("div", { className: "month-hd" }, MONTH_NAMES[m]),
+      uCmds.map(function(it, i) {
+        return /* @__PURE__ */ React.createElement("div", { key: i, className: "mcard" },
+          /* @__PURE__ */ React.createElement("div", { style: { ...txMuted, marginBottom: 4, fontSize: 12 } },
+            it.label, "  ",
+            isBad(it.cmd[0], it.cmd[1]) ? /* @__PURE__ */ React.createElement("span", { style: { color: "#ff6b6b", fontSize: 10 } }, "\u2756\u0e25\u0e32\u0e07\u0e23\u0e49\u0e32\u0e22 ") : null,
+            /* @__PURE__ */ React.createElement("span", { className: "pair-tag" }, it.cmd[0], " \u2013 ", it.cmd[1])
+          ),
+          /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, lineHeight: 2, ...tx } }, getMeaning(it.cmd[0], it.cmd[1]))
+        );
+      })
+    );
+  })
+)), /* @__PURE__ */ React.createElement("div", { style: {
     textAlign: "center",
     padding: "24px 0 8px",
     fontFamily: "'Cormorant Garamond',serif",
