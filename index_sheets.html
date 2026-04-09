@@ -877,7 +877,8 @@ function NumerologyApp() {
       })
     );
   })
-)), /* @__PURE__ */ React.createElement("div", { style: {
+)),
+/* @__PURE__ */ React.createElement("div", { style: {
     textAlign: "center",
     padding: "24px 0 8px",
     fontFamily: "'Cormorant Garamond',serif",
@@ -885,7 +886,8 @@ function NumerologyApp() {
     fontSize: 13,
     letterSpacing: 2,
     fontStyle: "italic"
-  } }, "\u2726 \xA0 PANTONE 19-2820 \xB7 Phlox \xA0 \u2726",React.createElement("div",{style:{display:"flex",gap:10,padding:"16px",flexWrap:"wrap"}},
+  } }, "\u2726 \xA0 PANTONE 19-2820 \xB7 Phlox \xA0 \u2726"),
+React.createElement("div",{style:{display:"flex",gap:10,padding:"16px",flexWrap:"wrap"}},
   result&&React.createElement("button",{
     onClick:()=>downloadText(result,form),
     style:{flex:1,minWidth:120,background:"rgba(107,45,94,.2)",border:"1px solid rgba(107,45,94,.4)",color:"#E08AC0",borderRadius:10,padding:"12px",fontFamily:"'Prompt',sans-serif",fontWeight:600,fontSize:13,cursor:"pointer"}
@@ -894,7 +896,7 @@ function NumerologyApp() {
     onClick:()=>printResult(result,form),
     style:{flex:1,minWidth:120,background:"rgba(107,45,94,.2)",border:"1px solid rgba(107,45,94,.4)",color:"#E08AC0",borderRadius:10,padding:"12px",fontFamily:"'Prompt',sans-serif",fontWeight:600,fontSize:13,cursor:"pointer"}
   },"🖨️ พิมพ์/PDF")
-)))));
+))));
 }
 
 // ===== EXPORT FUNCTIONS =====
