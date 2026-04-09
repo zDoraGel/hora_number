@@ -1258,7 +1258,7 @@ async function loadPkgButtons() {
     } else {
       const data = await api({ action:'list_packages', token:TOKEN });
       if (!data.ok) return;
-      pkgs = data.packages || [];
+      pkgs = data.data || data.packages || [];
     }
     pkgs = pkgs.filter(p => p.active).sort((a,b) => a.sort_order - b.sort_order);
     const wrap = document.getElementById('pkgBtns');
@@ -1303,7 +1303,7 @@ async function loadPackages() {
     } else {
       const data = await api({ action:'admin_packages', token:TOKEN });
       if (!data.ok) { out.innerHTML=`<p style="color:var(--red)">${data.msg}</p>`; return; }
-      pkgs = data.packages || [];
+      pkgs = data.data || data.packages || [];
     }
     out.innerHTML = pkgs.length === 0
       ? '<p style="color:var(--dim);text-align:center;padding:16px">ยังไม่มี package ค่ะ</p>'
