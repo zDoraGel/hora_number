@@ -572,11 +572,7 @@ const MOCK_DATA = {
 
 async function api(body) {
   if (IS_MOCK) return mockApi(body);
-  const res = await fetch(SCRIPT_URL, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(body)
-  });
-  return res.json();
+  return gsCall(body);
 }
 
 function mockApi(body) {
