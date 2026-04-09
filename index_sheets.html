@@ -458,11 +458,9 @@ function NumerologyApp() {
     const row4_1 = table1[3]; // row4 คำนวณใน buildTable1 แล้ว
     const d7 = reduceMax7(dowReal), m7 = reduceMax7(month), y7 = reduceMax7(zodiacNum);
     const table2 = buildTable2(d7, m7, y7);
-    // องค์เทวดา: อ่านแนวนอน 1 แถว (แถว row4 ของ table2)
-    // นับอายุทีละ 7 วนซ้ำ ตำแหน่ง = (age-1)%7
-    // แต่ค่าที่ได้ต้องมาจาก row4 ของ table2 ตรงตำแหน่งนั้น
-    const agePos7 = getAgeRow7(age); // ตำแหน่งอายุในตารางนับ 7 (1-7)
-    const devaHoriz = table2[3][agePos7 - 1]; // ดึงค่าจาก row4 ตรงตำแหน่งอายุ
+    // องค์เทวดา: ดึงช่องที่ 1 (หัวแถว) ของ row4 เสมอ
+    const agePos7 = getAgeRow7(age); // ยังคงไว้สำหรับ highlight ตาราง
+    const devaHoriz = table2[3][0]; // ช่องที่ 1 ของ row4 เสมอ
     const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
