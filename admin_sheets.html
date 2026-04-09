@@ -277,6 +277,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
               <input type="number" id="pkgSort" placeholder="1, 2, 3... (น้อย = แสดงก่อน)" min="0">
             </div>
             <div style="display:flex;gap:8px">
+              <input type="hidden" id="pkgActive" value="1">
               <button class="btn btn-p" style="flex:1" onclick="savePkg()">💾 บันทึก</button>
               <button class="btn btn-g" style="flex:1" onclick="resetPkgForm()">🔄 ล้าง</button>
             </div>
@@ -1322,9 +1323,10 @@ async function loadPackages() {
               </td>
               <td style="text-align:center;color:var(--m)">${p.sort_order}</td>
               <td style="text-align:center">
-                <span style="font-size:11px;padding:2px 8px;border-radius:10px;${p.active?'background:rgba(85,187,136,.2);color:var(--g)':'background:rgba(255,100,100,.1);color:var(--red)'}">
+                <button class="btn" style="font-size:11px;padding:3px 10px;border-radius:10px;cursor:pointer;${p.active?'background:rgba(85,187,136,.2);color:var(--g);border:1px solid rgba(85,187,136,.4)':'background:rgba(255,100,100,.1);color:var(--red);border:1px solid rgba(255,100,100,.3)'}"
+                  onclick="togglePkg(${p.id},${p.active})">
                   ${p.active ? '✅ เปิด' : '🚫 ปิด'}
-                </span>
+                </button>
               </td>
               <td style="white-space:nowrap">
                 <button class="btn btn-g" style="font-size:11px;padding:3px 8px;margin-right:4px"
@@ -1343,8 +1345,28 @@ function editPkg(id, name, price, sort_order, active) {
   document.getElementById('pkgName').value  = name;
   document.getElementById('pkgPrice').value = price;
   document.getElementById('pkgSort').value  = sort_order;
-  // scroll to form
+  if (document.getElementById('pkgActive')) document.getElementById('pkgActive').value = active;
   document.getElementById('pkgName').focus();
+}
+
+async function togglePkg(id, currentActive) {
+  const newActive = currentActive ? 0 : 1;
+  try {
+    if (IS_MOCK) {
+      const saved = localStorage.getItem('mock_packages');
+      const pkgs = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(MOCK_DATA.packages));
+      const idx = pkgs.findIndex(p => p.id === id);
+      if (idx >= 0) pkgs[idx].active = newActive;
+      localStorage.setItem('mock_packages', JSON.stringify(pkgs));
+      toast(newActive ? '✅ เปิดแล้วค่ะ' : '🚫 ปิดแล้วค่ะ');
+      loadPackages(); loadPkgButtons();
+    } else {
+      // Get current pkg data first then update active
+      const data = await api({ action:'save_package', token:TOKEN, id, active:newActive });
+      if (data.ok) { toast(newActive ? '✅ เปิดแล้วค่ะ' : '🚫 ปิดแล้วค่ะ'); loadPackages(); loadPkgButtons(); }
+      else toast('❌ '+data.msg);
+    }
+  } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
 }
 
 function resetPkgForm() {
@@ -1380,7 +1402,8 @@ async function savePkg() {
       loadPackages();
       loadPkgButtons();
     } else {
-      const data = await api({ action:'save_package', token:TOKEN, id, name, price, sort_order:sort, active:1 });
+      const active = document.getElementById('pkgActive') ? parseInt(document.getElementById('pkgActive').value) : 1;
+      const data = await api({ action:'save_package', token:TOKEN, id, name, price, sort_order:sort, active });
       if (data.ok) {
         showPkgMsg(id ? '✅ อัปเดตสำเร็จ' : '✅ เพิ่มสำเร็จ', true);
         resetPkgForm();
