@@ -483,22 +483,22 @@ let SCRIPT_URL = 'api.php';
 const GS_URL = 'https://script.google.com/macros/s/AKfycbxrhRoJMEayzWrRaLhxZelBEC2xUAzI5WtPSYQKlNs7-nUPlGmGe-3F3dR8m90o5FEPxg/exec';
 
 // ── GAS call via JSONP (หลีก CORS ทุกกรณี) ──────────────────
-async function gsCall(payload) {
+function gsCall(payload) {
   var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(payload));
   console.log('gsCall ->', payload.action);
-  try {
-    var res = await fetch(url);
-    var text = await res.text();
-    console.log('gsCall response:', text.substring(0, 200));
-    try {
-      return JSON.parse(text);
-    } catch(e) {
-      return { ok: false, error: 'GAS response not JSON: ' + text.substring(0,100) };
-    }
-  } catch(e) {
-    console.error('gsCall error:', e.message);
-    return { ok: false, error: e.message };
-  }
+  return new Promise(function(resolve) {
+    fetch(url)
+      .then(function(res) { return res.text(); })
+      .then(function(text) {
+        console.log('gsCall response:', text.substring(0, 200));
+        try { resolve(JSON.parse(text)); }
+        catch(e) { resolve({ ok: false, error: 'not JSON: ' + text.substring(0,100) }); }
+      })
+      .catch(function(e) {
+        console.error('gsCall error:', e.message);
+        resolve({ ok: false, error: e.message });
+      });
+  });
 }
 
 // ── MOCK MODE (GitHub Pages / local) ──────────────────────────
