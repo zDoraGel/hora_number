@@ -502,9 +502,8 @@ async function gsCall(payload) {
 }
 
 // ── MOCK MODE (GitHub Pages / local) ──────────────────────────
-// Admin ใช้ GAS เสมอ ยกเว้น file:// เท่านั้น
-const IS_MOCK = window.location.protocol === 'file:'
-             || window.location.hostname === '127.0.0.1';
+// Login ใช้ MOCK_USERS hardcode เสมอ (ไม่พึ่ง GAS)
+const IS_MOCK = false; // GAS สำหรับข้อมูล แต่ login แยกต่างหาก
 
 // Mock users (เทสเท่านั้น — ไม่ใช่ password จริง)
 const MOCK_USERS = {
@@ -631,7 +630,11 @@ async function login() {
   btn.innerHTML = '<span class="spinner"></span>กำลังเข้าระบบ...';
   err.style.display = 'none';
   try {
-    const data = await api({ action:'admin_login', username, password });
+    // Login ใช้ MOCK_USERS hardcode ไม่ผ่าน GAS
+    const u = MOCK_USERS[username];
+    const data = (u && u.password === password)
+      ? { ok: true, token: 'local-token-' + Date.now(), role: u.role }
+      : { ok: false, msg: 'Username หรือ Password ไม่ถูกต้องค่ะ' };
     if (data.ok) {
       TOKEN = data.token;
       ROLE  = data.role;
