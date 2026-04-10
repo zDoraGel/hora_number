@@ -506,10 +506,9 @@ async function gsCall(payload) {
 }
 
 // ── MOCK MODE (GitHub Pages / local) ──────────────────────────
-const IS_MOCK = window.location.hostname.includes('github.io')
-             || window.location.hostname === 'localhost'
-             || window.location.hostname === '127.0.0.1'
-             || window.location.protocol === 'file:';
+// Admin ใช้ GAS เสมอ ยกเว้น file:// เท่านั้น
+const IS_MOCK = window.location.protocol === 'file:'
+             || window.location.hostname === '127.0.0.1';
 
 // Mock users (เทสเท่านั้น — ไม่ใช่ password จริง)
 const MOCK_USERS = {
@@ -599,7 +598,7 @@ function mockApi(body) {
       by_method:[{pay_method:'พร้อมเพย์',qty:9,revenue:4491},{pay_method:'สด',qty:3,revenue:897}],
       monthly:MOCK_DATA.dash.trend});
     else if (a==='export_transactions') resolve({ok:true, rows:MOCK_DATA.revenue_transactions.map(r=>({'โค้ด':r.code,'ชื่อลูกค้า':r.customer_name,'ราคา (บาท)':r.price,'ช่องทาง':r.pay_method,'ออกโดย':r.created_by,'วันที่ใช้':r.used_at})), total:798, period:'2026-03'});
-    else if (a==='admin_gen')      resolve({ok:true, codes:['MOCK-CODE']});
+    else if (a==='admin_gen' || a==='gen_codes') resolve({ok:true, data:{codes:['MOCK-CODE']}});
     else if (a==='save_package')   resolve({ok:true});
     else if (a==='delete_package') resolve({ok:true});
     else if (a==='update_meaning') resolve({ok:true});
