@@ -1252,9 +1252,21 @@ async function loadPkgButtons() {
       const saved = localStorage.getItem('mock_packages');
       pkgs = saved ? JSON.parse(saved) : MOCK_DATA.packages;
     } else {
-      const data = await api({ action:'list_packages', token:TOKEN });
-      if (!data.ok) return;
-      pkgs = data.data || data.packages || [];
+      try {
+        const data = await api({ action:'list_packages', token:TOKEN });
+        pkgs = (data.ok && (data.data || data.packages)) ? (data.data || data.packages) : [];
+      } catch(e) { pkgs = []; }
+      // fallback: ถ้าไม่มีข้อมูลจาก GAS ใช้ default packages
+      if (!pkgs.length) {
+        pkgs = [
+          {id:1,name:'มาตรฐาน',price:299,sort_order:1,active:1},
+          {id:2,name:'มาตรฐาน',price:399,sort_order:2,active:1},
+          {id:3,name:'มาตรฐาน',price:499,sort_order:3,active:1},
+          {id:4,name:'พิเศษ',price:699,sort_order:4,active:1},
+          {id:5,name:'พิเศษ',price:999,sort_order:5,active:1},
+          {id:6,name:'ระบุเอง',price:0,sort_order:99,active:1}
+        ];
+      }
     }
     pkgs = pkgs.filter(p => p.active).sort((a,b) => a.sort_order - b.sort_order);
     const wrap = document.getElementById('pkgBtns');
