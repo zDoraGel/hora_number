@@ -487,11 +487,7 @@ async function gsCall(payload) {
   var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(payload));
   console.log('gsCall ->', payload.action);
   try {
-    // timeout 15 วินาที
-    var controller = new AbortController();
-    var timer = setTimeout(() => controller.abort(), 15000);
-    var res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
+    var res = await fetch(url);
     var text = await res.text();
     console.log('gsCall response:', text.substring(0, 200));
     try {
