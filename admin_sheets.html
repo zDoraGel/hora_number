@@ -568,7 +568,12 @@ const MOCK_DATA = {
 
 async function api(body) {
   if (IS_MOCK) return mockApi(body);
-  return gsCall(body);
+  const res = await gsCall(body);
+  // GAS ส่ง {ok, data:{...}} — flatten ให้ caller ใช้ได้เลย
+  if (res && res.ok && res.data && typeof res.data === 'object') {
+    return { ...res.data, ok: true, data: res.data };
+  }
+  return res;
 }
 
 function mockApi(body) {
@@ -933,10 +938,11 @@ async function loadDash() {
   out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
 
   try {
-    const d = await api({ action:'admin_dash', token:TOKEN, month, year });
-    if (!d.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+d.msg+'</p>'; return; }
+    const resp = await api({ action:'admin_dash', token:TOKEN, month, year });
+    if (!resp.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+(resp.error||resp.msg||'เชื่อมต่อล้มเหลว')+'</p>'; return; }
+    const d = { ...resp.data, trend: resp.data?.trend || [] };
 
-    const maxC = Math.max(...d.trend.map(t=>t.count), 1);
+    const maxC = Math.max(...(d.trend||[]).map(t=>t.count), 1);
     const statsCards = [
       {icon:'👁',label:'คนดูดวงเดือนนี้',value:d.month_count,unit:'คน',color:'var(--a)',adminOnly:false},
       {icon:'💰',label:'รายได้เดือนนี้',value:(d.month_revenue||0).toLocaleString(),unit:'บาท',color:'var(--gold)',adminOnly:true},
@@ -989,7 +995,8 @@ async function loadList() {
   out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
 
   try {
-    const data = await api({ action:'admin_list', token:TOKEN, filter:'all' });
+    const _r1 = await api({ action:'admin_list', token:TOKEN, filter:'all' });
+    const data = _r1.ok ? {..._r1, codes: _r1.data?.codes || _r1.codes || []} : _r1;
     if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
 
     const all    = data.codes;
@@ -1051,7 +1058,8 @@ async function loadReadings() {
   const out = document.getElementById('readingsOut');
   out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
   try {
-    const data = await api({ action:'admin_readings', token:TOKEN });
+    const _r2 = await api({ action:'admin_readings', token:TOKEN });
+    const data = _r2.ok ? {..._r2, readings: _r2.data || _r2.readings || []} : _r2;
     if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
     const rows = data.readings || [];
     out.innerHTML = `
@@ -1209,7 +1217,8 @@ async function loadTraffic() {
   const out = document.getElementById('trafficOut');
   out.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)"><span class="spinner"></span>กำลังโหลด...</div>';
   try {
-    const data = await api({ action:'admin_traffic', token:TOKEN });
+    const _r3 = await api({ action:'admin_traffic', token:TOKEN });
+    const data = _r3.ok ? {..._r3, logs: _r3.data || _r3.logs || []} : _r3;
     if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
     const byPage = data.by_page || {};
     const recent = data.recent  || [];
