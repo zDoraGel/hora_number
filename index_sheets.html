@@ -17,13 +17,9 @@
 // GAS URL (ต้องประกาศก่อน IS_MOCK และ callApi)
 const GS_URL = 'https://script.google.com/macros/s/AKfycbxrhRoJMEayzWrRaLhxZelBEC2xUAzI5WtPSYQKlNs7-nUPlGmGe-3F3dR8m90o5FEPxg/exec';
 
-const IS_MOCK = window.location.hostname.includes('github.io')
-             || window.location.hostname.includes('github.com')
-             || window.location.hostname === 'localhost'
-             || window.location.hostname === '127.0.0.1'
-             || window.location.protocol === 'file:'
-             || window.location.hostname === ''
-             || !window.location.hostname;
+// ใช้ GAS จริงทุกกรณี ยกเว้น file:// เท่านั้น
+const IS_MOCK = window.location.protocol === 'file:'
+             || window.location.hostname === '127.0.0.1';
 
 const API_URL = 'api.php';
 
@@ -41,21 +37,18 @@ function mockApi(body) {
   return { ok: true };
 }
 
-async function callApi(body) {
+function callApi(body) {
   // Mock mode: รันแบบ file:// หรือ localhost หรือ github.io
-  if (IS_MOCK) return mockApi(body);
-  // Production: ลอง GAS ก่อน ถ้าล้มเหลว fallback mock
-  try {
-    var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(body));
-    var res = await fetch(url, { mode: 'cors' });
-    var text = await res.text();
-    try {
-      var parsed = JSON.parse(text);
-      return parsed;
-    } catch(e) { /* JSON parse fail → fallback */ }
-  } catch(e) { /* network error → fallback */ }
-  // Fallback mock สำหรับทุก environment
-  return mockApi(body);
+  if (IS_MOCK) return Promise.resolve(mockApi(body));
+  // Production: ใช้ GAS
+  var url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify(body));
+  return fetch(url)
+    .then(function(res) { return res.text(); })
+    .then(function(text) {
+      try { return JSON.parse(text); }
+      catch(e) { return mockApi(body); }
+    })
+    .catch(function() { return mockApi(body); });
 }
 
 function CodeGate({ onUnlock }) {
