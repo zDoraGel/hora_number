@@ -997,7 +997,8 @@ async function loadList() {
 
   try {
     const _r1 = await api({ action:'admin_list', token:TOKEN, filter:'all' });
-    const data = _r1.ok ? {..._r1, codes: _r1.data?.codes || _r1.codes || []} : _r1;
+    // GAS returns ok({array}) → res.data is the array itself
+    const data = _r1.ok ? {..._r1, codes: Array.isArray(_r1.data) ? _r1.data : (_r1.data?.codes || _r1.codes || [])} : _r1;
     if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
 
     const all    = data.codes;
