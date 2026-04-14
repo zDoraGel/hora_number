@@ -174,6 +174,18 @@ tr:hover td{background:rgba(107,45,94,.08)}
               <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">หมายเหตุ / ชื่อลูกค้า</label>
               <input type="text" id="gNote" placeholder="ชื่อลูกค้า / VIP / โปร">
             </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">⏰ หมดอายุ (วัน)</label>
+                <input type="number" id="gExpireDays" value="0" min="0" max="365" placeholder="0 = ไม่มีวันหมดอายุ">
+                <div style="color:var(--dim);font-size:10px;margin-top:3px">0 = ไม่มีวันหมดอายุ</div>
+              </div>
+              <div>
+                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">🔁 ใช้ได้กี่ครั้ง</label>
+                <input type="number" id="gMaxUses" value="1" min="1" max="999" placeholder="1 = ใช้ได้ครั้งเดียว">
+                <div style="color:var(--dim);font-size:10px;margin-top:3px">1 = ใช้ได้ครั้งเดียว</div>
+              </div>
+            </div>
             <button class="btn btn-p" id="genBtn" onclick="genCodes()">✦ สร้างโค้ด</button>
           </div>
         </div>
@@ -822,7 +834,9 @@ async function genCodes() {
 
   try {
     const noteWithPay = note ? `${note} [${payMethod}]` : `[${payMethod}]`;
-    const data = await api({ action:'gen_codes', token:TOKEN, price, count:qty, pay_method:payMethod, note: noteWithPay });
+    const expireDays = parseInt(document.getElementById('gExpireDays')?.value) || 0;
+    const maxUses    = parseInt(document.getElementById('gMaxUses')?.value)    || 1;
+    const data = await api({ action:'gen_codes', token:TOKEN, price, count:qty, pay_method:payMethod, note: noteWithPay, expire_days: expireDays, max_uses: maxUses });
     if (!data.ok) { toast('❌ '+data.msg); out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
 
     const payColor = payMethod==='สด'?'#2ecc71':payMethod==='พร้อมเพย์'?'#3498db':'#e67e22';
@@ -997,8 +1011,7 @@ async function loadList() {
 
   try {
     const _r1 = await api({ action:'admin_list', token:TOKEN, filter:'all' });
-    // GAS returns ok({array}) → res.data is the array itself
-    const data = _r1.ok ? {..._r1, codes: Array.isArray(_r1.data) ? _r1.data : (_r1.data?.codes || _r1.codes || [])} : _r1;
+    const data = _r1.ok ? {..._r1, codes: _r1.data?.codes || _r1.codes || []} : _r1;
     if (!data.ok) { out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
 
     const all    = data.codes;

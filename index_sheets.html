@@ -84,7 +84,14 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
     try {
       const d = await callApi({ action: "verify_code", code: input });
       if (d.ok) { setVerifiedCode(input); setStep(2); }
-      else { setErr(d.msg || "โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ"); }
+      else {
+        const errMap = {
+          'code_invalid': 'โค้ดไม่ถูกต้องค่ะ กรุณาตรวจสอบอีกครั้ง',
+          'code_used':    'โค้ดนี้ถูกใช้งานครบแล้วค่ะ',
+          'code_expired': 'โค้ดนี้หมดอายุแล้วค่ะ กรุณาติดต่ออาจารย์'
+        };
+        setErr(errMap[d.error] || d.msg || 'โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ');
+      }
     } catch(e) { setErr("เชื่อมต่อล้มเหลว กรุณาลองใหม่ค่ะ"); }
     setLoading(false);
   }
@@ -717,36 +724,26 @@ function NumerologyApp() {
     "input",
     {
       type: "number",
-      placeholder: "เช่น 13",
+      placeholder: "\u0E40\u0E0A\u0E48\u0E19 13",
       min: "1",
       max: "31",
-      inputMode: "numeric",
-      pattern: "[0-9]*",
       value: form.day,
-      onKeyPress: (e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); },
       onChange: (e) => {
-        let v = e.target.value.replace(/[^0-9]/g, "");
-        if (v === "") { setForm((f) => ({ ...f, day: "" })); return; }
-        let n = parseInt(v);
-        if (n > 31) n = 31;
-        if (n < 1) n = 1;
-        setForm((f) => ({ ...f, day: String(n) }));
+        let v = parseInt(e.target.value);
+        if (isNaN(v) || v < 1) v = "";
+        else if (v > 31) v = 31;
+        setForm((f) => ({ ...f, day: v === "" ? "" : String(v) }));
       }
     }
   )), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { style: { ...txMuted, display: "block", marginBottom: 6 } }, "\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E40\u0E01\u0E34\u0E14"), /* @__PURE__ */ React.createElement("select", { value: form.month, onChange: (e) => setForm((f) => ({ ...f, month: e.target.value })) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u2014 \u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E14\u0E37\u0E2D\u0E19 \u2014"), MONTH_NAMES.slice(1).map((m, i) => /* @__PURE__ */ React.createElement("option", { key: i + 1, value: i + 1 }, i + 1, ". ", m)))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { style: { ...txMuted, display: "block", marginBottom: 6 } }, "\u0E1B\u0E35\u0E40\u0E01\u0E34\u0E14 (\u0E1E.\u0E28.)"), /* @__PURE__ */ React.createElement(
     "input",
     {
-      type: "text",
-      placeholder: "เช่น 2527",
-      inputMode: "numeric",
-      pattern: "[0-9]*",
-      maxLength: 4,
+      type: "number",
+      placeholder: "\u0E40\u0E0A\u0E48\u0E19 2527",
+      min: "2400",
+      max: "2580",
       value: form.yearBE,
-      onKeyPress: (e) => { if (!/[0-9]/.test(e.key)) e.preventDefault(); },
-      onChange: (e) => {
-        let v = e.target.value.replace(/[^0-9]/g, "").slice(0, 4);
-        setForm((f) => ({ ...f, yearBE: v }));
-      }
+      onChange: (e) => setForm((f) => ({ ...f, yearBE: e.target.value }))
     }
   ))), /* @__PURE__ */ React.createElement("button", { className: "btn-calc", style: { marginTop: 24 }, onClick: calculate }, "\u2726 \u0E40\u0E1B\u0E34\u0E14\u0E14\u0E39\u0E14\u0E27\u0E07\u0E0A\u0E30\u0E15\u0E32 \u2726"), /* @__PURE__ */ React.createElement("p", { style: { ...txMuted, textAlign: "center", marginTop: 14, fontSize: 12, letterSpacing: 0.5 } }, "\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1B\u0E0F\u0E34\u0E17\u0E34\u0E19 100 \u0E1B\u0E35 \xB7 \u0E1E.\u0E28. 2466\u20132500, 2521\u20132522")), result && result.blocked ? (
   React.createElement("div", { className: "card fade-in", style: { padding: 30, textAlign: "center" } },
