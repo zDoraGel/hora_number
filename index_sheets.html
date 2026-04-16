@@ -84,7 +84,14 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
     try {
       const d = await callApi({ action: "verify_code", code: input });
       if (d.ok) { setVerifiedCode(input); setStep(2); }
-      else { setErr(d.msg || "โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ"); }
+      else {
+        const errMap = {
+          'code_invalid': 'โค้ดไม่ถูกต้องค่ะ กรุณาตรวจสอบอีกครั้ง',
+          'code_used':    'โค้ดนี้ถูกใช้งานครบแล้วค่ะ',
+          'code_expired': 'โค้ดนี้หมดอายุแล้วค่ะ กรุณาติดต่ออาจารย์'
+        };
+        setErr(errMap[d.error] || d.msg || 'โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ');
+      }
     } catch(e) { setErr("เชื่อมต่อล้มเหลว กรุณาลองใหม่ค่ะ"); }
     setLoading(false);
   }
@@ -444,7 +451,7 @@ function NumerologyApp() {
     if (!day || !month || !yearBE) return;
 
     // โหลด calendar ปีนี้ถ้ายังไม่มีข้อมูล
-    const testKey = `${yearBE}-01-01`;
+    const testKey = `${yearBE}-04-01`;  // ปีนักษัตรไทยเริ่มเมษายน
     if (!CALENDAR_DATA[testKey]) {
       setCalLoaded(false);
       await loadCalendarFromGS(yearBE);
