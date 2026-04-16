@@ -84,14 +84,7 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
     try {
       const d = await callApi({ action: "verify_code", code: input });
       if (d.ok) { setVerifiedCode(input); setStep(2); }
-      else {
-        const errMap = {
-          'code_invalid': 'โค้ดไม่ถูกต้องค่ะ กรุณาตรวจสอบอีกครั้ง',
-          'code_used':    'โค้ดนี้ถูกใช้งานครบแล้วค่ะ',
-          'code_expired': 'โค้ดนี้หมดอายุแล้วค่ะ กรุณาติดต่ออาจารย์'
-        };
-        setErr(errMap[d.error] || d.msg || 'โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ');
-      }
+      else { setErr(d.msg || "โค้ดไม่ถูกต้องหรือถูกใช้แล้วค่ะ"); }
     } catch(e) { setErr("เชื่อมต่อล้มเหลว กรุณาลองใหม่ค่ะ"); }
     setLoading(false);
   }
@@ -153,33 +146,43 @@ const { useState, useEffect, useCallback } = React;
 // format: {"YYYY-MM-DD": [dow, isWaning, zodiac], ...}
 let CALENDAR_DATA = {};
 
-async function loadCalendarFromGS() {
+async function loadCalendarFromGS(yearBE) {
   // Mock mode: ใช้ fallback ทันที ไม่ fetch GS
   if (IS_MOCK) { useCalendarFallback(); return; }
+
+  // ถ้าไม่ได้ระบุปี ข้ามไป
+  if (!yearBE) return;
+
+  const cacheKey = 'cal_year_' + yearBE;
+  const cacheTimeKey = 'cal_year_time_' + yearBE;
+  const ONE_DAY = 24*60*60*1000;
+
   try {
-    // ลอง localStorage ก่อน (cache)
-    const cached = localStorage.getItem('cal_data_v3');
-    const cachedTime = localStorage.getItem('cal_data_time');
-    const ONE_DAY = 24*60*60*1000;
+    // ลอง localStorage ก่อน (cache รายปี)
+    const cached = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < ONE_DAY) {
-      CALENDAR_DATA = JSON.parse(cached);
-      console.log('✅ Calendar from cache:', Object.keys(CALENDAR_DATA).length);
+      const yearData = JSON.parse(cached);
+      Object.assign(CALENDAR_DATA, yearData);
+      console.log('✅ Calendar year', yearBE, 'from cache:', Object.keys(yearData).length, 'days');
       return;
     }
-    // โหลดจาก GS
-    const res = await fetch(GS_URL + '?d=' + encodeURIComponent(JSON.stringify({ action:'get_calendar' })));
+
+    // โหลดเฉพาะปีนี้จาก GS
+    const res = await fetch(GS_URL + '?d=' + encodeURIComponent(JSON.stringify({ action:'get_calendar_year', year: yearBE })));
     const data = await res.json();
     if (data.ok && data.data && Object.keys(data.data).length > 0) {
-      CALENDAR_DATA = data.data;
-      localStorage.setItem('cal_data_v3', JSON.stringify(CALENDAR_DATA));
-      localStorage.setItem('cal_data_time', Date.now().toString());
-      console.log('✅ Calendar from GS:', Object.keys(CALENDAR_DATA).length);
+      Object.assign(CALENDAR_DATA, data.data);
+      localStorage.setItem(cacheKey, JSON.stringify(data.data));
+      localStorage.setItem(cacheTimeKey, Date.now().toString());
+      console.log('✅ Calendar year', yearBE, 'from GS:', Object.keys(data.data).length, 'days');
     } else {
-      console.warn('⚠️ GS calendar empty, using hardcode fallback');
+      console.warn('⚠️ No calendar data for year', yearBE);
+      // fallback ข้อมูลในไฟล์ (ถ้ามี)
       useCalendarFallback();
     }
   } catch(e) {
-    console.warn('⚠️ Calendar GS failed, using fallback:', e.message);
+    console.warn('⚠️ Calendar GS failed for year', yearBE, ':', e.message);
     useCalendarFallback();
   }
 }
@@ -433,12 +436,21 @@ function NumerologyApp() {
       d: Math.random() * 7 + 4,
       dl: Math.random() * 10
     })));
-    // โหลด calendar data
-    loadCalendarFromGS().then(() => setCalLoaded(true));
+    // calendar จะโหลดตอน verify code สำเร็จ ไม่โหลดตอนเปิดหน้า
+    setCalLoaded(false);
   }, []);
-  const calculate = useCallback(() => {
+  const calculate = useCallback(async () => {
     const day = parseInt(form.day), month = parseInt(form.month), yearBE = parseInt(form.yearBE);
     if (!day || !month || !yearBE) return;
+
+    // โหลด calendar ปีนี้ถ้ายังไม่มีข้อมูล
+    const testKey = `${yearBE}-01-01`;
+    if (!CALENDAR_DATA[testKey]) {
+      setCalLoaded(false);
+      await loadCalendarFromGS(yearBE);
+      setCalLoaded(true);
+    }
+
     const calEntry = lookupCalendar(day, month, yearBE);
     // ถ้าไม่มีข้อมูลปฏิทิน → บล็อกไม่ให้ดูดวง
     if (!calEntry) {

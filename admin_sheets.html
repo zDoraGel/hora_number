@@ -174,18 +174,6 @@ tr:hover td{background:rgba(107,45,94,.08)}
               <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">หมายเหตุ / ชื่อลูกค้า</label>
               <input type="text" id="gNote" placeholder="ชื่อลูกค้า / VIP / โปร">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div>
-                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">⏰ หมดอายุ (วัน)</label>
-                <input type="number" id="gExpireDays" value="0" min="0" max="365" placeholder="0 = ไม่มีวันหมดอายุ">
-                <div style="color:var(--dim);font-size:10px;margin-top:3px">0 = ไม่มีวันหมดอายุ</div>
-              </div>
-              <div>
-                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">🔁 ใช้ได้กี่ครั้ง</label>
-                <input type="number" id="gMaxUses" value="1" min="1" max="999" placeholder="1 = ใช้ได้ครั้งเดียว">
-                <div style="color:var(--dim);font-size:10px;margin-top:3px">1 = ใช้ได้ครั้งเดียว</div>
-              </div>
-            </div>
             <button class="btn btn-p" id="genBtn" onclick="genCodes()">✦ สร้างโค้ด</button>
           </div>
         </div>
@@ -451,7 +439,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button id="calSaveBtn" onclick="saveCalendarToGS()"
                 style="background:linear-gradient(135deg,#6B2D5E,#9B4E8A);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'Prompt',sans-serif">
-                ☁️ บันทึกลง Google Sheets
+                💾 บันทึก
               </button>
               <button onclick="exportCalJSON()"
                 style="background:rgba(107,45,94,.4);color:var(--r);border:1px solid rgba(107,45,94,.5);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'Prompt',sans-serif">
@@ -834,9 +822,7 @@ async function genCodes() {
 
   try {
     const noteWithPay = note ? `${note} [${payMethod}]` : `[${payMethod}]`;
-    const expireDays = parseInt(document.getElementById('gExpireDays')?.value) || 0;
-    const maxUses    = parseInt(document.getElementById('gMaxUses')?.value)    || 1;
-    const data = await api({ action:'gen_codes', token:TOKEN, price, count:qty, pay_method:payMethod, note: noteWithPay, expire_days: expireDays, max_uses: maxUses });
+    const data = await api({ action:'gen_codes', token:TOKEN, price, count:qty, pay_method:payMethod, note: noteWithPay });
     if (!data.ok) { toast('❌ '+data.msg); out.innerHTML='<p style="color:var(--red);text-align:center">'+data.msg+'</p>'; return; }
 
     const payColor = payMethod==='สด'?'#2ecc71':payMethod==='พร้อมเพย์'?'#3498db':'#e67e22';
@@ -1790,6 +1776,15 @@ async function deleteBackup(filename) {
     async function readCalendar() {
       var fileInput = document.getElementById('calFile');
       if (!fileInput.files[0]) { toast('กรุณาเลือกไฟล์ก่อนค่ะ'); return; }
+      // reset สถานะก่อนอ่านใหม่ทุกครั้ง
+      document.getElementById('calPreview').style.display = 'none';
+      document.getElementById('calJsonOut').style.display = 'none';
+      document.getElementById('calTableBody').innerHTML = '';
+      document.getElementById('calPreviewInfo').textContent = '';
+      var saveBtn = document.getElementById('calSaveBtn');
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 บันทึก'; }
+      var calMsgEl = document.getElementById('calMsg');
+      if (calMsgEl) calMsgEl.style.display = 'none';
       var sheetIdx = 0; // ใช้ sheet แรกเสมอ
       var overrideZodiac = parseInt(document.getElementById('calZodiacOverride').value); // 0=auto
 
@@ -1941,34 +1936,56 @@ async function deleteBackup(filename) {
           totalSaved += batchRows.length;
         }
         if (totalSaved > 0) {
-          toast('✅ บันทึกลง Google Sheets สำเร็จ ' + totalSaved + ' รายการ');
+          toast('✅ บันทึกสำเร็จ ' + totalSaved + ' รายการ');
           showCalMsg('✅ บันทึกสำเร็จค่ะ ' + totalSaved + ' รายการ', true);
-          loadCalendarYears(); // refresh สรุปปี
+          localStorage.removeItem('cal_years_cache'); loadCalendarYears(true); // refresh สรุปปี
         }
       } catch(e) {
         showCalMsg('❌ เชื่อมต่อล้มเหลว: ' + e.message, false);
       }
       btn.disabled = false;
-      btn.textContent = '☁️ บันทึกลง Google Sheets';
+      btn.textContent = '💾 บันทึก';
     }
 
-    // โหลดสรุปปีที่มีข้อมูลใน sheet calendar
-    async function loadCalendarYears() {
+    // โหลดสรุปปีที่มีข้อมูลใน sheet calendar (มี cache 5 นาที)
+    async function loadCalendarYears(forceRefresh) {
       var el = document.getElementById('calYearList');
       if (!el) return;
+
+      // แสดง cache ก่อนถ้ามี
+      var CACHE_KEY = 'cal_years_cache';
+      var CACHE_TIME_KEY = 'cal_years_time';
+      var CACHE_TTL = 5 * 60 * 1000; // 5 นาที
+
+      if (!forceRefresh) {
+        var cached = localStorage.getItem(CACHE_KEY);
+        var cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+        if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_TTL) {
+          renderCalYears(JSON.parse(cached), el);
+          return; // ใช้ cache ไม่ต้อง fetch
+        }
+      }
+
+      el.innerHTML = '<span style="color:var(--dim);font-size:12px"><span class="spinner"></span> กำลังโหลด...</span>';
       try {
         var data = await gsCall({ action: 'get_calendar_years' });
         if (data.ok && data.data && data.data.length) {
           var years = data.data.sort(function(a,b){return a-b;});
-          el.innerHTML = years.map(function(y){
-            return '<span style="display:inline-block;background:rgba(107,45,94,.3);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 10px;margin:2px;color:var(--r);font-size:12px">พ.ศ. ' + y + '</span>';
-          }).join('');
+          localStorage.setItem(CACHE_KEY, JSON.stringify(years));
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+          renderCalYears(years, el);
         } else {
           el.textContent = '— ยังไม่มีข้อมูลปฏิทินค่ะ —';
         }
       } catch(e) {
         el.textContent = '— โหลดไม่ได้ —';
       }
+    }
+
+    function renderCalYears(years, el) {
+      el.innerHTML = years.map(function(y){
+        return '<span style="display:inline-block;background:rgba(107,45,94,.3);border:1px solid rgba(107,45,94,.5);border-radius:6px;padding:3px 10px;margin:2px;color:var(--r);font-size:12px">พ.ศ. ' + y + '</span>';
+      }).join('');
     }
 
     function exportCalJSON() {
