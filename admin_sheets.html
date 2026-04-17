@@ -1070,14 +1070,15 @@ async function loadList() {
             <thead><tr>
               <th>โค้ด</th>
               ${ROLE==='Admin'?'<th>ราคา</th>':''}
-              <th>หมายเหตุ</th><th>สร้างเมื่อ</th><th></th>
+              ${ROLE==='Admin'?'<th>หมายเหตุ</th>':''}
+              <th>สร้างเมื่อ</th><th></th>
             </tr></thead>
             <tbody>${[...unused].reverse().map(c=>`
               <tr><td><span class="chip">${c.code}</span>
                 <button class="cp" style="margin-left:5px" onclick="navigator.clipboard.writeText('${c.code}');toast('คัดลอกแล้ว!')">copy</button>
               </td>
               ${ROLE==='Admin'?`<td style="color:var(--gold);font-weight:600">${(c.price||0).toLocaleString()} ฿</td>`:''}
-              <td style="color:var(--m);font-size:12px">${c.note||'-'}</td>
+              ${ROLE==='Admin'?`<td style="color:var(--m);font-size:12px">${c.note||'-'}</td>`:''}
               <td style="color:var(--m);font-size:11px">${fmtShort(c.created_at)}</td>
               <td><button class="btn btn-d" onclick="delCode('${c.code}')">ลบ</button></td></tr>`).join('')}
             </tbody>
@@ -1090,12 +1091,13 @@ async function loadList() {
             <thead><tr>
               <th>โค้ด</th>
               ${ROLE==='Admin'?'<th>ราคา</th>':''}
-              <th>หมายเหตุ</th><th>ใช้เมื่อ</th>
+              ${ROLE==='Admin'?'<th>หมายเหตุ</th>':''}
+              <th>ใช้เมื่อ</th>
             </tr></thead>
             <tbody>${[...used].reverse().map(c=>`
               <tr><td><span class="chip" style="opacity:.55;font-size:11px">${c.code}</span></td>
               ${ROLE==='Admin'?`<td style="color:var(--m)">${(c.price||0).toLocaleString()} ฿</td>`:''}
-              <td style="color:var(--m);font-size:12px">${c.note||'-'}</td>
+              ${ROLE==='Admin'?`<td style="color:var(--m);font-size:12px">${c.note||'-'}</td>`:''}
               <td style="color:var(--m);font-size:11px">${fmtDate(c.used_at)}</td></tr>`).join('')}
             </tbody>
           </table></div>`}
