@@ -129,7 +129,13 @@ const SCRIPT_URL = API_URL; // backward compat (ไม่ใช้แล้ว)
     onUnlock();
   }
   const h = React.createElement;
-  if (step===1) return h("div",{style:S.pg},h("div",{style:S.bx},
+  if (step===1) return h("div",{style:S.pg},
+    h("div",{style:{position:"fixed",top:0,left:0,right:0,zIndex:10,padding:"12px 16px"}},
+      h("button",{onClick:()=>location.href="home.html",style:{background:"rgba(107,45,94,.25)",border:"1px solid rgba(107,45,94,.4)",borderRadius:20,color:"#EEE0E8",fontSize:13,padding:"6px 14px",cursor:"pointer",fontFamily:"'Prompt',sans-serif",display:"flex",alignItems:"center",gap:6}},
+        "← กลับ"
+      )
+    ),
+    h("div",{style:S.bx},
     h("div",{style:S.hr},h("span",{style:S.ic},"🔮"),h("h1",{style:S.h1},"จักรวาลแห่งตัวเลข"),h("p",{style:S.sb},"ค้นพบโชคชะตาผ่านตัวเลข")),
     h("div",{style:S.cd},
       h("p",{style:S.st},"ขั้นตอน 1 / 2  ·  ยืนยันโค้ด"),
