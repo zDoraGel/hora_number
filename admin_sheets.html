@@ -482,6 +482,49 @@ tr:hover td{background:rgba(107,45,94,.08)}
           </button>
         </div>
       </div>
+
+      <!-- ===== Section: Import จาก HTML (myhora.com) ===== -->
+      <div class="card" style="margin-top:16px">
+        <h2 style="margin-bottom:8px">🌐 Import จาก myhora.com (HTML)</h2>
+        <p style="color:var(--m);font-size:13px;margin-bottom:16px">
+          บันทึกหน้าปฏิทินจาก myhora.com เป็น .html แล้วอัปโหลดที่นี่ — ระบบ parse อัตโนมัติ ไม่ต้องกรอกเอง
+        </p>
+        <div style="background:rgba(107,45,94,.15);border:1px solid rgba(107,45,94,.3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--m);line-height:1.8">
+          <b style="color:var(--r)">📌 วิธีดาวน์โหลดจาก myhora.com</b><br>
+          1. เปิด <code style="color:#a0f0a0">https://www.myhora.com/ปฏิทิน/ปฏิทิน-พ.ศ.XXXX.aspx</code><br>
+          2. กด <kbd>Ctrl+S</kbd> (Windows) หรือ <kbd>Cmd+S</kbd> (Mac) → Save as <b>Webpage, Complete</b><br>
+          3. อัปโหลดไฟล์ .html ด้านล่าง
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="color:var(--m);font-size:13px;display:block;margin-bottom:6px">📁 ไฟล์ HTML จาก myhora.com</label>
+          <input type="file" id="myhoraFile" accept=".html,.htm"
+            style="color:var(--r);font-size:13px"
+            onchange="myhoraFileChanged(this)">
+          <div id="myhoraFileInfo" style="color:var(--dim);font-size:11px;margin-top:4px"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <button onclick="readMyhoraHTML()"
+            style="background:linear-gradient(135deg,#6B2D5E,#9B4E8A);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:'Prompt',sans-serif">
+            🔍 อ่านข้อมูล
+          </button>
+          <button id="myhoraSaveBtn" onclick="saveMyhoraToGS()"
+            disabled style="opacity:.4;background:linear-gradient(135deg,#2D5E4E,#4E9B7A);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:'Prompt',sans-serif">
+            💾 บันทึกเข้า GAS
+          </button>
+        </div>
+        <div id="myhoraStatus" style="display:none;padding:10px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>
+        <div id="myhoraPreview" style="display:none">
+          <div id="myhoraInfo" style="color:var(--m);font-size:13px;margin-bottom:8px"></div>
+          <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px;max-height:260px;overflow-y:auto">
+            <table>
+              <thead><tr style="color:var(--pl)">
+                <th>วันที่ (BE)</th><th>วัน</th><th>ข้างขึ้น/แรม</th><th>เดือนจันทร์</th>
+              </tr></thead>
+              <tbody id="myhoraTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
     
 
@@ -1922,6 +1965,174 @@ async function deleteBackup(filename) {
           '<span style="color:#FF7070">❌ Error: ' + e.message + '</span><br>' +
           '<span style="font-size:11px;color:var(--dim)">stack: ' + (e.stack||'').split('\n')[0] + '</span>';
       }
+    }
+
+    // ================================================================
+    // myhora HTML import functions
+    // ================================================================
+
+    var _myhoraData = {}; // { date_key: [dow, is_waxing, zodiac, lunar_month] }
+
+    function myhoraFileChanged(input) {
+      var info = document.getElementById('myhoraFileInfo');
+      if (input.files[0]) {
+        info.textContent = '✅ ' + input.files[0].name + ' (' + (input.files[0].size/1024).toFixed(1) + ' KB)';
+      } else {
+        info.textContent = '';
+      }
+      _myhoraData = {};
+      document.getElementById('myhoraSaveBtn').disabled = true;
+      document.getElementById('myhoraSaveBtn').style.opacity = '.4';
+      document.getElementById('myhoraPreview').style.display = 'none';
+      document.getElementById('myhoraStatus').style.display = 'none';
+    }
+
+    async function readMyhoraHTML() {
+      var fileInput = document.getElementById('myhoraFile');
+      if (!fileInput.files[0]) { toast('กรุณาเลือกไฟล์ HTML ก่อนค่ะ'); return; }
+
+      _myhoraData = {};
+      document.getElementById('myhoraPreview').style.display = 'none';
+      setMyhoraStatus('⏳ กำลังอ่าน...', '#555');
+
+      try {
+        var text = await fileInput.files[0].text();
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(text, 'text/html');
+
+        // หา divday elements: id="divday_XXXXX"
+        var dayDivs = doc.querySelectorAll('[id^="divday_"]');
+        if (!dayDivs.length) {
+          setMyhoraStatus('❌ ไม่พบข้อมูลปฏิทินในไฟล์ — ตรวจสอบว่า Save แบบ "Webpage, Complete" ค่ะ', '#FF7070');
+          return;
+        }
+
+        var rows = {};
+        dayDivs.forEach(function(div) {
+          var onclick = div.getAttribute('onclick') || '';
+          var m = onclick.match(/(\d{2})-(\d{2})-(\d{4})/);
+          if (!m) return;
+          var day = m[1], month = m[2], year = m[3];
+          var dateKey = year + '-' + month + '-' + day;
+
+          var cl1  = div.querySelector('.cl1');
+          var cl21 = div.querySelector('.cl21');
+          var cl3  = div.querySelector('.cl3');
+          var dow      = cl1  ? parseInt(cl1.textContent.trim())  : 0;
+          var waxRaw   = cl21 ? cl21.textContent.trim() : '';
+          var lunarMon = cl3  ? parseInt(cl3.textContent.trim())  : 0;
+
+          if (isNaN(dow) || dow < 1 || dow > 7) return;
+
+          rows[dateKey] = { dow: dow, waxRaw: waxRaw, lunarMon: isNaN(lunarMon) ? 0 : lunarMon };
+        });
+
+        // Resolve is_waxing by carry-forward (sorted by date)
+        var keys = Object.keys(rows).sort();
+        var curWax = 1;
+        keys.forEach(function(k) {
+          var raw = rows[k].waxRaw;
+          if (raw === 'ข') curWax = 1;
+          else if (raw === 'ร') curWax = 0;
+          rows[k].is_waxing = curWax;
+        });
+
+        // Build _myhoraData in same format as _calData
+        keys.forEach(function(k) {
+          var r = rows[k];
+          var yearBE = parseInt(k.split('-')[0]);
+          var zodiac = getZodiac(yearBE);
+          _myhoraData[k] = [r.dow, r.is_waxing, zodiac, r.lunarMon];
+        });
+
+        var count = keys.length;
+        if (!count) {
+          setMyhoraStatus('❌ parse แล้วไม่พบข้อมูล', '#FF7070');
+          return;
+        }
+
+        // Preview ตาราง 100 แรก
+        var tbody = document.getElementById('myhoraTableBody');
+        tbody.innerHTML = '';
+        keys.slice(0, 100).forEach(function(k) {
+          var v = _myhoraData[k];
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + k + '</td>' +
+            '<td>' + (_dayNames[v[0]] || v[0]) + '</td>' +
+            '<td>' + (v[1] ? '🌕 ข้างขึ้น' : '🌑 ข้างแรม') + '</td>' +
+            '<td>' + (v[3] || '-') + '</td>';
+          tbody.appendChild(tr);
+        });
+
+        // หาช่วงปีที่ครอบ
+        var firstDate = keys[0], lastDate = keys[keys.length - 1];
+        document.getElementById('myhoraInfo').textContent =
+          'พบ ' + count + ' วัน | ' + firstDate + ' ถึง ' + lastDate + ' | แสดง 100 แรก';
+        document.getElementById('myhoraPreview').style.display = 'block';
+
+        // เปิดปุ่ม save
+        var saveBtn = document.getElementById('myhoraSaveBtn');
+        saveBtn.disabled = false;
+        saveBtn.style.opacity = '1';
+
+        setMyhoraStatus('✅ อ่านสำเร็จ ' + count + ' วัน', 'rgba(0,200,100,.2)');
+        toast('อ่านข้อมูลสำเร็จ ' + count + ' วัน ✓');
+
+      } catch(e) {
+        setMyhoraStatus('❌ Error: ' + e.message, '#FF7070');
+        console.error('readMyhoraHTML error:', e);
+      }
+    }
+
+    async function saveMyhoraToGS() {
+      var keys = Object.keys(_myhoraData);
+      if (!keys.length) { toast('ยังไม่มีข้อมูลค่ะ'); return; }
+
+      var btn = document.getElementById('myhoraSaveBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ กำลังบันทึก...';
+      setMyhoraStatus('⏳ กำลังส่งข้อมูลไปยัง GAS...', '#555');
+
+      // แบ่ง batch 200 rows
+      var batchSize = 200;
+      var total = keys.length;
+      var saved = 0;
+      var errors = 0;
+
+      for (var i = 0; i < total; i += batchSize) {
+        var batchKeys = keys.slice(i, i + batchSize);
+        var batchRows = batchKeys.map(function(k) {
+          var v = _myhoraData[k];
+          return [k, v[0], v[1], v[2], v[3]];
+        });
+
+        try {
+          var result = await api({ action: 'save_calendar', token: TOKEN, rows: JSON.stringify(batchRows) });
+          saved += batchRows.length;
+          setMyhoraStatus('⏳ บันทึกแล้ว ' + saved + '/' + total + ' วัน...', '#555');
+        } catch(e) {
+          errors++;
+          console.error('batch error:', e);
+        }
+      }
+
+      btn.textContent = '✅ บันทึกแล้ว';
+      if (errors) {
+        setMyhoraStatus('⚠️ บันทึกสำเร็จ ' + saved + ' วัน (ผิดพลาด ' + errors + ' batch)', 'rgba(255,200,0,.2)');
+      } else {
+        setMyhoraStatus('✅ บันทึกสำเร็จ ' + saved + ' วัน เข้า Google Sheets แล้วค่ะ', 'rgba(0,200,100,.2)');
+      }
+      // refresh summary
+      localStorage.removeItem('cal_years_cache');
+      loadCalendarYears(true);
+      toast('บันทึก ' + saved + ' วัน ✓');
+    }
+
+    function setMyhoraStatus(msg, bg) {
+      var el = document.getElementById('myhoraStatus');
+      el.style.display = 'block';
+      el.style.background = bg || 'rgba(0,0,0,.2)';
+      el.textContent = msg;
     }
 
     async function saveCalendarToGS() {
