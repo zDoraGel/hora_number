@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ปฏิทิน 78 ปี — จักรวาลแห่งตัวเลข</title>
+<title>ปฏิทิน 100 ปี — จักรวาลแห่งตัวเลข</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -132,7 +132,7 @@ body{font-family:'Prompt',sans-serif;color:var(--c);font-weight:400}
 <div class="scroll-area">
 
   <div class="header">
-    <h1>🗓 ปฏิทิน 78 ปี</h1>
+    <h1>🗓 ปฏิทิน 100 ปี</h1>
     <p>พ.ศ. 2466–2554 · จันทรคติไทย</p>
   </div>
 
@@ -199,38 +199,43 @@ body{font-family:'Prompt',sans-serif;color:var(--c);font-weight:400}
 
 <script>
 const GS_URL = 'https://script.google.com/macros/s/AKfycbxrhRoJMEayzWrRaLhxZelBEC2xUAzI5WtPSYQKlNs7-nUPlGmGe-3F3dR8m90o5FEPxg/exec';
-const CACHE_KEY = 'cal_data_v2';
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 วัน
+const CAL_CACHE_TTL = 24 * 60 * 60 * 1000; // 1 วัน
 
 let CAL = {};
 
-async function loadCalendar() {
-  // ลอง cache ก่อน
+// โหลดปีนักษัตรเฉพาะปีที่ต้องการ (cache รายปี)
+async function loadCalendarYear(yearBE) {
+  const cacheKey  = 'cal_year_' + yearBE;
+  const cacheTime = 'cal_year_time_' + yearBE;
   try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      const obj = JSON.parse(cached);
-      if (Date.now() - obj.ts < CACHE_TTL && obj.data && Object.keys(obj.data).length > 100) {
-        CAL = obj.data;
-        initApp();
-        return;
+    const cached = localStorage.getItem(cacheKey);
+    const ts     = parseInt(localStorage.getItem(cacheTime) || '0');
+    // testKey เดือน 04 เพราะปีนักษัตรไทยเริ่มเมษายน
+    const testKey = yearBE + '-04-01';
+    if (cached && (Date.now() - ts) < CAL_CACHE_TTL) {
+      const data = JSON.parse(cached);
+      if (data[testKey]) {
+        Object.assign(CAL, data);
+        return true;
       }
     }
   } catch(e) {}
 
-  // ดึงจาก Google Sheets
   try {
-    const res = await fetch(GS_URL + '?action=get_calendar');
+    const url = GS_URL + '?d=' + encodeURIComponent(JSON.stringify({action:'get_calendar_year', year: yearBE}));
+    const res  = await fetch(url);
     const json = await res.json();
-    if (json.ok && json.data) {
-      CAL = json.data;
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ts: Date.now(), data: CAL})); } catch(e) {}
-      initApp();
-    } else {
-      showError('ไม่สามารถโหลดข้อมูลปฏิทินได้');
+    if (json.ok && json.data && Object.keys(json.data).length > 0) {
+      Object.assign(CAL, json.data);
+      try {
+        localStorage.setItem('cal_year_' + yearBE, JSON.stringify(json.data));
+        localStorage.setItem('cal_year_time_' + yearBE, String(Date.now()));
+      } catch(e) {}
+      return true;
     }
+    return false;
   } catch(e) {
-    showError('ไม่สามารถเชื่อมต่อ Google Sheets ได้');
+    return false;
   }
 }
 
@@ -240,11 +245,24 @@ function showError(msg) {
   document.getElementById('errBox').style.display = 'block';
 }
 
+async function loadCalendar() {
+  // โหลดปีปัจจุบันก่อน แล้ว initApp
+  const ok = await loadCalendarYear(cY);
+  document.getElementById('loading').style.display = 'none';
+  if (!ok && Object.keys(CAL).length === 0) {
+    showError('ไม่มีข้อมูลปฏิทินปี ' + cY + ' ค่ะ');
+    return;
+  }
+  initApp();
+}
+
 function initApp() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   const sy = document.getElementById('selY');
-  for(let y=2554;y>=2466;y--){const o=document.createElement('option');o.value=y;o.textContent='พ.ศ. '+y;sy.appendChild(o);}
+  sy.innerHTML = '';
+  for(let y=2565;y>=2466;y--){const o=document.createElement('option');o.value=y;o.textContent='พ.ศ. '+y;sy.appendChild(o);}
+  sy.value = cY;
   render();
 }
 
@@ -252,7 +270,7 @@ const MN=['','มกราคม','กุมภาพันธ์','มีนา
 const DF=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 const todayBE=new Date().getFullYear()+543,todayM=new Date().getMonth()+1,todayD=new Date().getDate();
 let cY=2523,cM=1,selD=null;
-if(todayBE>=2466&&todayBE<=2554){cY=todayBE;cM=todayM;}
+if(todayBE>=2466&&todayBE<=2565){cY=todayBE;cM=todayM;}
 
 function gk(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 function dim(y,m){return new Date(y-543,m,0).getDate();}
@@ -405,9 +423,24 @@ function zodiac(y){
   return a[i]+' '+n[i];
 }
 
-function prev(){cM--;if(cM<1){cM=12;cY--;}if(cY<2466){cY=2466;cM=4;}render();}
-function next(){cM++;if(cM>12){cM=1;cY++;}if(cY>2554){cY=2554;cM=12;}render();}
-function jump(){cM=parseInt(document.getElementById('selM').value);cY=parseInt(document.getElementById('selY').value);render();}
+async function prev(){
+  cM--;if(cM<1){cM=12;cY--;}
+  if(cY<2466){cY=2466;cM=4;}
+  await loadCalendarYear(cY);
+  render();
+}
+async function next(){
+  cM++;if(cM>12){cM=1;cY++;}
+  if(cY>2565){cY=2565;cM=12;}
+  await loadCalendarYear(cY);
+  render();
+}
+async function jump(){
+  cM=parseInt(document.getElementById('selM').value);
+  cY=parseInt(document.getElementById('selY').value);
+  await loadCalendarYear(cY);
+  render();
+}
 
 (function(){
   const c=document.getElementById('stars');
