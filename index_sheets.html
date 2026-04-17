@@ -5,8 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>จักรวาลแห่งตัวเลข</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+.ix-bottom-nav{position:fixed;bottom:0;left:0;right:0;height:60px;background:rgba(10,3,8,.97);border-top:1px solid rgba(107,45,94,.3);display:flex;z-index:200;backdrop-filter:blur(12px);padding-bottom:env(safe-area-inset-bottom)}
+.ix-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;color:rgba(112,80,96,.9);transition:all .2s;padding:6px 4px;text-decoration:none;font-family:'Prompt',sans-serif}
+.ix-nav-item:active{transform:scale(.93)}
+.ix-nav-icon{font-size:21px;line-height:1}
+.ix-nav-label{font-size:10px;font-weight:500;letter-spacing:.3px}
+.ix-nav-item.cta{background:linear-gradient(135deg,rgba(107,45,94,.35),rgba(139,61,122,.25))}
+.ix-nav-item.cta .ix-nav-label{color:#E08AC0}
+</style>
 </head>
-<body style="margin:0;padding:0;background:#140810">
+<body style="margin:0;padding:0;background:#140810;padding-bottom:60px">
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -1168,7 +1178,26 @@ function printResult(result, form) {
     </div>
     <pre style="white-space:pre-wrap;font-family:'Sarabun',sans-serif;font-size:13px;line-height:1.8;background:#f8f0f5;padding:16px;border-radius:8px">${txt}</pre>
     <div class="footer">วิเคราะห์โดย จักรวาลแห่งตัวเลข · ${new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"})}</div>
-  </body></html>`);
+  
+<nav class="ix-bottom-nav">
+  <a href="home.html" class="ix-nav-item">
+    <div class="ix-nav-icon">🏠</div>
+    <div class="ix-nav-label">หน้าแรก</div>
+  </a>
+  <a href="free.html" class="ix-nav-item">
+    <div class="ix-nav-icon">🆓</div>
+    <div class="ix-nav-label">ดูดวงฟรี</div>
+  </a>
+  <a href="calendar.html" class="ix-nav-item">
+    <div class="ix-nav-icon">🗓</div>
+    <div class="ix-nav-label">ปฏิทิน</div>
+  </a>
+  <a href="index_sheets.html" class="ix-nav-item cta">
+    <div class="ix-nav-icon">🔮</div>
+    <div class="ix-nav-label">ดูดวง ✦</div>
+  </a>
+</nav>
+</body></html>`);
   win.document.close();
   setTimeout(() => win.print(), 500);
 }
