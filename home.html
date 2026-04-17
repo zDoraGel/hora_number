@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>จักรวาลแห่งตัวเลข</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#6B2D5E;--pl:#8B3D7A;--d:#1E0A1A;--dk:#3D1A35;
+  --a:#C45FA0;--al:#E08AC0;--r:#F0C8DC;--c:#F5E8F0;
+  --m:#9B6A8A;--dim:#5A3850;--g:#4CAF82;--gold:#D4A84B;
+  --red:#E05C7A;--nav-h:60px;
+  --bg:radial-gradient(ellipse at 30% 0%,#2A1025,#140810 55%,#1A0818);
+  --inp-bg:rgba(107,45,94,.18);--inp-border:rgba(107,45,94,.5);
+  --card-border:rgba(107,45,94,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);font-family:'Prompt',sans-serif;color:var(--c);font-weight:400}
+
+/* ===== STARS ===== */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) var(--dl,0s) ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.9;transform:scale(1.4)}}
+
+/* ===== SCROLL AREA ===== */
+.scroll-area{position:fixed;top:0;left:0;right:0;bottom:var(--nav-h);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;z-index:1}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(10,3,8,.97);border-top:1px solid rgba(107,45,94,.4);display:flex;z-index:100;backdrop-filter:blur(12px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all .2s;padding:6px 4px;border:none;background:transparent;color:var(--dim)}
+.nav-item.on{color:var(--al)}
+.nav-item.on .nav-icon{transform:scale(1.15)}
+.nav-item.cta{background:linear-gradient(135deg,rgba(107,45,94,.4),rgba(139,61,122,.3))}
+.nav-item.cta.on{background:linear-gradient(135deg,rgba(107,45,94,.6),rgba(196,95,160,.4))}
+.nav-item.cta .nav-label{color:var(--al)}
+.nav-icon{font-size:22px;transition:transform .2s;line-height:1}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:.5px;font-family:'DM Sans',sans-serif}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--a);opacity:0;transition:opacity .2s}
+.nav-item.on .nav-dot{opacity:1}
+
+/* ===== PAGES ===== */
+.page{display:none;min-height:100%;padding-bottom:20px}
+.page.on{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* ===== HERO ===== */
+.hero{text-align:center;padding:36px 20px 24px;position:relative}
+.hero-badge{display:inline-block;background:rgba(107,45,94,.25);border:1px solid rgba(107,45,94,.4);border-radius:50px;padding:5px 16px;font-size:10px;letter-spacing:4px;color:var(--m);margin-bottom:14px;text-transform:uppercase;font-family:'DM Sans',sans-serif;font-weight:500}
+.hero h1{font-family:'DM Sans',sans-serif;font-size:clamp(22px,6vw,30px);color:var(--r);line-height:1.2;margin-bottom:6px;font-weight:600;letter-spacing:-0.5px}
+.hero p{color:var(--m);font-size:13px;font-weight:300;letter-spacing:.3px}
+
+/* ===== CARDS ===== */
+.wrap{padding:0 14px}
+.card{background:linear-gradient(135deg,rgba(107,45,94,.15),rgba(74,31,65,.06));border:1px solid var(--card-border);border-radius:18px;padding:20px;margin-bottom:14px}
+.card-gold{background:linear-gradient(135deg,rgba(212,168,75,.1),rgba(107,45,94,.06));border:1px solid rgba(212,168,75,.28);border-radius:18px;padding:20px;margin-bottom:14px}
+.sec-title{font-family:'DM Sans',sans-serif;color:var(--r);font-size:17px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sec-desc{color:var(--m);font-size:13px;margin-bottom:14px;line-height:1.6}
+
+/* ===== YEAR ANIMAL ===== */
+.year-center{text-align:center;padding:8px 0 16px}
+.big-animal{font-size:68px;display:inline-block;animation:float 3.5s ease-in-out infinite;line-height:1}
+.year-title{font-family:'DM Sans',sans-serif;font-size:28px;color:var(--r);margin:10px 0 4px}
+.year-sub{color:var(--m);font-size:13px;margin-bottom:14px}
+.year-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.4);border-radius:20px;padding:5px 13px;font-size:12px;font-weight:600}
+.chip.gold{background:rgba(212,168,75,.15);border-color:rgba(212,168,75,.4);color:var(--gold)}
+.chip.red{background:rgba(224,92,122,.12);border-color:rgba(224,92,122,.35);color:var(--red)}
+.chip.green{background:rgba(76,175,130,.1);border-color:rgba(76,175,130,.35);color:var(--g)}
+
+/* ===== ZODIAC GRID ===== */
+.z-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.zcard{background:rgba(107,45,94,.1);border:1px solid rgba(107,45,94,.22);border-radius:13px;padding:10px 6px;text-align:center;transition:all .2s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.zcard:active{transform:scale(.93);opacity:.8}
+.zcard.chong{background:rgba(224,92,122,.09);border-color:rgba(224,92,122,.35)}
+.zcard.good{background:rgba(76,175,130,.07);border-color:rgba(76,175,130,.3)}
+.zcard.cur{background:rgba(212,168,75,.1);border-color:rgba(212,168,75,.45)}
+.z-em{font-size:24px;margin-bottom:3px}
+.z-name{font-size:11px;font-weight:700;color:var(--r)}
+.z-tag{font-size:9px;margin-top:3px;border-radius:4px;padding:1px 5px;display:inline-block;font-weight:700}
+.z-tag.c{background:rgba(224,92,122,.2);color:var(--red)}
+.z-tag.g{background:rgba(76,175,130,.15);color:var(--g)}
+.z-tag.y{background:rgba(212,168,75,.15);color:var(--gold)}
+
+/* ===== INPUT ===== */
+.inp-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.inp{background:var(--inp-bg);border:1px solid var(--inp-border);border-radius:10px;color:var(--c);font-family:'Prompt',sans-serif;font-size:15px;padding:12px 14px;outline:none;transition:all .2s;width:100%}
+.inp:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(107,45,94,.18)}
+.inp::placeholder{color:var(--dim)}
+select.inp option{background:#3D1A35}
+.btn{background:linear-gradient(135deg,var(--p),var(--pl),var(--a));background-size:200%;animation:shimmer 4s ease infinite;color:#fff;border:none;cursor:pointer;border-radius:10px;font-family:'Prompt',sans-serif;font-weight:700;font-size:14px;padding:13px 22px;transition:all .2s;white-space:nowrap;width:100%}
+.btn:active{transform:scale(.98)}
+
+/* ===== RESULT BOXES ===== */
+.res-box{background:rgba(107,45,94,.12);border:1px solid var(--card-border);border-radius:14px;padding:18px;margin-top:12px;animation:fadeUp .35s ease}
+.res-big{font-size:48px;font-weight:700;font-family:'DM Sans',sans-serif;color:var(--r);line-height:1;letter-spacing:-2px}
+.res-title{color:var(--r);font-size:15px;font-weight:700;margin:8px 0 4px}
+.res-text{color:var(--m);font-size:13px;line-height:1.7;padding:12px;background:rgba(107,45,94,.1);border-radius:10px;margin-top:8px}
+.num-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.num-box{text-align:center;background:rgba(107,45,94,.12);border:1px solid rgba(107,45,94,.25);border-radius:10px;padding:12px 6px}
+.num-label{font-size:10px;color:var(--m);margin-bottom:4px}
+.num-val{font-size:30px;font-weight:700;font-family:'DM Sans',sans-serif;color:var(--al);letter-spacing:-1px}
+
+/* ===== LUCKY NUMBERS ===== */
+.lucky-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.lnum{background:linear-gradient(135deg,rgba(107,45,94,.3),rgba(74,31,65,.2));border:1px solid rgba(107,45,94,.4);border-radius:10px;padding:12px;text-align:center;font-size:24px;font-weight:800;font-family:'DM Sans',sans-serif;color:var(--al);flex:1;min-width:48px;transition:all .2s}
+.lnum:active{transform:scale(.95)}
+.lnum.gold{background:rgba(212,168,75,.15);border-color:rgba(212,168,75,.4);color:var(--gold)}
+
+/* ===== INFO GRID ===== */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-box{background:rgba(212,168,75,.08);border:1px solid rgba(212,168,75,.2);border-radius:12px;padding:13px;text-align:center}
+.info-label{font-size:10px;color:var(--m);margin-bottom:5px}
+.info-val{font-size:13px;font-weight:700;color:var(--gold)}
+
+/* ===== CTA ===== */
+.cta-card{background:linear-gradient(135deg,rgba(107,45,94,.25),rgba(74,31,65,.15));border:1px solid rgba(107,45,94,.4);border-radius:18px;padding:24px 20px;text-align:center;margin:0 14px 20px}
+.cta-card h3{font-family:'DM Sans',sans-serif;font-size:19px;color:var(--r);margin-bottom:6px}
+.cta-card p{color:var(--m);font-size:12px;margin-bottom:16px;line-height:1.6}
+.btn-cta{display:inline-block;background:linear-gradient(135deg,var(--p),var(--a));color:#fff;text-decoration:none;border-radius:50px;font-family:'Prompt',sans-serif;font-weight:700;font-size:14px;padding:13px 32px;box-shadow:0 4px 20px rgba(107,45,94,.5)}
+
+/* ===== DETAIL MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,3,9,.7);z-index:200;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.on{display:flex;animation:fadeUp .25s ease}
+.modal{background:linear-gradient(135deg,#2D1030,#1E0A1A);border:1px solid rgba(107,45,94,.4);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:rgba(107,45,94,.5);border-radius:2px;margin:0 auto 18px}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(107,45,94,.2);border:none;color:var(--m);cursor:pointer;border-radius:50%;width:32px;height:32px;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+/* ===== DIVIDER ===== */
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(107,45,94,.25)}
+.divider span{color:var(--dim);font-size:10px;letter-spacing:2px;white-space:nowrap}
+
+/* safe area for iphone */
+.bottom-nav{padding-bottom:env(safe-area-inset-bottom)}
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<div class="stars" id="stars"></div>
+
+<!-- Scroll area -->
+<div class="scroll-area" id="scrollArea">
+
+  <!-- ======== PAGE: หน้าแรก ======== -->
+  <div class="page on" id="page-home">
+    <div class="hero">
+      <div class="hero-badge">PANTONE® 19-2820 · PHLOX</div>
+      <h1>จักรวาลแห่งตัวเลข</h1>
+      <p>ค้นพบพลังแห่งตัวเลขและดาวนักษัตร</p>
+    </div>
+    <div class="wrap">
+      <!-- Year hero -->
+      <div class="card">
+        <div class="year-center">
+          <div class="big-animal">🐴</div>
+          <div class="year-title">ปีมะเมีย</div>
+          <div class="year-sub">พ.ศ. 2569 · ค.ศ. 2026 · ธาตุไฟ</div>
+          <div class="year-chips">
+            <div class="chip gold">🔥 ธาตุไฟ</div>
+            <div class="chip gold">🎨 สีแดง · ทอง · เขียว</div>
+            <div class="chip gold">🔢 เลขมงคล 1 · 6 · 7</div>
+            <div class="chip gold">🧭 ทิศใต้ · ตะวันออก</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ชง -->
+      <div class="card">
+        <div class="sec-title">⚠️ นักษัตรปีชง 2569</div>
+        <div class="sec-desc">ปีมะเมีย (ม้า) ชงกับนักษัตรต่อไปนี้ — ควรระมัดระวังและเสริมดวงค่ะ</div>
+        <div class="z-grid" id="homeChongGrid"></div>
+      </div>
+
+      <!-- ดวงดี -->
+      <div class="card">
+        <div class="sec-title">✨ นักษัตรดวงดี 2569</div>
+        <div class="sec-desc">นักษัตรที่เสริมพลังปีมะเมีย — โชคดีตลอดปีค่ะ</div>
+        <div class="z-grid" id="homeGoodGrid"></div>
+      </div>
+
+      <!-- info -->
+      <div class="card-gold">
+        <div class="sec-title">📅 ข้อมูลประจำปี 2569</div>
+        <div class="info-grid">
+          <div class="info-box"><div class="info-label">สีมงคล</div><div class="info-val">🔴 แดง 🟡 ทอง 🟢 เขียว</div></div>
+          <div class="info-box"><div class="info-label">ธาตุ</div><div class="info-val">🔥 ไฟ</div></div>
+          <div class="info-box"><div class="info-label">เลขมงคล</div><div class="info-val" style="font-family:'DM Sans',sans-serif;font-size:20px">1 · 6 · 7</div></div>
+          <div class="info-box"><div class="info-label">ทิศมงคล</div><div class="info-val">🧭 ใต้ · ตะวันออก</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <h3>ดูดวงชะตาส่วนตัว</h3>
+      <p>วิเคราะห์ตารางพื้นดวงทั้ง 4 ตาราง<br>ตามหลักตัวเลขศาสตร์เชิงลึก</p>
+      <a href="index_sheets.html" class="btn-cta">✦ ดูดวงละเอียด ✦</a>
+    </div>
+  </div>
+
+  <!-- ======== PAGE: เลขวันเกิด ======== -->
+  <div class="page" id="page-number">
+    <div class="hero">
+      <div class="hero-badge">เลขศาสตร์</div>
+      <h1>เลขวันเกิด</h1>
+      <p>ค้นพบตัวเลขแห่งชีวิตของคุณ</p>
+    </div>
+    <div class="wrap">
+      <div class="card">
+        <div class="sec-title">🔢 กรอกวันเกิด</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input class="inp" type="number" id="nDay" placeholder="วัน เช่น 15" min="1" max="31">
+          <select class="inp" id="nMonth">
+            <option value="">เดือน</option>
+            <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+            <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+            <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+            <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+            <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+          </select>
+        </div>
+        <input class="inp" type="number" id="nYear" placeholder="ปีเกิด พ.ศ. เช่น 2523" min="2460" max="2570" style="margin-bottom:12px">
+        <button class="btn" onclick="calcNumber()">✦ คำนวณเลขชีวิต</button>
+        <div id="numberResult"></div>
+      </div>
+
+      <div class="card" id="luckyCard" style="display:none">
+        <div class="sec-title">🍀 เลขนำโชคประจำตัว</div>
+        <div class="lucky-row" id="luckyRow"></div>
+        <p style="color:var(--dim);font-size:11px;margin-top:10px;text-align:center">เลขที่เสริมพลังงานตามวันเกิดของคุณ</p>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <h3>อยากรู้ลึกกว่านี้?</h3>
+      <p>ดูตารางพื้นดวงทั้ง 4 ตาราง<br>พร้อมความหมายเชิงลึกทุกช่อง</p>
+      <a href="index_sheets.html" class="btn-cta">✦ ดูดวงละเอียด ✦</a>
+    </div>
+  </div>
+
+  <!-- ======== PAGE: ราศีนักษัตร ======== -->
+  <div class="page" id="page-zodiac">
+    <div class="hero">
+      <div class="hero-badge">นักษัตร 12 ปี</div>
+      <h1>ราศีนักษัตร</h1>
+      <p>ค้นหานักษัตรและดวงประจำปีของคุณ</p>
+    </div>
+    <div class="wrap">
+      <!-- ค้นหา -->
+      <div class="card">
+        <div class="sec-title">🔍 ค้นหานักษัตรของคุณ</div>
+        <div style="display:flex;gap:8px">
+          <input class="inp" type="number" id="zYear" placeholder="ปีเกิด พ.ศ. เช่น 2523">
+          <button class="btn" style="width:auto;padding:13px 20px" onclick="calcZodiac()">ค้นหา</button>
+        </div>
+        <div id="zodiacResult"></div>
+      </div>
+
+      <!-- ทั้ง 12 -->
+      <div class="card">
+        <div class="sec-title">🐲 นักษัตรทั้ง 12</div>
+        <div class="sec-desc">กดเพื่อดูรายละเอียดและดวงประจำปี 2569 ค่ะ</div>
+        <div class="z-grid" id="allZodiacGrid"></div>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <h3>อยากรู้ดวงชะตาส่วนตัว?</h3>
+      <p>ดูตารางพื้นดวงทั้ง 4 ตาราง<br>วิเคราะห์เชิงลึกตามหลักตัวเลขศาสตร์</p>
+      <a href="index_sheets.html" class="btn-cta">✦ ดูดวงละเอียด ✦</a>
+    </div>
+  </div>
+
+  <!-- ======== PAGE: ดูดวง ======== -->
+  <div class="page" id="page-detail">
+    <div class="hero">
+      <div class="hero-badge">พรีเมียม</div>
+      <h1>ดูดวงละเอียด</h1>
+      <p>วิเคราะห์ตารางพื้นดวงทั้ง 4 ตาราง</p>
+    </div>
+    <div class="wrap">
+      <div class="card" style="text-align:center;padding:32px 20px">
+        <div style="font-size:52px;margin-bottom:14px;animation:float 3s ease-in-out infinite;display:inline-block">🔮</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--r);margin-bottom:10px">ตารางพื้นดวง 4 ตาราง</div>
+        <div style="color:var(--m);font-size:13px;line-height:1.8;margin-bottom:20px">
+          ✦ ตารางที่ 1 — พื้นดวงชะตา<br>
+          ✦ ตารางที่ 2 — วัน เดือน ปี<br>
+          ✦ ตารางที่ 3 — เดือนปัจจุบัน<br>
+          ✦ ตารางที่ 4 — ช่วงอายุ
+        </div>
+        <a href="index_sheets.html" class="btn-cta" style="display:block;margin-bottom:14px">✦ กรอกโค้ดเพื่อดูดวง ✦</a>
+        <p style="color:var(--dim);font-size:11px">ติดต่อรับโค้ดได้ที่อาจารย์ค่ะ</p>
+      </div>
+
+      <div class="card-gold">
+        <div class="sec-title">💎 สิ่งที่จะได้รับ</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--gold);font-size:14px;margin-top:1px">✦</span>
+            <span style="color:var(--c);font-size:13px">วิเคราะห์พื้นดวงชะตาส่วนตัวเชิงลึก</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--gold);font-size:14px;margin-top:1px">✦</span>
+            <span style="color:var(--c);font-size:13px">ดูดวงตามวัน เดือน ปีเกิด</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--gold);font-size:14px;margin-top:1px">✦</span>
+            <span style="color:var(--c);font-size:13px">ดูดวงเดือนปัจจุบัน</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--gold);font-size:14px;margin-top:1px">✦</span>
+            <span style="color:var(--c);font-size:13px">ดูดวงตามช่วงอายุ</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--gold);font-size:14px;margin-top:1px">✦</span>
+            <span style="color:var(--c);font-size:13px">ความหมายของตัวเลขทุกตัวในตาราง</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /scroll-area -->
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item on" onclick="goPage('home',this)">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">หน้าแรก</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" onclick="goPage('number',this)">
+    <div class="nav-icon">🔢</div>
+    <div class="nav-label">เลขวันเกิด</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" onclick="goPage('zodiac',this)">
+    <div class="nav-icon">🐲</div>
+    <div class="nav-label">นักษัตร</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-item cta" onclick="goPage('detail',this)">
+    <div class="nav-icon">🔮</div>
+    <div class="nav-label">ดูดวง ✦</div>
+    <div class="nav-dot"></div>
+  </button>
+</nav>
+
+<!-- Modal zodiac detail -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-handle"></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const ZODIAC = {
+  1:{name:'ชวด',  animal:'🐭',element:'น้ำ', chong:[7],  good:[5,9],  desc:'ฉลาด รอบคอบ ปรับตัวเก่ง มีไหวพริบสูง'},
+  2:{name:'ฉลู',  animal:'🐂',element:'ดิน',chong:[8],  good:[6,10], desc:'มุ่งมั่น อดทน น่าเชื่อถือ ทำงานหนัก'},
+  3:{name:'ขาล',  animal:'🐯',element:'ไม้', chong:[9],  good:[7,11], desc:'กล้าหาญ มีเสน่ห์ เป็นผู้นำโดยธรรมชาติ'},
+  4:{name:'เถาะ', animal:'🐰',element:'ไม้', chong:[10], good:[8,12], desc:'อ่อนโยน สุภาพ มีศิลปะ ใจดีกับทุกคน'},
+  5:{name:'มะโรง',animal:'🐲',element:'ดิน',chong:[11], good:[1,9],  desc:'มีพลัง ทะเยอทะยาน โชคดี เป็นที่เคารพ'},
+  6:{name:'มะเส็ง',animal:'🐍',element:'ไฟ',chong:[12], good:[2,10], desc:'ลึกซึ้ง ฉลาด มีปัญญา สัญชาตญาณดี'},
+  7:{name:'มะเมีย',animal:'🐴',element:'ไฟ',chong:[1],  good:[3,11], desc:'กระตือรือร้น อิสระ กล้าหาญ รักการผจญภัย'},
+  8:{name:'มะแม', animal:'🐐',element:'ดิน',chong:[2],  good:[4,12], desc:'อ่อนโยน มีความคิดสร้างสรรค์ รักศิลปะ'},
+  9:{name:'วอก',  animal:'🐒',element:'โลหะ',chong:[3], good:[1,5],  desc:'ฉลาด ว่องไว แก้ปัญหาเก่ง มีไหวพริบ'},
+  10:{name:'ระกา', animal:'🐓',element:'โลหะ',chong:[4],good:[2,6],  desc:'ขยัน ตรงไปตรงมา มีระเบียบวินัย'},
+  11:{name:'จอ',  animal:'🐕',element:'ดิน',chong:[5],  good:[3,7],  desc:'ซื่อสัตย์ จงรักภักดี เชื่อถือได้ เพื่อนแท้'},
+  12:{name:'กุน', animal:'🐷',element:'น้ำ', chong:[6],  good:[4,8],  desc:'ใจดี อบอุ่น มีน้ำใจ รักครอบครัว'}
+};
+
+const THIS_Z = 7; // 2569 มะเมีย
+
+const NUM_MEANING = {
+  1:{title:'เลข 1 — ผู้นำ',       meaning:'มีความเป็นผู้นำสูง กล้าตัดสินใจ ริเริ่มสิ่งใหม่ได้ดี มีความมุ่งมั่นและอิสระในตัวเอง ชอบทำสิ่งที่แตกต่าง',color:'var(--gold)'},
+  2:{title:'เลข 2 — ผู้ประสาน',   meaning:'อ่อนโยน ประนีประนอม ทำงานร่วมกับผู้อื่นได้ดีมาก มีสัญชาตญาณและความอ่อนไหวสูง รักสงบ',color:'var(--al)'},
+  3:{title:'เลข 3 — นักสื่อสาร',  meaning:'มีความคิดสร้างสรรค์ พูดเก่ง มีเสน่ห์ รักอิสระ มีความสุขกับชีวิต ชอบแสดงออก',color:'#F39C12'},
+  4:{title:'เลข 4 — รากฐาน',      meaning:'มีระเบียบวินัย ทำงานหนัก น่าเชื่อถือ ปฏิบัติจริง มีความมั่นคง วางแผนได้ดี',color:'var(--g)'},
+  5:{title:'เลข 5 — นักผจญภัย',   meaning:'รักอิสระ ชอบการเปลี่ยนแปลง ปรับตัวเก่ง มีเสน่ห์ กระตือรือร้น ชอบความหลากหลาย',color:'#E74C3C'},
+  6:{title:'เลข 6 — ผู้ดูแล',     meaning:'รักครอบครัว มีความรับผิดชอบสูง เอาใจใส่ผู้อื่น มีความงามและความสมดุลในชีวิต ชอบช่วยเหลือ',color:'#9B59B6'},
+  7:{title:'เลข 7 — นักปราชญ์',   meaning:'ชอบค้นคว้าหาความรู้ ลึกซึ้ง มีสัญชาตญาณดี ชอบความสงบและการใคร่ครวญ มีปัญญาสูง',color:'var(--r)'},
+};
+
+const MONTHS = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+// ===== UTILS =====
+function getZodiac(yearBE){
+  return [1,2,3,4,5,6,7,8,9,10,11,12][((yearBE-543-2020)%12+12)%12];
+}
+function digitSum(n){let s=Math.abs(n);while(s>9)s=String(s).split('').reduce((a,b)=>a+parseInt(b),0);return s;}
+function reduceMax7(n){let r=digitSum(n);while(r>7)r-=7;return r;}
+
+// ===== STARS =====
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<55;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2+1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;--dl:${Math.random()*4}s`;
+    c.appendChild(s);
+  }
+})();
+
+// ===== NAV =====
+function goPage(name, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  btn.classList.add('on');
+  document.getElementById('scrollArea').scrollTop=0;
+}
+
+// ===== BUILD HOME =====
+function buildHome(){
+  const chong = ZODIAC[THIS_Z].chong;
+  const good  = ZODIAC[THIS_Z].good;
+  document.getElementById('homeChongGrid').innerHTML = chong.map(i=>`
+    <div class="zcard chong" onclick="openModal(${i})">
+      <div class="z-em">${ZODIAC[i].animal}</div>
+      <div class="z-name">${ZODIAC[i].name}</div>
+      <div class="z-tag c">⚠️ ชง</div>
+    </div>`).join('');
+  document.getElementById('homeGoodGrid').innerHTML = good.map(i=>`
+    <div class="zcard good" onclick="openModal(${i})">
+      <div class="z-em">${ZODIAC[i].animal}</div>
+      <div class="z-name">${ZODIAC[i].name}</div>
+      <div class="z-tag g">✨ ดี</div>
+    </div>`).join('');
+}
+
+// ===== BUILD ALL ZODIAC =====
+function buildAllZodiac(){
+  const chong=ZODIAC[THIS_Z].chong, good=ZODIAC[THIS_Z].good;
+  document.getElementById('allZodiacGrid').innerHTML = Object.entries(ZODIAC).map(([k,z])=>{
+    const id=parseInt(k);
+    const isC=chong.includes(id), isG=good.includes(id), isCur=id===THIS_Z;
+    let cls='zcard', tag='';
+    if(isCur)    {cls+=' cur';  tag=`<div class="z-tag y">ปีนี้</div>`;}
+    else if(isC) {cls+=' chong';tag=`<div class="z-tag c">⚠️ ชง</div>`;}
+    else if(isG) {cls+=' good'; tag=`<div class="z-tag g">✨ ดี</div>`;}
+    return `<div class="${cls}" onclick="openModal(${id})">
+      <div class="z-em">${z.animal}</div>
+      <div class="z-name">${z.name}</div>
+      <div class="z-tag" style="color:var(--dim);background:transparent">${z.element}</div>
+      ${tag}
+    </div>`;
+  }).join('');
+}
+
+// ===== MODAL =====
+function openModal(zid){
+  const z=ZODIAC[zid];
+  const chong=ZODIAC[THIS_Z].chong, good=ZODIAC[THIS_Z].good;
+  const isC=chong.includes(zid), isG=good.includes(zid), isCur=zid===THIS_Z;
+  const chongNames=z.chong.map(c=>`${ZODIAC[c].animal}${ZODIAC[c].name}`).join('  ');
+  const goodNames =z.good.map(c=>`${ZODIAC[c].animal}${ZODIAC[c].name}`).join('  ');
+  document.getElementById('modalBody').innerHTML=`
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:60px;animation:float 3s ease-in-out infinite;display:inline-block;margin-bottom:8px">${z.animal}</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:26px;color:var(--r)">ปี${z.name}</div>
+      <div style="color:var(--m);font-size:13px;margin-top:4px">ธาตุ${z.element} · ${z.desc}</div>
+    </div>
+    ${isCur?`<div style="background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:12px;padding:12px;margin-bottom:12px;text-align:center;color:var(--gold);font-size:13px">🌟 <b>ปี 2569 เป็นปีของคุณ!</b> พลังงานแข็งแกร่งตลอดปีค่ะ</div>`:''}
+    ${isC?`<div style="background:rgba(224,92,122,.1);border:1px solid rgba(224,92,122,.3);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--red);font-size:13px">⚠️ <b>ปี 2569 เป็นปีชงค่ะ</b><br>ควรทำพิธีเสริมดวง ระมัดระวังเรื่องสำคัญ และหลีกเลี่ยงการเสี่ยงโชค</div>`:''}
+    ${isG?`<div style="background:rgba(76,175,130,.08);border:1px solid rgba(76,175,130,.3);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--g);font-size:13px">✨ <b>ปี 2569 ดวงดีค่ะ!</b><br>เป็นปีที่เสริมพลัง โชคลาภ และความสำเร็จค่ะ</div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:rgba(224,92,122,.08);border:1px solid rgba(224,92,122,.2);border-radius:12px;padding:13px">
+        <div style="font-size:10px;color:var(--m);margin-bottom:5px">ชงกับ</div>
+        <div style="font-size:14px;color:var(--red);font-weight:700">${chongNames}</div>
+      </div>
+      <div style="background:rgba(76,175,130,.06);border:1px solid rgba(76,175,130,.2);border-radius:12px;padding:13px">
+        <div style="font-size:10px;color:var(--m);margin-bottom:5px">เข้ากันดีกับ</div>
+        <div style="font-size:14px;color:var(--g);font-weight:700">${goodNames}</div>
+      </div>
+    </div>
+    <button onclick="closeModal()" style="width:100%;background:rgba(107,45,94,.2);border:1px solid rgba(107,45,94,.4);color:var(--m);border-radius:10px;padding:12px;font-family:'Prompt',sans-serif;font-size:14px;cursor:pointer">ปิด</button>`;
+  document.getElementById('modalOverlay').classList.add('on');
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('on');
+}
+
+// ===== NUMBER CALC =====
+function calcNumber(){
+  const d=parseInt(document.getElementById('nDay').value);
+  const m=parseInt(document.getElementById('nMonth').value);
+  const y=parseInt(document.getElementById('nYear').value);
+  const out=document.getElementById('numberResult');
+  if(!d||!m||!y||y<2460||y>2570){out.innerHTML='<p style="color:var(--red);font-size:13px;margin-top:8px">กรุณากรอกวันเกิดให้ครบค่ะ</p>';return;}
+  const dn=reduceMax7(d), mn=reduceMax7(m), yn=reduceMax7(y);
+  const life=reduceMax7(d+m+y);
+  const info=NUM_MEANING[life]||NUM_MEANING[7];
+  const zid=getZodiac(y), z=ZODIAC[zid];
+  out.innerHTML=`
+    <div class="res-box">
+      <div class="num-row">
+        <div class="num-box"><div class="num-label">เลขวัน</div><div class="num-val">${dn}</div></div>
+        <div class="num-box"><div class="num-label">เลขเดือน</div><div class="num-val">${mn}</div></div>
+        <div class="num-box"><div class="num-label">เลขปี</div><div class="num-val">${yn}</div></div>
+      </div>
+      <div style="border-top:1px solid rgba(107,45,94,.25);padding-top:14px;text-align:center">
+        <div style="font-size:10px;color:var(--m);margin-bottom:4px">เลขชีวิต</div>
+        <div class="res-big" style="color:${info.color}">${life}</div>
+        <div class="res-title">${info.title}</div>
+        <div class="res-text">${info.meaning}</div>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:12px;background:rgba(107,45,94,.1);border-radius:10px;padding:12px">
+        <div style="font-size:28px">${z.animal}</div>
+        <div>
+          <div style="font-size:10px;color:var(--m)">นักษัตร</div>
+          <div style="font-size:14px;font-weight:700;color:var(--r)">ปี${z.name} · ธาตุ${z.element}</div>
+          <div style="font-size:11px;color:var(--m)">${z.desc}</div>
+        </div>
+      </div>
+    </div>`;
+  const lc=document.getElementById('luckyCard');lc.style.display='block';
+  const nums=[dn,mn,yn,life,(dn+mn)%7||7,(life+yn)%7||7].filter((v,i,a)=>a.indexOf(v)===i).slice(0,6);
+  document.getElementById('luckyRow').innerHTML=nums.map((n,i)=>`<div class="lnum ${i===0?'gold':''}">${n}</div>`).join('');
+}
+
+// ===== ZODIAC CALC =====
+function calcZodiac(){
+  const y=parseInt(document.getElementById('zYear').value);
+  const out=document.getElementById('zodiacResult');
+  if(!y||y<2460||y>2570){out.innerHTML='<p style="color:var(--red);font-size:13px;margin-top:8px">กรุณากรอกปีเกิดค่ะ</p>';return;}
+  const zid=getZodiac(y);
+  const z=ZODIAC[zid];
+  const chong=ZODIAC[THIS_Z].chong, good=ZODIAC[THIS_Z].good;
+  const isC=chong.includes(zid), isG=good.includes(zid), isCur=zid===THIS_Z;
+  const chongNames=z.chong.map(c=>`${ZODIAC[c].animal}${ZODIAC[c].name}`).join('  ');
+  const goodNames =z.good.map(c=>`${ZODIAC[c].animal}${ZODIAC[c].name}`).join('  ');
+  out.innerHTML=`
+    <div class="res-box" style="text-align:center">
+      <div style="font-size:52px;display:inline-block;animation:float 3s ease-in-out infinite;margin-bottom:8px">${z.animal}</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:24px;color:var(--r);margin-bottom:4px">ปี${z.name}</div>
+      <div style="color:var(--m);font-size:12px;margin-bottom:14px">ธาตุ${z.element} · ${z.desc}</div>
+      ${isCur?`<div style="background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--gold);font-size:13px">🌟 ปี 2569 เป็นปีของคุณ!</div>`:''}
+      ${isC?`<div style="background:rgba(224,92,122,.1);border:1px solid rgba(224,92,122,.3);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--red);font-size:13px">⚠️ ปี 2569 เป็นปีชงค่ะ ควรเสริมดวง</div>`:''}
+      ${isG?`<div style="background:rgba(76,175,130,.08);border:1px solid rgba(76,175,130,.3);border-radius:10px;padding:10px;margin-bottom:10px;color:var(--g);font-size:13px">✨ ปี 2569 ดวงดีค่ะ!</div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left">
+        <div style="background:rgba(224,92,122,.08);border:1px solid rgba(224,92,122,.2);border-radius:10px;padding:11px">
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">ชงกับ</div>
+          <div style="font-size:13px;color:var(--red);font-weight:700">${chongNames}</div>
+        </div>
+        <div style="background:rgba(76,175,130,.06);border:1px solid rgba(76,175,130,.2);border-radius:10px;padding:11px">
+          <div style="font-size:10px;color:var(--m);margin-bottom:4px">เข้ากันดีกับ</div>
+          <div style="font-size:13px;color:var(--g);font-weight:700">${goodNames}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ===== INIT =====
+buildHome();
+buildAllZodiac();
+</script>
+
+<script>
+// Log traffic — dual mode
+(function(){
+  const GS_URL  = 'https://script.google.com/macros/s/AKfycbzBObA0N2yYRx7mX8NZ7zhzZsqh5hgJVZYJSr75ATKEISWAM0WMOTiw6UOHYkTdQYuPgw/exec';
+  const API_URL = 'api.php';
+  const IS_MOCK = window.location.hostname.includes('github.io')
+               || window.location.hostname === 'localhost'
+               || window.location.hostname === '127.0.0.1'
+               || window.location.protocol === 'file:';
+  const body = JSON.stringify({ action:'log_traffic', page:'home', detail: document.referrer||'direct' });
+  try {
+    if (IS_MOCK) {
+      fetch(GS_URL, { method:'POST', body });
+    } else {
+      fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
