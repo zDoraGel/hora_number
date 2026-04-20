@@ -247,13 +247,9 @@ function showError(msg) {
 
 async function loadCalendar() {
   // โหลดปีปัจจุบันก่อน แล้ว initApp
-  const ok = await loadCalendarYear(cY);
+  await loadCalendarYear(cY);
   document.getElementById('loading').style.display = 'none';
-  if (!ok && Object.keys(CAL).length === 0) {
-    showError('ไม่มีข้อมูลปฏิทินปี ' + cY + ' ค่ะ');
-    return;
-  }
-  initApp();
+  initApp();  // แสดงหน้าเสมอ ถ้าปีนั้นไม่มีข้อมูลจะขึ้น ⚠️ ในตาราง
 }
 
 function initApp() {
@@ -261,7 +257,8 @@ function initApp() {
   document.getElementById('mainApp').style.display = 'block';
   const sy = document.getElementById('selY');
   sy.innerHTML = '';
-  for(let y=2565;y>=2466;y--){const o=document.createElement('option');o.value=y;o.textContent='พ.ศ. '+y;sy.appendChild(o);}
+  const maxY = Math.max(todayBE, 2569);  // ไม่ต่ำกว่าปีปัจจุบัน
+  for(let y=maxY;y>=2466;y--){const o=document.createElement('option');o.value=y;o.textContent='พ.ศ. '+y;sy.appendChild(o);}
   sy.value = cY;
   render();
 }
@@ -269,8 +266,7 @@ function initApp() {
 const MN=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const DF=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 const todayBE=new Date().getFullYear()+543,todayM=new Date().getMonth()+1,todayD=new Date().getDate();
-let cY=2523,cM=1,selD=null;
-if(todayBE>=2466&&todayBE<=2565){cY=todayBE;cM=todayM;}
+let cY=todayBE,cM=todayM,selD=null;  // เริ่มที่ปีปัจจุบันเสมอ
 
 function gk(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 function dim(y,m){return new Date(y-543,m,0).getDate();}
@@ -431,7 +427,7 @@ async function prev(){
 }
 async function next(){
   cM++;if(cM>12){cM=1;cY++;}
-  if(cY>2565){cY=2565;cM=12;}
+  if(cY>todayBE+1){cY=todayBE+1;cM=12;}
   await loadCalendarYear(cY);
   render();
 }
