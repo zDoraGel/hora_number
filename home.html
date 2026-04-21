@@ -156,11 +156,11 @@ select.inp option{background:#3D1A35}
     <div class="wrap">
       <!-- Year hero -->
       <div class="card">
-        <div class="year-center">
-          <div class="big-animal">🐴</div>
-          <div class="year-title">ปีมะเมีย</div>
-          <div class="year-sub">พ.ศ. 2569 · ค.ศ. 2026 · ธาตุไฟ</div>
-          <div class="year-chips">
+        <div class="year-center" id="yearHero">
+          <div class="big-animal" id="heroAnimal">🐴</div>
+          <div class="year-title" id="heroTitle">ปีมะเมีย</div>
+          <div class="year-sub" id="heroSub">พ.ศ. 2569 · ค.ศ. 2026 · ธาตุไฟ</div>
+          <div class="year-chips" id="heroChips">
             <div class="chip gold">🔥 ธาตุไฟ</div>
             <div class="chip gold">🎨 สีแดง · ทอง · เขียว</div>
             <div class="chip gold">🔢 เลขมงคล 1 · 6 · 7</div>
@@ -171,22 +171,22 @@ select.inp option{background:#3D1A35}
 
       <!-- ชง -->
       <div class="card">
-        <div class="sec-title">⚠️ นักษัตรปีชง 2569</div>
-        <div class="sec-desc">ปีมะเมีย (ม้า) ชงกับนักษัตรต่อไปนี้ — ควรระมัดระวังและเสริมดวงค่ะ</div>
+        <div class="sec-title" id="chongTitle">⚠️ นักษัตรปีชง 2569</div>
+        <div class="sec-desc" id="chongDesc">ปีมะเมีย (ม้า) ชงกับนักษัตรต่อไปนี้ — ควรระมัดระวังและเสริมดวงค่ะ</div>
         <div class="z-grid" id="homeChongGrid"></div>
       </div>
 
       <!-- ดวงดี -->
       <div class="card">
-        <div class="sec-title">✨ นักษัตรดวงดี 2569</div>
-        <div class="sec-desc">นักษัตรที่เสริมพลังปีมะเมีย — โชคดีตลอดปีค่ะ</div>
+        <div class="sec-title" id="goodTitle">✨ นักษัตรดวงดี 2569</div>
+        <div class="sec-desc" id="goodDesc">นักษัตรที่เสริมพลังปีมะเมีย — โชคดีตลอดปีค่ะ</div>
         <div class="z-grid" id="homeGoodGrid"></div>
       </div>
 
       <!-- info -->
       <div class="card-gold">
-        <div class="sec-title">📅 ข้อมูลประจำปี 2569</div>
-        <div class="info-grid">
+        <div class="sec-title" id="infoTitle">📅 ข้อมูลประจำปี 2569</div>
+        <div class="info-grid" id="infoGrid">
           <div class="info-box"><div class="info-label">สีมงคล</div><div class="info-val">🔴 แดง 🟡 ทอง 🟢 เขียว</div></div>
           <div class="info-box"><div class="info-label">ธาตุ</div><div class="info-val">🔥 ไฟ</div></div>
           <div class="info-box"><div class="info-label">เลขมงคล</div><div class="info-val" style="font-family:'DM Sans',sans-serif;font-size:20px">1 · 6 · 7</div></div>
@@ -264,7 +264,7 @@ select.inp option{background:#3D1A35}
       <!-- ทั้ง 12 -->
       <div class="card">
         <div class="sec-title">🐲 นักษัตรทั้ง 12</div>
-        <div class="sec-desc">กดเพื่อดูรายละเอียดและดวงประจำปี 2569 ค่ะ</div>
+        <div class="sec-desc" id="detailDesc">กดเพื่อดูรายละเอียดและดวงประจำปี 2569 ค่ะ</div>
         <div class="z-grid" id="allZodiacGrid"></div>
       </div>
     </div>
@@ -381,7 +381,25 @@ const ZODIAC = {
   12:{name:'กุน', animal:'🐷',element:'น้ำ', chong:[6],  good:[4,8],  desc:'ใจดี อบอุ่น มีน้ำใจ รักครอบครัว'}
 };
 
-const THIS_Z = 7; // 2569 มะเมีย
+// ข้อมูลเพิ่มเติมรายปีนักษัตร
+const ZODIAC_YEAR_INFO = {
+  1:{element_emoji:'💧',colors:'⚪ ขาว 🔵 น้ำเงิน ⚫ ดำ',lucky:'1 · 4 · 7',direction:'เหนือ'},
+  2:{element_emoji:'🌍',colors:'🟡 เหลือง 🟤 น้ำตาล 🟢 เขียว',lucky:'2 · 5 · 8',direction:'ตะวันตกเฉียงใต้'},
+  3:{element_emoji:'🌳',colors:'🟢 เขียว 🔵 น้ำเงิน ⚫ ดำ',lucky:'3 · 6 · 9',direction:'ตะวันออก'},
+  4:{element_emoji:'🌳',colors:'🟢 เขียว 🔵 น้ำเงิน ม่วง',lucky:'3 · 4 · 9',direction:'ตะวันออก'},
+  5:{element_emoji:'🌍',colors:'🟡 เหลือง 🟤 น้ำตาล 🔴 แดง',lucky:'1 · 6 · 7',direction:'ตะวันออกเฉียงใต้'},
+  6:{element_emoji:'🔥',colors:'🔴 แดง 🟠 ส้ม 🟣 ม่วง',lucky:'2 · 8 · 9',direction:'ใต้'},
+  7:{element_emoji:'🔥',colors:'🔴 แดง 🟡 ทอง 🟢 เขียว',lucky:'1 · 6 · 7',direction:'ใต้ · ตะวันออก'},
+  8:{element_emoji:'🌍',colors:'🟡 เหลือง 🟤 น้ำตาล ⚫ ดำ',lucky:'2 · 3 · 4',direction:'ตะวันตกเฉียงใต้'},
+  9:{element_emoji:'⚙️',colors:'⚪ ขาว เทา 🔵 น้ำเงิน',lucky:'1 · 4 · 8',direction:'ตะวันตก'},
+  10:{element_emoji:'⚙️',colors:'⚪ ขาว เทา 🟡 ทอง',lucky:'5 · 7 · 8',direction:'ตะวันตก'},
+  11:{element_emoji:'🌍',colors:'🟡 เหลือง 🟤 น้ำตาล 🟢 เขียว',lucky:'1 · 3 · 9',direction:'ตะวันตกเฉียงเหนือ'},
+  12:{element_emoji:'💧',colors:'⚪ ขาว 🔵 น้ำเงิน 🟡 ทอง',lucky:'2 · 5 · 8',direction:'เหนือ'}
+};
+
+// คำนวณปีนักษัตรปัจจุบันอัตโนมัติ
+const THIS_YEAR_BE = new Date().getFullYear() + 543;
+const THIS_Z = getZodiac(THIS_YEAR_BE);
 
 const NUM_MEANING = {
   1:{title:'เลข 1 — ผู้นำ',       meaning:'มีความเป็นผู้นำสูง กล้าตัดสินใจ ริเริ่มสิ่งใหม่ได้ดี มีความมุ่งมั่นและอิสระในตัวเอง ชอบทำสิ่งที่แตกต่าง',color:'var(--gold)'},
@@ -401,6 +419,49 @@ function getZodiac(yearBE){
 }
 function digitSum(n){let s=Math.abs(n);while(s>9)s=String(s).split('').reduce((a,b)=>a+parseInt(b),0);return s;}
 function reduceMax7(n){let r=digitSum(n);while(r>7)r-=7;return r;}
+
+// ===== INIT YEAR INFO (อัตโนมัติตามปีจริง) =====
+function initYearInfo() {
+  const z    = ZODIAC[THIS_Z];
+  const info = ZODIAC_YEAR_INFO[THIS_Z] || {};
+  const yearCE = THIS_YEAR_BE - 543;
+
+  // Hero section
+  const heroAnimal = document.getElementById('heroAnimal');
+  const heroTitle  = document.getElementById('heroTitle');
+  const heroSub    = document.getElementById('heroSub');
+  const heroChips  = document.getElementById('heroChips');
+  if (heroAnimal) heroAnimal.textContent = z.animal;
+  if (heroTitle)  heroTitle.textContent  = 'ปี' + z.name;
+  if (heroSub)    heroSub.textContent    = 'พ.ศ. ' + THIS_YEAR_BE + ' · ค.ศ. ' + yearCE + ' · ธาตุ' + z.element;
+  if (heroChips)  heroChips.innerHTML    =
+    `<div class="chip gold">${info.element_emoji||''} ธาตุ${z.element}</div>
+     <div class="chip gold">🎨 ${info.colors||''}</div>
+     <div class="chip gold">🔢 เลขมงคล ${info.lucky||''}</div>
+     <div class="chip gold">🧭 ${info.direction||''}</div>`;
+
+  // Chong / Good titles
+  const chongTitle = document.getElementById('chongTitle');
+  const chongDesc  = document.getElementById('chongDesc');
+  const goodTitle  = document.getElementById('goodTitle');
+  const goodDesc   = document.getElementById('goodDesc');
+  const infoTitle  = document.getElementById('infoTitle');
+  const detailDesc = document.getElementById('detailDesc');
+  if (chongTitle) chongTitle.textContent = '⚠️ นักษัตรปีชง ' + THIS_YEAR_BE;
+  if (chongDesc)  chongDesc.textContent  = 'ปี' + z.name + ' (' + z.animal + ') ชงกับนักษัตรต่อไปนี้ — ควรระมัดระวังและเสริมดวงค่ะ';
+  if (goodTitle)  goodTitle.textContent  = '✨ นักษัตรดวงดี ' + THIS_YEAR_BE;
+  if (goodDesc)   goodDesc.textContent   = 'นักษัตรที่เสริมพลังปี' + z.name + ' — โชคดีตลอดปีค่ะ';
+  if (infoTitle)  infoTitle.textContent  = '📅 ข้อมูลประจำปี ' + THIS_YEAR_BE;
+  if (detailDesc) detailDesc.textContent = 'กดเพื่อดูรายละเอียดและดวงประจำปี ' + THIS_YEAR_BE + ' ค่ะ';
+
+  // Info grid
+  const infoGrid = document.getElementById('infoGrid');
+  if (infoGrid) infoGrid.innerHTML =
+    `<div class="info-box"><div class="info-label">สีมงคล</div><div class="info-val">${info.colors||'-'}</div></div>
+     <div class="info-box"><div class="info-label">ธาตุ</div><div class="info-val">${info.element_emoji||''} ${z.element}</div></div>
+     <div class="info-box"><div class="info-label">เลขมงคล</div><div class="info-val" style="font-family:'DM Sans',sans-serif;font-size:20px">${info.lucky||'-'}</div></div>
+     <div class="info-box"><div class="info-label">ทิศมงคล</div><div class="info-val">🧭 ${info.direction||'-'}</div></div>`;
+}
 
 // ===== STARS =====
 (function(){
@@ -472,9 +533,9 @@ function openModal(zid){
       <div style="font-family:'DM Sans',sans-serif;font-size:26px;color:var(--r)">ปี${z.name}</div>
       <div style="color:var(--m);font-size:13px;margin-top:4px">ธาตุ${z.element} · ${z.desc}</div>
     </div>
-    ${isCur?`<div style="background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:12px;padding:12px;margin-bottom:12px;text-align:center;color:var(--gold);font-size:13px">🌟 <b>ปี 2569 เป็นปีของคุณ!</b> พลังงานแข็งแกร่งตลอดปีค่ะ</div>`:''}
-    ${isC?`<div style="background:rgba(224,92,122,.1);border:1px solid rgba(224,92,122,.3);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--red);font-size:13px">⚠️ <b>ปี 2569 เป็นปีชงค่ะ</b><br>ควรทำพิธีเสริมดวง ระมัดระวังเรื่องสำคัญ และหลีกเลี่ยงการเสี่ยงโชค</div>`:''}
-    ${isG?`<div style="background:rgba(76,175,130,.08);border:1px solid rgba(76,175,130,.3);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--g);font-size:13px">✨ <b>ปี 2569 ดวงดีค่ะ!</b><br>เป็นปีที่เสริมพลัง โชคลาภ และความสำเร็จค่ะ</div>`:''}
+    ${isCur?`<div style="background:rgba(212,168,75,.1);border:1px solid rgba(212,168,75,.3);border-radius:12px;padding:12px;margin-bottom:12px;text-align:center;color:var(--gold);font-size:13px">🌟 <b>ปี ${THIS_YEAR_BE} เป็นปีของคุณ!</b> พลังงานแข็งแกร่งตลอดปีค่ะ</div>`:''}
+    ${isC?`<div style="background:rgba(224,92,122,.1);border:1px solid rgba(224,92,122,.3);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--red);font-size:13px">⚠️ <b>ปี ${THIS_YEAR_BE} เป็นปีชงค่ะ</b><br>ควรทำพิธีเสริมดวง ระมัดระวังเรื่องสำคัญ และหลีกเลี่ยงการเสี่ยงโชค</div>`:''}
+    ${isG?`<div style="background:rgba(76,175,130,.08);border:1px solid rgba(76,175,130,.3);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--g);font-size:13px">✨ <b>ปี ${THIS_YEAR_BE} ดวงดีค่ะ!</b><br>เป็นปีที่เสริมพลัง โชคลาภ และความสำเร็จค่ะ</div>`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <div style="background:rgba(224,92,122,.08);border:1px solid rgba(224,92,122,.2);border-radius:12px;padding:13px">
         <div style="font-size:10px;color:var(--m);margin-bottom:5px">ชงกับ</div>
@@ -565,6 +626,7 @@ function calcZodiac(){
 }
 
 // ===== INIT =====
+initYearInfo();
 buildHome();
 buildAllZodiac();
 </script>
