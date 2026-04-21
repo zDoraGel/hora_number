@@ -269,7 +269,8 @@ tr:hover td{background:rgba(107,45,94,.08)}
         </select>
         <select id="revY" style="width:100px"></select>
         <button class="btn btn-p" style="padding:8px 16px;font-size:13px" onclick="loadRevenue()">🔍 ดูข้อมูล</button>
-        <button class="btn btn-g" style="padding:8px 16px;font-size:13px" onclick="exportExcel()">📥 Export Excel</button>
+        <button class="btn btn-g" style="padding:8px 16px;font-size:13px" onclick="exportExcel('month')">📥 Export เดือนนี้</button>
+        <button class="btn btn-g" style="padding:8px 16px;font-size:13px" onclick="exportExcel('year')">📥 Export ทั้งปี</button>
       </div>
 
       <!-- สรุปรายปี -->
@@ -1728,16 +1729,13 @@ async function loadRevenue() {
   } catch(e) { out.innerHTML='<p style="color:var(--red);text-align:center">เชื่อมต่อล้มเหลว</p>'; }
 }
 
-async function exportExcel() {
+async function exportExcel(mode) {
   const month = parseInt(document.getElementById('revM').value);
   const year  = parseInt(document.getElementById('revY').value);
-  try {
-    const data = await api({ action:'export_transactions', token:TOKEN, month, year });
-    if (!data.ok) { toast('❌ '+data.msg); return; }
-    const rows = data.rows || [];
-    if (!rows.length) { toast('ไม่มีข้อมูลในเดือนนี้ค่ะ'); return; }
+  const isYear = mode === 'year';
 
-    // สร้าง Excel ด้วย SheetJS (โหลดจาก CDN)
+  try {
+    // โหลด SheetJS
     if (typeof XLSX === 'undefined') {
       await new Promise((res,rej)=>{
         const s=document.createElement('script');
@@ -1746,14 +1744,77 @@ async function exportExcel() {
         document.head.appendChild(s);
       });
     }
-    // เพิ่มแถวสรุป
-    const exportRows = [...rows, {}, {'โค้ด':'รวมทั้งหมด','ราคา (บาท)':data.total}];
+
+    // ดึงข้อมูล
+    let allRows = [];
+    let total   = 0;
+    let label   = '';
+
+    if (isYear) {
+      // ดึงทุกเดือนในปีนั้น
+      for (let m = 1; m <= 12; m++) {
+        const data = await api({ action:'export_transactions', token:TOKEN, month: m, year });
+        if (data.ok && data.rows && data.rows.length) {
+          allRows = allRows.concat(data.rows);
+          total += data.total || 0;
+        }
+      }
+      label = 'ทั้งปี พ.ศ. ' + (year+543);
+    } else {
+      const data = await api({ action:'export_transactions', token:TOKEN, month, year });
+      if (!data.ok) { toast('❌ '+data.msg); return; }
+      allRows = data.rows || [];
+      total   = data.total || 0;
+      label   = MONTHS[month] + ' พ.ศ. ' + (year+543);
+    }
+
+    if (!allRows.length) { toast('ไม่มีข้อมูลค่ะ'); return; }
+
+    // เพิ่ม column เดือน + แปลงวันที่ + เรียงตามวันที่
+    const thMonths = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    function fmtExportDate(d) {
+      if (!d) return '-';
+      const dt = new Date(d);
+      if (isNaN(dt)) return String(d);
+      return dt.getDate() + ' ' + thMonths[dt.getMonth()+1] + ' ' + (dt.getFullYear()+543);
+    }
+    function getMonthLabel(d) {
+      if (!d) return '-';
+      const dt = new Date(d);
+      if (isNaN(dt)) return '-';
+      return thMonths[dt.getMonth()+1] + ' ' + (dt.getFullYear()+543);
+    }
+
+    // เรียงตามวันที่ก่อน
+    allRows.sort((a,b) => new Date(a.used_at||0) - new Date(b.used_at||0));
+
+    // สร้าง rows สำหรับ Excel
+    const exportRows = allRows.map(r => ({
+      'เดือน':        getMonthLabel(r.used_at),
+      'โค้ด':         r.code || '-',
+      'ชื่อลูกค้า':   r.customer_name || '-',
+      'เบอร์':        r.phone || '-',
+      'ราคา (บาท)':   r.price || 0,
+      'ช่องทาง':      r.pay_method || '-',
+      'ออกโดย':       r.created_by || '-',
+      'วันที่ใช้':     fmtExportDate(r.used_at)
+    }));
+
+    // แถวสรุป
+    exportRows.push({});
+    exportRows.push({'เดือน':'รวมทั้งหมด','ราคา (บาท)': total});
+
     const ws = XLSX.utils.json_to_sheet(exportRows);
+    // ปรับความกว้าง column
+    ws['!cols'] = [{wch:18},{wch:12},{wch:16},{wch:14},{wch:12},{wch:12},{wch:16},{wch:20}];
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, `รายได้ ${MONTHS[month]} ${year+543}`);
-    XLSX.writeFile(wb, `รายได้_${data.period}.xlsx`);
-    toast(`✅ Export ${MONTHS[month]} ${year+543} สำเร็จค่ะ`);
-  } catch(e) { toast('❌ Export ล้มเหลว'); }
+    XLSX.utils.book_append_sheet(wb, ws, 'รายได้ ' + label);
+    const fileName = isYear
+      ? 'รายได้_ทั้งปี_' + (year+543) + '.xlsx'
+      : 'รายได้_' + MONTHS[month] + '_' + (year+543) + '.xlsx';
+    XLSX.writeFile(wb, fileName);
+    toast('✅ Export ' + label + ' สำเร็จค่ะ');
+  } catch(e) { toast('❌ Export ล้มเหลว: ' + e.message); }
 }
 
 async function doBackup() {
