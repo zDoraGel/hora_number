@@ -522,7 +522,7 @@ tr:hover td{background:rgba(107,45,94,.08)}
           </button>
           <button id="myhoraSaveBtn" onclick="saveMyhoraToGS()"
             disabled style="opacity:.4;background:linear-gradient(135deg,#2D5E4E,#4E9B7A);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;cursor:pointer;font-family:'Prompt',sans-serif">
-            💾 บันทึกเข้า GAS
+            💾 บันทึก
           </button>
         </div>
         <div id="myhoraStatus" style="display:none;padding:10px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>
@@ -911,14 +911,13 @@ function setPkg(type, btn) {
     custom.style.display = 'none';
   }
 
-  // ถ้ามีราคา fix ให้เซ็ตราคาอัตโนมัติ
-  if (fixedPrice && fixedPrice > 0) {
+  // fix ราคาเฉพาะแพ็กเกจที่มีเวลา (ไม่ fix ครั้งเดียว และกำหนดเอง)
+  if (fixedPrice && fixedPrice > 0 && type !== 'once' && type !== 'custom') {
     priceEl.value = fixedPrice;
-    // highlight ปุ่มราคา
     document.querySelectorAll('.price-opt').forEach(b => b.classList.remove('on'));
     if (pkgPriceNote) pkgPriceNote.textContent = '💡 ราคา fix จากแพ็กเกจ: ' + fixedPrice.toLocaleString() + ' ฿';
   } else {
-    if (pkgPriceNote) pkgPriceNote.textContent = '';
+    if (pkgPriceNote) pkgPriceNote.textContent = type === 'once' ? '💡 ครั้งเดียว — กรอกราคาได้เองค่ะ' : '';
   }
 }
 
@@ -2195,7 +2194,7 @@ async function deleteBackup(filename) {
       var btn = document.getElementById('myhoraSaveBtn');
       btn.disabled = true;
       btn.textContent = '⏳ กำลังบันทึก...';
-      setMyhoraStatus('⏳ กำลังส่งข้อมูลไปยัง GAS...', '#555');
+      setMyhoraStatus('⏳ กำลังบันทึก...', '#555');
 
       // แบ่ง batch 200 rows
       var batchSize = 200;
