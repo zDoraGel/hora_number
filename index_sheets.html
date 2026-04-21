@@ -480,7 +480,7 @@ function NumerologyApp() {
       setResult({ blocked: true, blockedYear: yearBE });
       return;
     }
-    const zodiacNum = calEntry.zodiac || getZodiac(yearBE);
+    const zodiacNum = getZodiac(yearBE);  // คำนวณจากปีเกิดเสมอ ไม่ใช้จาก sheet
     const dowReal = calEntry.dow;
     const isWaning = calEntry.isWaning;
     // เดือนจากปฏิทิน 100 ปี (ถ้าไม่มีใน calendar data ใช้เดือนสากลแทน)
