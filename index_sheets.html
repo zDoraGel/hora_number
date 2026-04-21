@@ -498,7 +498,8 @@ function NumerologyApp() {
     const table2 = buildTable2(d7, m7, y7);
     // องค์เทวดา: ดึงช่องที่ 1 (หัวแถว) ของ row4 เสมอ
     const agePos7 = getAgeRow7(age); // ยังคงไว้สำหรับ highlight ตาราง
-    const devaHoriz = table2[3][0]; // ช่องที่ 1 ของ row4 เสมอ
+    // องค์เทวดา: ถ้าเกิน 9 ให้บวกหลักซ้ำจนเหลือ 1 ตัว (เช่น 13 → 1+3=4)
+    const devaHoriz = digitSum(table2[3][0]);
     const table3 = buildTable3(code, ageFirst, ageLast);
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
