@@ -186,7 +186,8 @@ tr:hover td{background:rgba(107,45,94,.08)}
                 <button class="pkg-opt" onclick="setPkg('365',this)">📅 1 ปี</button>
                 <button class="pkg-opt" onclick="setPkg('custom',this)">✏️ กำหนดเอง</button>
               </div>
-              <div id="pkgSummary" style="color:var(--dim);font-size:11px;margin-bottom:6px">ใช้ได้ 1 ครั้ง · ไม่มีวันหมดอายุ</div>
+              <div id="pkgSummary" style="color:var(--dim);font-size:11px;margin-bottom:4px">ใช้ได้ 1 ครั้ง · ไม่มีวันหมดอายุ</div>
+              <div id="pkgPriceNote" style="color:var(--gold);font-size:11px;margin-bottom:6px"></div>
               <div id="pkgCustom" style="display:none;background:rgba(0,0,0,.2);border-radius:8px;padding:10px;margin-top:4px">
                 <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">จำนวนวันที่ใช้ได้</label>
                 <input type="number" id="gCustomDays" value="7" min="1" max="3650"
@@ -856,6 +857,7 @@ function switchTab(name, btn) {
   if(name==='packages') loadPackages();
   if(name==='meanings') loadMeanings();
   if(name==='calendar') loadCalendarYears();
+  if(name==='gen') loadPkgPrices();
 }
 
 function toast(m) {
@@ -875,13 +877,25 @@ function fmtShort(s) {
   return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
 }
 
+var _pkgPrices = {}; // cache ราคาแพ็กเกจจาก GAS
+
 function setPkg(type, btn) {
   document.querySelectorAll('.pkg-opt').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  const custom = document.getElementById('pkgCustom');
+  const custom  = document.getElementById('pkgCustom');
   const summary = document.getElementById('pkgSummary');
-  const expEl = document.getElementById('gExpireDays');
-  const maxEl = document.getElementById('gMaxUses');
+  const expEl   = document.getElementById('gExpireDays');
+  const maxEl   = document.getElementById('gMaxUses');
+  const priceEl = document.getElementById('gPrice');
+  const pkgPriceNote = document.getElementById('pkgPriceNote');
+
+  // map type → label
+  const labelMap = {'once':'ครั้งเดียว','30':'30 วัน','90':'3 เดือน','180':'6 เดือน','365':'1 ปี'};
+  const pkgName  = labelMap[type] || '';
+
+  // ดึงราคาจาก cache ถ้ามี
+  const fixedPrice = _pkgPrices[pkgName];
+
   if (type === 'once') {
     expEl.value = '0'; maxEl.value = '1';
     summary.textContent = 'ใช้ได้ 1 ครั้ง · ไม่มีวันหมดอายุ';
@@ -890,11 +904,21 @@ function setPkg(type, btn) {
     custom.style.display = 'block';
     updateCustomSummary();
   } else {
-    const days = parseInt(type);
+    const days  = parseInt(type);
     expEl.value = days; maxEl.value = '999';
-    const label = days===30?'30 วัน':days===90?'3 เดือน':days===180?'6 เดือน':'1 ปี';
+    const label = labelMap[type] || days + ' วัน';
     summary.textContent = 'ใช้ได้ไม่จำกัดครั้ง · หมดอายุใน ' + label;
     custom.style.display = 'none';
+  }
+
+  // ถ้ามีราคา fix ให้เซ็ตราคาอัตโนมัติ
+  if (fixedPrice && fixedPrice > 0) {
+    priceEl.value = fixedPrice;
+    // highlight ปุ่มราคา
+    document.querySelectorAll('.price-opt').forEach(b => b.classList.remove('on'));
+    if (pkgPriceNote) pkgPriceNote.textContent = '💡 ราคา fix จากแพ็กเกจ: ' + fixedPrice.toLocaleString() + ' ฿';
+  } else {
+    if (pkgPriceNote) pkgPriceNote.textContent = '';
   }
 }
 
@@ -970,34 +994,69 @@ async function genCodes() {
           </button>
         </div>`;
     } else {
-      // หลายโค้ด แสดงรายการ
+      // หลายโค้ด — แสดงใบเสร็จรวม + รายการโค้ด
+      const expDays = parseInt(document.getElementById('gExpireDays')?.value) || 0;
+      const pkgLabel = expDays===0?'ครั้งเดียว':expDays===30?'30 วัน':expDays===90?'3 เดือน':expDays===180?'6 เดือน':expDays===365?'1 ปี':expDays+' วัน';
+      const expireDate = expDays > 0 ? (() => { const d=new Date(); d.setDate(d.getDate()+expDays); return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543); })() : 'ไม่มีวันหมดอายุ';
+
       out.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <p style="color:var(--m);font-size:12px">${qty} โค้ด · ${price.toLocaleString()} ฿ · <span style="color:${payColor}">${payMethod}</span></p>
-          <button class="btn btn-g" style="font-size:11px;padding:5px 10px"
+        <div id="slipWrap">
+          <div class="slip" style="margin-bottom:12px">
+            <div class="slip-head">
+              <div class="slip-logo">🔮</div>
+              <div class="slip-title">จักรวาลแห่งตัวเลข</div>
+              <div class="slip-sub">ใบเสร็จรับเงิน · ${qty} โค้ด</div>
+            </div>
+            <div class="slip-row"><span class="lbl">เลขที่</span><span class="val" style="font-size:11px">${receiptNo}</span></div>
+            <div class="slip-row"><span class="lbl">วันที่</span><span class="val">${dateStr} ${timeStr}</span></div>
+            <div class="slip-row"><span class="lbl">แพ็กเกจ</span><span class="val">${pkgLabel}</span></div>
+            <div class="slip-row"><span class="lbl">หมดอายุ</span><span class="val">${expireDate}</span></div>
+            ${note?`<div class="slip-row"><span class="lbl">ลูกค้า</span><span class="val">${note}</span></div>`:''}
+            <div class="slip-total">
+              <span class="lbl">ยอดรวม ${qty} โค้ด</span>
+              <span class="val">${(qty*price).toLocaleString()} ฿</span>
+            </div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+              ${data.codes.map((c,i)=>`
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#f5f0f7;border-radius:8px;padding:8px 12px">
+                  <span style="color:#888;font-size:11px">${i+1}.</span>
+                  <span style="font-size:16px;font-weight:800;letter-spacing:3px;color:#6B2D5E;font-family:'Courier New',monospace">${c}</span>
+                  <button class="cp" onclick="navigator.clipboard.writeText('${c}');toast('คัดลอกแล้ว!')">copy</button>
+                </div>`).join('')}
+            </div>
+            <div style="text-align:center;margin-top:10px">
+              <span class="slip-pay" style="background:${payBg};color:${payColor};border:1px solid ${payColor}">
+                ${payMethod==='สด'?'💵':payMethod==='พร้อมเพย์'?'📲':'⏳'} ${payMethod}
+              </span>
+            </div>
+            <div class="slip-footer">ขอบคุณที่ใช้บริการค่ะ 🙏<br>zdoragel.github.io/hora_number</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:4px">
+          <button class="btn btn-g" style="flex:1;font-size:12px"
             onclick="navigator.clipboard.writeText(\`${data.codes.join('\n')}\`);toast('คัดลอกทั้งหมดแล้ว!')">
-            copy ทั้งหมด
+            📋 copy ทั้งหมด
           </button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:7px;max-height:280px;overflow-y:auto">
-          ${data.codes.map((c,i)=>`
-            <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(107,45,94,.15);border-radius:8px;padding:9px 11px;border:1px solid rgba(107,45,94,.3)">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="color:var(--dim);font-size:11px">${i+1}.</span>
-                <span class="chip">${c}</span>
-              </div>
-              <button class="cp" onclick="navigator.clipboard.writeText('${c}');toast('คัดลอกแล้ว!')">copy</button>
-            </div>`).join('')}
-        </div>
-        <div style="margin-top:12px;background:rgba(107,45,94,.1);border-radius:10px;padding:12px;font-size:12px;color:var(--m)">
-          💰 รวม ${qty} โค้ด = <span style="color:var(--gold);font-weight:700">${(qty*price).toLocaleString()} ฿</span>
-          &nbsp;·&nbsp; ช่องทาง: <span style="color:${payColor};font-weight:700">${payMethod}</span>
+          <button class="btn btn-g" style="flex:1;font-size:12px" onclick="printSlip()">
+            🖨️ พิมพ์ใบเสร็จ
+          </button>
         </div>`;
     }
     toast(`✦ สร้าง ${qty} โค้ดแล้ว!`);
   } catch(e) { toast('❌ เชื่อมต่อล้มเหลว'); }
   btn.disabled = false;
   btn.innerHTML = '✦ สร้างโค้ด';
+}
+
+async function loadPkgPrices() {
+  try {
+    const data = await api({ action:'list_packages', token:TOKEN });
+    const pkgs = data.ok ? (Array.isArray(data.data) ? data.data : data.packages || []) : [];
+    _pkgPrices = {};
+    pkgs.forEach(function(p) {
+      if (p.active && p.price > 0) _pkgPrices[p.name] = p.price;
+    });
+  } catch(e) {}
 }
 
 function setPay(val, el) {
