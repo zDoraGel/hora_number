@@ -41,6 +41,8 @@ tr:hover td{background:rgba(107,45,94,.08)}
 #toast{position:fixed;bottom:20px;right:20px;background:var(--p);color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
 #toast.show{opacity:1}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+.pkg-opt{background:rgba(107,45,94,.15);border:1px solid rgba(107,45,94,.35);color:var(--m);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Prompt',sans-serif;transition:all .2s;white-space:nowrap}
+.pkg-opt.on{background:linear-gradient(135deg,#6B2D5E,#9B4E8A);border-color:var(--pl);color:#fff}
 .pay-opt{background:rgba(107,45,94,.15);border:1px solid rgba(107,45,94,.35);color:var(--m);cursor:pointer;border-radius:8px;font-family:'Prompt',sans-serif;font-size:12px;padding:6px 12px;transition:all .2s;white-space:nowrap}
 .pay-opt.on{background:rgba(107,45,94,.45);border-color:var(--a);color:var(--r);font-weight:600}
 .pay-opt:hover{border-color:var(--a);color:var(--al)}
@@ -174,17 +176,27 @@ tr:hover td{background:rgba(107,45,94,.08)}
               <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">หมายเหตุ / ชื่อลูกค้า</label>
               <input type="text" id="gNote" placeholder="ชื่อลูกค้า / VIP / โปร">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div>
-                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">⏰ หมดอายุ (วัน)</label>
-                <input type="number" id="gExpireDays" value="0" min="0" max="365">
-                <div style="color:var(--dim);font-size:10px;margin-top:3px">0 = ไม่มีวันหมดอายุ</div>
+            <div>
+              <label style="color:var(--m);font-size:12px;display:block;margin-bottom:6px">📦 แพ็กเกจ</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+                <button class="pkg-opt on" onclick="setPkg('once',this)">1️⃣ ครั้งเดียว</button>
+                <button class="pkg-opt" onclick="setPkg('30',this)">📅 30 วัน</button>
+                <button class="pkg-opt" onclick="setPkg('90',this)">📅 3 เดือน</button>
+                <button class="pkg-opt" onclick="setPkg('180',this)">📅 6 เดือน</button>
+                <button class="pkg-opt" onclick="setPkg('365',this)">📅 1 ปี</button>
+                <button class="pkg-opt" onclick="setPkg('custom',this)">✏️ กำหนดเอง</button>
               </div>
-              <div>
-                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:5px">🔁 ใช้ได้กี่ครั้ง</label>
-                <input type="number" id="gMaxUses" value="1" min="1" max="999">
-                <div style="color:var(--dim);font-size:10px;margin-top:3px">1 = ใช้ได้ครั้งเดียว</div>
+              <div id="pkgSummary" style="color:var(--dim);font-size:11px;margin-bottom:6px">ใช้ได้ 1 ครั้ง · ไม่มีวันหมดอายุ</div>
+              <div id="pkgCustom" style="display:none;background:rgba(0,0,0,.2);border-radius:8px;padding:10px;margin-top:4px">
+                <label style="color:var(--m);font-size:12px;display:block;margin-bottom:4px">จำนวนวันที่ใช้ได้</label>
+                <input type="number" id="gCustomDays" value="7" min="1" max="3650"
+                  style="width:100px;margin-bottom:4px"
+                  oninput="updateCustomSummary()">
+                <div style="color:var(--dim);font-size:10px">กรอกจำนวนวัน เช่น 7, 14, 60</div>
               </div>
+              <!-- hidden fields ที่ genCodes() จะอ่าน -->
+              <input type="hidden" id="gExpireDays" value="0">
+              <input type="hidden" id="gMaxUses" value="1">
             </div>
             <button class="btn btn-p" id="genBtn" onclick="genCodes()">✦ สร้างโค้ด</button>
           </div>
@@ -861,6 +873,37 @@ function fmtShort(s) {
   if(!s) return '-';
   const d = new Date(s);
   return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+}
+
+function setPkg(type, btn) {
+  document.querySelectorAll('.pkg-opt').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const custom = document.getElementById('pkgCustom');
+  const summary = document.getElementById('pkgSummary');
+  const expEl = document.getElementById('gExpireDays');
+  const maxEl = document.getElementById('gMaxUses');
+  if (type === 'once') {
+    expEl.value = '0'; maxEl.value = '1';
+    summary.textContent = 'ใช้ได้ 1 ครั้ง · ไม่มีวันหมดอายุ';
+    custom.style.display = 'none';
+  } else if (type === 'custom') {
+    custom.style.display = 'block';
+    updateCustomSummary();
+  } else {
+    const days = parseInt(type);
+    expEl.value = days; maxEl.value = '999';
+    const label = days===30?'30 วัน':days===90?'3 เดือน':days===180?'6 เดือน':'1 ปี';
+    summary.textContent = 'ใช้ได้ไม่จำกัดครั้ง · หมดอายุใน ' + label;
+    custom.style.display = 'none';
+  }
+}
+
+function updateCustomSummary() {
+  const days = parseInt(document.getElementById('gCustomDays').value) || 0;
+  document.getElementById('gExpireDays').value = days;
+  document.getElementById('gMaxUses').value = '999';
+  document.getElementById('pkgSummary').textContent =
+    'ใช้ได้ไม่จำกัดครั้ง · หมดอายุใน ' + days + ' วัน';
 }
 
 async function genCodes() {

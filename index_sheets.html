@@ -229,7 +229,7 @@ function lookupCalendar(day, month, yearBE) {
   // zodiac ใช้จาก sheet เสมอ (ไม่ประมาณการ)
   const zodiac = e.length >= 3 && e[2] ? e[2] : null;
   const lunarMonth = e.length >= 4 && e[3] ? e[3] : null; // เดือนจากปฏิทิน 100 ปี
-  return { dow: e[0], isWaning: e[1] === 1, zodiac, lunarMonth, exact: true };
+  return { dow: e[0], isWaning: e[1] === 0, zodiac, lunarMonth, exact: true };  // is_waxing=1=ข้างขึ้น → isWaning=false
 }
 const DAY_NAMES = ["", "\u0E2D\u0E32\u0E17\u0E34\u0E15\u0E22\u0E4C", "\u0E08\u0E31\u0E19\u0E17\u0E23\u0E4C", "\u0E2D\u0E31\u0E07\u0E04\u0E32\u0E23", "\u0E1E\u0E38\u0E18", "\u0E1E\u0E24\u0E2B\u0E31\u0E2A\u0E1A\u0E14\u0E35", "\u0E28\u0E38\u0E01\u0E23\u0E4C", "\u0E40\u0E2A\u0E32\u0E23\u0E4C"];
 const MONTH_NAMES = [
